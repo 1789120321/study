@@ -1,0 +1,1 @@
+java -jar -Dosgi.bundles=/home/luonanqin/Desktop/OSGiTest.jar@start org.eclipse.osgi_3.7.2.v20120110-1415.jar -consoleLog -console
