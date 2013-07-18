@@ -1,0 +1,57 @@
+1. 启动所有服务
+MongoDB数据节点(D1/D2)
+./mongod --fork --dbpath ../data/set1/ --logpath ../log/set1.log --replSet test (192.168.4.43)
+./mongod --fork --dbpath ../data/set2/ --logpath ../log/set2.log --replSet test (192.168.4.44)
+./mongod --fork --dbpath ../data/set3/ --logpath ../log/set3.log --replSet test (192.168.4.45)
+./mongod --fork --dbpath ../data/set4/ --logpath ../log/set4.log --replSet test (192.168.4.31 决策 不存储数据)
+
+MongoDB配置节点(C1/C2/C3)
+./mongod --configsvr --dbpath ../config/set1/ --port 20001 --fork --logpath ../log/set1.log (192.168.4.29)
+./mongod --configsvr --dbpath ../config/set2/ --port 20002 --fork --logpath ../log/set2.log (192.168.4.31)
+./mongod --configsvr --dbpath ../config/set3/ --port 20003 --fork --logpath ../log/set3.log (192.168.4.32)
+
+MongoDB路由节点(R1/R2)
+./mongos --configdb 192.168.4.29:20001,192.168.4.31:20002,192.168.4.32:20003 --port 27017 --fork --logpath ../log/root.log (192.168.4.29) --chunkSize 64(有待验证)
+
+
+2.  Deploy a Replica Set
+在某一个shard节点mongod下执行如下命令：
+>config={_id:'test',members:[{_id:0,host:'192.168.4.43:27017'},{_id:1,host:'192.168.4.44:27017'},{_id:2,host:'192.168.4.45:27017'},{_id:3,host:'192.168.4.31:27017',arbiterOnly:true}]}
+注意：其中27104这里我加一个arbiterOnly:true 表明这是决策服务的意思
+
+>rs.initiate(config)
+
+>rs.status()
+查看配置信息
+
+执行完成后该节点即主节点
+
+3. 添加集群配置
+在路由mongos下执行命令：
+sh.addShard("test/192.168.4.43:27017") //test表示replica set的名字 当把主节点添加到shard以后，会自动找到set里的主，备，决策节点
+
+use admin //切换到管理员数据库
+
+db.runCommand({enableSharding:"diameter_test"})    //diameter_test is database name
+
+db.runCommand( { shardCollection: "diameter_test.dcca_dccr_test",key:{"__avpSessionId":1}}) //dcca_dccr_test is collection name, and key is incredibly important
+
+notice:
+If you have just deployed a sharded cluster, make sure that you have enough data to make sharding effective. If you do not have sufficient data to create more than eight 64 megabyte chunks, then all data will remain on one shard. Either lower the chunk size setting, or add more data to the cluster.
+
+4. 插入数据
+
+5. 查看数据是否同步
+客户端连接从节点，查询时会出现如下错误：
+error: { "$err" : "not master and slaveok=false", "code" : 13435 }
+则执行如下语句：
+db.getMongo().setSlaveOk()
+然后查看其collection中的内容是否与主节点同步。
+
+6. 修改chunksize
+连接route server，执行以下命令：
+use config
+db.settings.save( { _id:"chunksize", value: <size> } )
+
+Note:The chunkSize and --chunkSize options, passed at runtime to the mongos do not affect the chunk size after you have initialized the cluster.
+
