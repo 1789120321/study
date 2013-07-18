@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ListenerTest
+Bundle-SymbolicName: ListenerTest
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: com.espertech.esper.client,
+ org.osgi.framework;version="1.3.0",
+ test
+Bundle-Activator: activator.ListenerActivator
