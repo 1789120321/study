@@ -1,4 +1,4 @@
 research
 ========
 
-research anythiint
+research anything
