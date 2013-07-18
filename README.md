@@ -1,4 +1,4 @@
-research
+study
 ========
 
-research anything
+study anything by myself
