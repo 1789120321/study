@@ -42,10 +42,10 @@ class StdCountListener implements UpdateListener {
 			event.put("count", n);
 			runtime.sendEvent(event, "S");
 
-			num++;
 			int count = oldEvents.length;
 			n -= count;
 		}
+		num++;
 	}
 }
 
@@ -72,10 +72,10 @@ class ActCountListener implements UpdateListener {
 			event.put("count", n);
 			runtime.sendEvent(event, "A");
 
-			num++;
 			int oldCount = oldEvents.length;
 			n -= oldCount;
 		}
+		num++;
 	}
 }
 
@@ -109,9 +109,9 @@ public class MaxValueTest {
 
 		String product = Product.class.getName();
 
-		String stdCount = "select irstream *, prevcount(s) from " + product + ".win:time(10 sec) as s";
-		String actCount = "select irstream *, prevcount(a) from " + product + "(price > 0).win:time(10 sec) as a";
-		String result = "every (a=S -> b=A(a.id=b.id and a.count=b.count)) or every (b=A -> a=S(a.id=b.id and a.count=b.count))";
+		String stdCount = "select irstream *, prevcount(s) from " + product + ".win:time(10 sec) as s output all every 1 sec";
+		String actCount = "select irstream *, prevcount(a) from " + product + "(price > 0).win:time(10 sec) as a output all every 1 sec";
+		String result = "every a=S -> b=A(a.id=b.id and a.count=b.count) or every b=A -> a=S(a.id=b.id and a.count=b.count)";
 
 		EPStatement state1 = admin.createEPL(stdCount);
 		state1.addListener(new StdCountListener(runtime));
