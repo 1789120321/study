@@ -1,6 +1,4 @@
-package listenertest2;
-
-import listenerTest2.Test2Listener;
+package listenerTest2;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -26,7 +24,8 @@ public class Listener2Activator implements BundleActivator {
 	 */
 	public void start(BundleContext bundleContext) throws Exception {
 		Listener2Activator.context = bundleContext;
-		//		Activator.getContext().registerService(UpdateListener.class, new Test2Listener(), null);
+		// Activator.getContext().registerService(UpdateListener.class, new
+		// Test2Listener(), null);
 		bundleContext.registerService(UpdateListener.class, new Test2Listener(), null);
 		AverageBatchTest abt = new AverageBatchTest();
 		abt.test();
