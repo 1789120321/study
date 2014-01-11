@@ -43,7 +43,8 @@ public class SubqueryExistsTest {
 
 		EPAdministrator admin = epService.getEPAdministrator();
 
-		String epl1 = "select * from " + Fruit1.class.getName() + " where exists (select price from " + Apple1.class.getName() + ".std:lastevent())";
+		String epl1 = "select * from " + Fruit1.class.getName() + " where exists (select price from " + Apple1.class.getName()
+				+ ".std:lastevent() group by price)";
 		/*
 		 * 同样可以适用于Filter
 		 */
