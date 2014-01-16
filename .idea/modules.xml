@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/OSGi/ListenerTest/ListenerTest.iml" filepath="$PROJECT_DIR$/OSGi/ListenerTest/ListenerTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/OSGi/ListenerTest2/ListenerTest2.iml" filepath="$PROJECT_DIR$/OSGi/ListenerTest2/ListenerTest2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/OSGi/OSGiTest/OSGiTest.iml" filepath="$PROJECT_DIR$/OSGi/OSGiTest/OSGiTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cep/ceptest/ceptest.iml" filepath="$PROJECT_DIR$/cep/ceptest/ceptest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cep/ceptest_bak/ceptest_bak.iml" filepath="$PROJECT_DIR$/cep/ceptest_bak/ceptest_bak.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cep/com.primeton.cep.engine/com.primeton.cep.engine.iml" filepath="$PROJECT_DIR$/cep/com.primeton.cep.engine/com.primeton.cep.engine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cep/com.primeton.cep.engine.esper/com.primeton.cep.engine.esper.iml" filepath="$PROJECT_DIR$/cep/com.primeton.cep.engine.esper/com.primeton.cep.engine.esper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/doc/doc.iml" filepath="$PROJECT_DIR$/doc/doc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/helloworld/helloworld.iml" filepath="$PROJECT_DIR$/helloworld/helloworld.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mongodb/mongodb/mongodb.iml" filepath="$PROJECT_DIR$/mongodb/mongodb/mongodb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/redis/redis/redis.iml" filepath="$PROJECT_DIR$/redis/redis/redis.iml" />
+    </modules>
+  </component>
+</project>
+
