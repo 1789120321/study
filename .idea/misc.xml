@@ -5,8 +5,11 @@
   </component>
   <component name="EclipseCodeFormatter">
     <option name="defaultSettings" value="true" />
+    <option name="formatter" value="ECLIPSE" />
     <option name="id" value="1389667731832" />
     <option name="name" value="default" />
+    <option name="pathToConfigFileJava" value="$PROJECT_DIR$/../../eclipse-formatter/luonanqin.xml" />
+    <option name="selectedJavaProfile" value="luonanqin" />
   </component>
   <component name="EntryPointsManager">
     <entry_points version="2.0" />
