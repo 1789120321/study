@@ -1,20 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="VcsDirectoryMappings">
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.boss.reader" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.boss.reader-impl" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.decoder.diameter" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.decoder.diameter-impl" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.decoder.pcap" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.decoder.pcap-impl" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.ostorage.merge" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.ostorage.merge-impl" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.pcap.daemon" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.pcap.reader" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.pcap.reader-impl" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.protocol.diameter.model" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.protocol.diameter.model-impl" vcs="svn" />
-    <mapping directory="$PROJECT_DIR$/../oca/com.primeton.oca.stat" vcs="svn" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
   </component>
 </project>
