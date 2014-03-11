@@ -24,8 +24,12 @@
         <processorPath useClasspath="true" />
         <module name="ceptest" />
         <module name="ceptest_bak" />
+        <module name="storm-starter" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="storm-starter" target="1.6" />
+    </bytecodeTargetLevel>
   </component>
 </project>
 

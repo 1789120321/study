@@ -8,7 +8,7 @@
     <option name="formatter" value="ECLIPSE" />
     <option name="id" value="1389667731832" />
     <option name="name" value="default" />
-    <option name="pathToConfigFileJava" value="$USER_HOME$/Dropbox/eclilpse/eclipse config/luonanqin.xml" />
+    <option name="pathToConfigFileJava" value="$USER_HOME$/Dropbox/eclipse/eclipse config/luonanqin.xml" />
     <option name="selectedJavaProfile" value="luonanqin" />
   </component>
   <component name="EntryPointsManager">
@@ -20,6 +20,7 @@
       <list>
         <option value="$PROJECT_DIR$/cep/ceptest/pom.xml" />
         <option value="$PROJECT_DIR$/cep/ceptest_bak/pom.xml" />
+        <option value="$PROJECT_DIR$/storm-starter/pom.xml" />
       </list>
     </option>
   </component>
