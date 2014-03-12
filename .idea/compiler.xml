@@ -25,6 +25,7 @@
         <module name="ceptest" />
         <module name="ceptest_bak" />
         <module name="storm-starter" />
+        <module name="storm-test" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

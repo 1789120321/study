@@ -21,6 +21,7 @@
         <option value="$PROJECT_DIR$/cep/ceptest/pom.xml" />
         <option value="$PROJECT_DIR$/cep/ceptest_bak/pom.xml" />
         <option value="$PROJECT_DIR$/storm-starter/pom.xml" />
+        <option value="$PROJECT_DIR$/storm/storm-test/pom.xml" />
       </list>
     </option>
   </component>
