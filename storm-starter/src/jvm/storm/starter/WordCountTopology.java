@@ -1,11 +1,8 @@
 package storm.starter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import storm.starter.spout.RandomSentenceSpout;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
@@ -18,6 +15,7 @@ import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import storm.starter.spout.RandomSentenceSpout;
 
 /**
  * This topology demonstrates Storm's stream groupings and multilang capabilities.
@@ -34,12 +32,6 @@ public class WordCountTopology {
 
 		Config conf = new Config();
 		conf.setDebug(true);
-		List<String> servers = new ArrayList<String>();
-		servers.add("192.168.0.10");
-		conf.put(Config.STORM_ZOOKEEPER_SERVERS, servers);
-		conf.put(Config.STORM_ZOOKEEPER_PORT, 2181);
-		// conf.put(Config.NIMBUS_HOST, "192.168.83.129");
-		// conf.put(Config.NIMBUS_THRIFT_PORT, 6627);
 
 		if (args != null && args.length > 0) {
 			conf.setNumWorkers(3);
