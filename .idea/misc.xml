@@ -8,7 +8,7 @@
     <option name="formatter" value="ECLIPSE" />
     <option name="id" value="1389667731832" />
     <option name="name" value="default" />
-    <option name="pathToConfigFileJava" value="$USER_HOME$/Dropbox/eclipse/eclipse config/luonanqin.xml" />
+    <option name="pathToConfigFileJava" value="$PROJECT_DIR$/../../eclipse-formatter/luonanqin.xml" />
     <option name="selectedJavaProfile" value="luonanqin" />
   </component>
   <component name="EntryPointsManager">
@@ -22,8 +22,30 @@
         <option value="$PROJECT_DIR$/cep/ceptest_bak/pom.xml" />
         <option value="$PROJECT_DIR$/storm-starter/pom.xml" />
         <option value="$PROJECT_DIR$/storm/storm-test/pom.xml" />
-        <option value="$PROJECT_DIR$/../csdn-esper/csdn-esper/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/assembly/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/bagel/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/core/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/examples/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/external/flume/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/external/kafka/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/external/mqtt/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/external/twitter/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/external/zeromq/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/graphx/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/mllib/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/repl/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/streaming/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/tools/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/yarn/alpha/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/yarn/pom.xml" />
+        <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/yarn/stable/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">

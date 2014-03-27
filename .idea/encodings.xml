@@ -2,6 +2,24 @@
 <project version="4">
   <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false">
     <file url="file://$PROJECT_DIR$/storm-starter" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/assembly" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/bagel" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/core" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/examples" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/external/flume" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/external/kafka" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/external/mqtt" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/external/twitter" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/external/zeromq" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/graphx" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/mllib" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/repl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/streaming" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/tools" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/yarn" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/yarn/alpha" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../spark/spark-0.9.0/yarn/stable" charset="UTF-8" />
   </component>
 </project>
 

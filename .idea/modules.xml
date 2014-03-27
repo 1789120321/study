@@ -6,7 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/cep/ceptest_bak/ceptest_bak.iml" filepath="$PROJECT_DIR$/cep/ceptest_bak/ceptest_bak.iml" group="cep" />
       <module fileurl="file://$PROJECT_DIR$/cep/com.primeton.cep.engine/com.primeton.cep.engine.iml" filepath="$PROJECT_DIR$/cep/com.primeton.cep.engine/com.primeton.cep.engine.iml" group="cep" />
       <module fileurl="file://$PROJECT_DIR$/cep/com.primeton.cep.engine.esper/com.primeton.cep.engine.esper.iml" filepath="$PROJECT_DIR$/cep/com.primeton.cep.engine.esper/com.primeton.cep.engine.esper.iml" group="cep" />
-      <module fileurl="file://$PROJECT_DIR$/../csdn-esper/csdn-esper/csdn-esper.iml" filepath="$PROJECT_DIR$/../csdn-esper/csdn-esper/csdn-esper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../csdn-esper/csdn-esper/csdn-esper.iml" filepath="$PROJECT_DIR$/../csdn-esper/csdn-esper/csdn-esper.iml" group="cep" />
       <module fileurl="file://$PROJECT_DIR$/doc/doc.iml" filepath="$PROJECT_DIR$/doc/doc.iml" />
       <module fileurl="file://$PROJECT_DIR$/helloworld/helloworld.iml" filepath="$PROJECT_DIR$/helloworld/helloworld.iml" />
       <module fileurl="file://$PROJECT_DIR$/mongodb/mongodb/mongodb.iml" filepath="$PROJECT_DIR$/mongodb/mongodb/mongodb.iml" group="nosql" />
