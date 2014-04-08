@@ -91,7 +91,7 @@ class OnUpdateSelectWindowListener implements UpdateListener {
 	}
 }
 
-public class OnUpdateWIndowTest {
+public class OnUpdateWindowTest {
 	public static void main(String[] args) {
 
 		EPServiceProvider epService = EPServiceProviderManager.getDefaultProvider();
@@ -107,7 +107,7 @@ public class OnUpdateWIndowTest {
 		String epl4 = "on " + triggerEvent + "(trigger=0) select ouw.* from OnUpdateWindow as ouw";
 
 		System.out.println("Create Window: " + epl1);
-		System.out.println("Update Trigger sentence: " + epl3);
+		System.out.println("Update Trigger: " + epl3);
 		System.out.println();
 
 		admin.createEPL(epl1);
