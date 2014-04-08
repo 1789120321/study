@@ -50,7 +50,7 @@ public class TimerAtObserverFactory implements ObserverFactory, MetaDefItem, Ser
             log.debug(".setObserverParameters " + parameters);
         }
 
-        if ((parameters.size() < 5) || (parameters.size() > 6))
+        if ((parameters.size() < 5) || (parameters.size() > 7))
         {
             throw new ObserverParameterException("Invalid number of parameters for timer:at");
         }

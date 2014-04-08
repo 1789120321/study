@@ -8,9 +8,9 @@
  **************************************************************************************/
 package com.espertech.esper.epl.expression;
 
+import com.espertech.esper.client.EventBean;
 import com.espertech.esper.util.JavaClassHelper;
 import com.espertech.esper.util.LikeUtil;
-import com.espertech.esper.client.EventBean;
 
 import java.util.Map;
 
@@ -45,7 +45,7 @@ public class ExprLikeNode extends ExprNodeBase implements ExprEvaluator
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if ((this.getChildNodes().size() != 2) && (this.getChildNodes().size() != 3))
+        if ((this.getChildNodes().length != 2) && (this.getChildNodes().length != 3))
         {
             throw new ExprValidationException("The 'like' operator requires 2 (no escape) or 3 (with escape) child expressions");
         }
@@ -66,13 +66,13 @@ public class ExprLikeNode extends ExprNodeBase implements ExprEvaluator
         {
             throw new ExprValidationException("The 'like' operator requires a String-type pattern expression");
         }
-        if (getChildNodes().get(1).isConstantResult())
+        if (getChildNodes()[1].isConstantResult())
         {
             isConstantPattern = true;
         }
 
         // check escape character node
-        if (this.getChildNodes().size() == 3)
+        if (this.getChildNodes().length == 3)
         {
             ExprEvaluator escapeChildNode = evaluators[2];
             if (escapeChildNode.getType() != String.class)
@@ -107,7 +107,7 @@ public class ExprLikeNode extends ExprNodeBase implements ExprEvaluator
             }
             String escape = "\\";
             Character escapeCharacter = null;
-            if (this.getChildNodes().size() == 3)
+            if (this.getChildNodes().length == 3)
             {
                 escape = (String) evaluators[2].evaluate(eventsPerStream, isNewData,exprEvaluatorContext);
             }
@@ -169,7 +169,7 @@ public class ExprLikeNode extends ExprNodeBase implements ExprEvaluator
     public String toExpressionString()
     {
         StringBuilder buffer = new StringBuilder();
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
 
         if (isNot)
         {
@@ -177,12 +177,12 @@ public class ExprLikeNode extends ExprNodeBase implements ExprEvaluator
         }
 
         buffer.append(" like ");
-        buffer.append(this.getChildNodes().get(1).toExpressionString());
+        buffer.append(this.getChildNodes()[1].toExpressionString());
 
-        if (this.getChildNodes().size() == 3)
+        if (this.getChildNodes().length == 3)
         {
             buffer.append(" escape ");
-            buffer.append(this.getChildNodes().get(2).toExpressionString());
+            buffer.append(this.getChildNodes()[2].toExpressionString());
         }
 
         return buffer.toString();

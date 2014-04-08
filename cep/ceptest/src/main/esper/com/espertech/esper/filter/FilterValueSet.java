@@ -30,7 +30,7 @@ public interface FilterValueSet
      * Returns list of filter parameters.
      * @return list of filter params
      */
-    public ArrayDeque<FilterValueSetParam> getParameters();
+    public FilterValueSetParam[] getParameters();
 
     public void appendTo(StringWriter writer);
 }

@@ -14,6 +14,9 @@ import com.espertech.esper.client.annotation.AuditEnum;
 import com.espertech.esper.collection.ArrayEventIterator;
 import com.espertech.esper.core.context.util.AgentInstanceContext;
 import com.espertech.esper.core.context.util.EPStatementAgentInstanceHandle;
+import com.espertech.esper.epl.expression.ExprEvaluator;
+import com.espertech.esper.epl.expression.ExprEvaluatorContext;
+import com.espertech.esper.epl.expression.ExprNode;
 import com.espertech.esper.epl.expression.ExprNodeUtility;
 import com.espertech.esper.filter.FilterSpecCompiled;
 import com.espertech.esper.util.CollectionUtil;
@@ -203,6 +206,46 @@ public class NamedWindowTailViewInstance extends ViewSupport implements Iterable
         }
     }
 
+    public EventBean[] snapshotUpdate(FilterSpecCompiled filter, ExprNode optionalWhereClause, NamedWindowUpdateHelper updateHelper, Annotation[] annotations) {
+        agentInstanceContext.getEpStatementAgentInstanceHandle().getStatementAgentInstanceLock().acquireReadLock();
+        try {
+            Collection<EventBean> events = snapshotNoLockWithFilter(filter, annotations, optionalWhereClause, agentInstanceContext);
+            if (events.isEmpty()) {
+                return CollectionUtil.EVENT_PER_STREAM_EMPTY;
+            }
+
+            EventBean[] eventsPerStream = new EventBean[3];
+            EventBean[] updated = new EventBean[events.size()];
+            int count = 0;
+            for (EventBean event : events) {
+                updated[count++] = updateHelper.update(event, eventsPerStream, agentInstanceContext);
+            }
+
+            EventBean[] deleted = events.toArray(new EventBean[events.size()]);
+            rootViewInstance.update(updated, deleted);
+            return updated;
+        }
+        finally {
+            agentInstanceContext.getEpStatementAgentInstanceHandle().getStatementAgentInstanceLock().releaseReadLock();
+        }
+    }
+
+    public EventBean[] snapshotDelete(FilterSpecCompiled filter, ExprNode filterExpr, Annotation[] annotations) {
+        agentInstanceContext.getEpStatementAgentInstanceHandle().getStatementAgentInstanceLock().acquireReadLock();
+        try {
+            Collection<EventBean> events = snapshotNoLockWithFilter(filter, annotations, filterExpr, agentInstanceContext);
+            if (events.isEmpty()) {
+                return CollectionUtil.EVENT_PER_STREAM_EMPTY;
+            }
+            EventBean[] eventsDeleted = events.toArray(new EventBean[events.size()]);
+            rootViewInstance.update(null, eventsDeleted);
+            return eventsDeleted;
+        }
+        finally {
+            agentInstanceContext.getEpStatementAgentInstanceHandle().getStatementAgentInstanceLock().releaseReadLock();
+        }
+    }
+
     public Collection<EventBean> snapshotNoLock(FilterSpecCompiled filter, Annotation[] annotations)
     {
         if (tailView.getRevisionProcessor() != null) {
@@ -222,6 +265,53 @@ public class NamedWindowTailViewInstance extends ViewSupport implements Iterable
             list.add(it.next());
         }
         return list;
+    }
+
+    public Collection<EventBean> snapshotNoLockWithFilter(FilterSpecCompiled filter, Annotation[] annotations, ExprNode filterExpr, ExprEvaluatorContext exprEvaluatorContext)
+    {
+        if (tailView.getRevisionProcessor() != null) {
+            return tailView.getRevisionProcessor().getSnapshot(agentInstanceContext.getEpStatementAgentInstanceHandle(), parent);
+        }
+
+        Collection<EventBean> indexedResult = rootViewInstance.snapshot(filter, annotations);
+        if (indexedResult != null) {
+            if (indexedResult.isEmpty()) {
+                return indexedResult;
+            }
+            if (filterExpr == null) {
+                return indexedResult;
+            }
+            ArrayDeque<EventBean> deque = new ArrayDeque<EventBean>(Math.min(indexedResult.size(), 16));
+            ExprNodeUtility.applyFilterExpressionIterable(indexedResult, filterExpr.getExprEvaluator(), exprEvaluatorContext, deque);
+            return deque;
+        }
+
+        // fall back to window operator if snapshot doesn't resolve successfully
+        Iterator<EventBean> it = parent.iterator();
+        if (!it.hasNext()) {
+            return Collections.EMPTY_LIST;
+        }
+        if (filterExpr != null) {
+            ExprEvaluator evaluator = filterExpr.getExprEvaluator();
+            ArrayDeque<EventBean> list = new ArrayDeque<EventBean>();
+            EventBean[] eventsPerStream = new EventBean[1];
+            while (it.hasNext()) {
+                EventBean event = it.next();
+                eventsPerStream[0] = event;
+                Boolean result = (Boolean) evaluator.evaluate(eventsPerStream, true, exprEvaluatorContext);
+                if ((result != null) && result) {
+                    list.add(event);
+                }
+            }
+            return list;
+        }
+        else {
+            ArrayDeque<EventBean> list = new ArrayDeque<EventBean>();
+            while (it.hasNext()) {
+                list.add(it.next());
+            }
+            return list;
+        }
     }
 
     public AgentInstanceContext getAgentInstanceContext() {

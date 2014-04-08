@@ -33,6 +33,13 @@ public interface ConfigurationOperations
     public void addEventTypeAutoName(String packageName);
 
     /**
+     * Adds a plug-in aggregation multi-function.
+     * @param config the configuration
+     * @throws ConfigurationException is thrown to indicate a configuration problem
+     */
+    public void addPlugInAggregationMultiFunction(ConfigurationPlugInAggregationMultiFunction config) throws ConfigurationException;
+
+    /**
      * Adds a plug-in aggregation function given a EPL function name and an aggregation factory class name.
      * <p>
      * The same function name cannot be added twice.

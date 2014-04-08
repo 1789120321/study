@@ -61,7 +61,7 @@ public class ExprInNodeImpl extends ExprNodeBase implements ExprEvaluator, ExprI
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() < 2)
+        if (this.getChildNodes().length < 2)
         {
             throw new ExprValidationException("The IN operator requires at least 2 child expressions");
         }
@@ -79,7 +79,7 @@ public class ExprInNodeImpl extends ExprNodeBase implements ExprEvaluator, ExprI
         List<Class> comparedTypes = new ArrayList<Class>();
         comparedTypes.add(typeOne);
         hasCollectionOrArray = false;
-        for (int i = 0; i < this.getChildNodes().size() - 1; i++)
+        for (int i = 0; i < this.getChildNodes().length - 1; i++)
         {
             Class propType = evaluators[i + 1].getType();
             if (propType == null)
@@ -152,7 +152,7 @@ public class ExprInNodeImpl extends ExprNodeBase implements ExprEvaluator, ExprI
                 inPropResult = coercer.coerceBoxed((Number) inPropResult);
             }
 
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             if ((len > 0) && (inPropResult == null))
             {
                 return null;
@@ -193,7 +193,7 @@ public class ExprInNodeImpl extends ExprNodeBase implements ExprEvaluator, ExprI
         }
         else
         {
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             boolean hasNullRow = false;
             for (int i = 1; i <= len; i++)
             {
@@ -318,7 +318,7 @@ public class ExprInNodeImpl extends ExprNodeBase implements ExprEvaluator, ExprI
         StringBuilder buffer = new StringBuilder();
         String delimiter = "";
 
-        Iterator<ExprNode> it = this.getChildNodes().iterator();
+        Iterator<ExprNode> it = Arrays.asList(this.getChildNodes()).iterator();
         buffer.append(it.next().toExpressionString());
         if (isNotIn)
         {

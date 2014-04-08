@@ -33,10 +33,7 @@ import com.espertech.esper.view.Viewable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.ArrayDeque;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class StatementAgentInstanceUtil {
 
@@ -57,19 +54,21 @@ public class StatementAgentInstanceUtil {
             return;
         }
         for (AgentInstance instance : agentInstances) {
-            if (terminationProperties != null) {
-                instance.getAgentInstanceContext().getContextProperties().getProperties().putAll(terminationProperties);
-            }
-            StatementAgentInstanceUtil.stop(instance.getStopCallback(), instance.getAgentInstanceContext(), instance.getFinalView(), servicesContext, isStatementStop);
+            stopAgentInstance(instance, terminationProperties, servicesContext, isStatementStop);
         }
     }
 
-    public static void stopSafe(Set<StopCallback> terminationCallbacks, List<StopCallback> stopCallbacks, StatementContext statementContext) {
+    public static void stopAgentInstance(AgentInstance agentInstance, Map<String, Object> terminationProperties, EPServicesContext servicesContext, boolean isStatementStop) {
+        if (terminationProperties != null) {
+            agentInstance.getAgentInstanceContext().getContextProperties().getProperties().putAll(terminationProperties);
+        }
+        StatementAgentInstanceUtil.stop(agentInstance.getStopCallback(), agentInstance.getAgentInstanceContext(), agentInstance.getFinalView(), servicesContext, isStatementStop);
+    }
+
+    public static void stopSafe(Collection<StopCallback> terminationCallbacks, StopCallback[] stopCallbacks, StatementContext statementContext) {
         StopCallback[] terminationArr = terminationCallbacks.toArray(new StopCallback[terminationCallbacks.size()]);
         stopSafe(terminationArr, statementContext);
-
-        StopCallback[] stopArr = stopCallbacks.toArray(new StopCallback[stopCallbacks.size()]);
-        stopSafe(stopArr, statementContext);
+        stopSafe(stopCallbacks, statementContext);
     }
 
     public static void stopSafe(StopCallback[] stopMethods, StatementContext statementContext) {
@@ -182,6 +181,7 @@ public class StatementAgentInstanceUtil {
                 SubSelectStrategyHolder strategyHolder = item.getValue();
 
                 aiExprSvc.getSubselectService(node).assignService(agentInstanceId, strategyHolder.getStategy());
+                aiExprSvc.getSubselectAggregationService(node).assignService(agentInstanceId, strategyHolder.getSubselectAggregationService());
 
                 // allocate prior within subquery
                 for (Map.Entry<ExprPriorNode, ExprPriorEvalStrategy> priorEntry : strategyHolder.getPriorStrategies().entrySet()) {
@@ -293,5 +293,14 @@ public class StatementAgentInstanceUtil {
         }
 
         return false;
+    }
+
+    public static StopCallback getStopCallback(List<StopCallback> stopCallbacks, final AgentInstanceContext agentInstanceContext) {
+        final StopCallback[] stopCallbackArr = stopCallbacks.toArray(new StopCallback[stopCallbacks.size()]);
+        return new StopCallback() {
+            public void stop() {
+                StatementAgentInstanceUtil.stopSafe(agentInstanceContext.getTerminationCallbackRO(), stopCallbackArr, agentInstanceContext.getStatementContext());
+            }
+        };
     }
 }

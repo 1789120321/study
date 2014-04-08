@@ -8,12 +8,8 @@
  **************************************************************************************/
 package com.espertech.esper.epl.core;
 
-import com.espertech.esper.epl.expression.ExprNode;
 import com.espertech.esper.epl.expression.ExprIdentNode;
 import com.espertech.esper.epl.expression.ExprNode;
-
-import java.util.List;
-import java.util.ListIterator;
 
 /**
  * A utility class for replacing select-clause column names with their
@@ -59,14 +55,14 @@ public class ColumnNamedNodeSwapper
 	 */
 	private static void visitChildren(ExprNode node, String name, ExprNode fullExpr)
 	{
-		List<ExprNode> childNodes = node.getChildNodes();
+		ExprNode[] childNodes = node.getChildNodes();
 
-		for (ListIterator<ExprNode> itor = childNodes.listIterator(); itor.hasNext(); )
+		for (int i = 0; i < childNodes.length; i++)
 		{
-			ExprNode childNode = itor.next();
+			ExprNode childNode = childNodes[i];
 			if(isColumnNameNode(childNode, name))
 			{
-				itor.set(fullExpr);
+				node.setChildNode(i, fullExpr);
 			}
 			else
 			{
@@ -79,7 +75,7 @@ public class ColumnNamedNodeSwapper
 	{
 		if(node instanceof ExprIdentNode)
 		{
-			if(!node.getChildNodes().isEmpty())
+			if(node.getChildNodes().length > 0)
 			{
 				throw new IllegalStateException("Ident node has unexpected child nodes");
 			}

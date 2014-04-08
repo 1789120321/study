@@ -10,8 +10,9 @@ package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.epl.agg.access.AggregationAccessor;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
+import com.espertech.esper.epl.agg.service.AggregationStateFactory;
+import com.espertech.esper.epl.agg.access.AggregationStateKey;
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
-import com.espertech.esper.epl.agg.service.AggregationSpec;
 import com.espertech.esper.epl.core.MethodResolutionService;
 
 public class ExprLeavingAggNodeFactory implements AggregationMethodFactory
@@ -20,14 +21,25 @@ public class ExprLeavingAggNodeFactory implements AggregationMethodFactory
     {
     }
 
+    public boolean isAccessAggregation() {
+        return false;
+    }
+
     public Class getResultType()
     {
         return Boolean.class;
     }
 
-    public AggregationSpec getSpec(boolean isMatchRecognize)
-    {
-        return null;
+    public AggregationStateKey getAggregationStateKey(boolean isMatchRecognize) {
+        throw new IllegalStateException("Not an access aggregation function");
+    }
+
+    public AggregationStateFactory getAggregationStateFactory(boolean isMatchRecognize) {
+        throw new IllegalStateException("Not an access aggregation function");
+    }
+
+    public AggregationAccessor getAccessor() {
+        throw new IllegalStateException("Not an access aggregation function");
     }
 
     public AggregationMethod make(MethodResolutionService methodResolutionService, int agentInstanceId, int groupId, int aggregationId) {
@@ -36,10 +48,5 @@ public class ExprLeavingAggNodeFactory implements AggregationMethodFactory
 
     public AggregationMethodFactory getPrototypeAggregator() {
         return this;
-    }
-
-    public AggregationAccessor getAccessor()
-    {
-        throw new UnsupportedOperationException();
     }
 }

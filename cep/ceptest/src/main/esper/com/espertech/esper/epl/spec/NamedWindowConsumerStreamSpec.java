@@ -31,7 +31,7 @@ public class NamedWindowConsumerStreamSpec extends StreamSpecBase implements Str
      * @param filterExpressions - the named window filters
      * @param streamSpecOptions - additional options such as unidirectional stream in a join
      */
-    public NamedWindowConsumerStreamSpec(String windowName, String optionalAsName, List<ViewSpec> viewSpecs, List<ExprNode> filterExpressions, StreamSpecOptions streamSpecOptions, PropertyEvaluator optPropertyEvaluator)
+    public NamedWindowConsumerStreamSpec(String windowName, String optionalAsName, ViewSpec[] viewSpecs, List<ExprNode> filterExpressions, StreamSpecOptions streamSpecOptions, PropertyEvaluator optPropertyEvaluator)
     {
         super(optionalAsName, viewSpecs, streamSpecOptions);
         this.windowName = windowName;

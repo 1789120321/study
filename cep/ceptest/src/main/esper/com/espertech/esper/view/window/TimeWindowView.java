@@ -72,7 +72,7 @@ public class TimeWindowView extends ViewSupport implements CloneableView, DataWi
         this.handle = new EPStatementHandleCallback(agentInstanceContext.getEpStatementAgentInstanceHandle(), callback);
 
         agentInstanceContext.getStatementContext().getScheduleAdjustmentService().addCallback(this);
-        agentInstanceContext.getTerminationCallbacks().add(this);
+        agentInstanceContext.addTerminationCallback(this);
     }
 
     public void adjust(long delta)
@@ -217,7 +217,7 @@ public class TimeWindowView extends ViewSupport implements CloneableView, DataWi
 
     public void stopView() {
         stopSchedule();
-        agentInstanceContext.getTerminationCallbacks().remove(this);
+        agentInstanceContext.removeTerminationCallback(this);
     }
 
     public void stop() {

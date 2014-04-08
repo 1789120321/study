@@ -15,7 +15,22 @@ package com.espertech.esper.client.context;
  * Context partition identifier for category context.
  */
 public class ContextPartitionIdentifierCategory extends ContextPartitionIdentifier {
+    private static final long serialVersionUID = -3619019398605079495L;
     private String label;
+
+    /**
+     * Ctor.
+     */
+    public ContextPartitionIdentifierCategory() {
+    }
+
+    /**
+     * Ctor.
+     * @param label of category
+     */
+    public ContextPartitionIdentifierCategory(String label) {
+        this.label = label;
+    }
 
     /**
      * Returns the category label.
@@ -31,5 +46,18 @@ public class ContextPartitionIdentifierCategory extends ContextPartitionIdentifi
      */
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public boolean compareTo(ContextPartitionIdentifier other) {
+        if (!(other instanceof ContextPartitionIdentifierCategory)) {
+            return false;
+        }
+        return label.equals(((ContextPartitionIdentifierCategory) other).label);
+    }
+
+    public String toString() {
+        return "ContextPartitionIdentifierCategory{" +
+                "label='" + label + '\'' +
+                '}';
     }
 }

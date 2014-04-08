@@ -45,7 +45,7 @@ public class NStreamOuterQueryPlanBuilder
      * @throws ExprValidationException if the query planning failed
      */
     protected static QueryPlan build(QueryGraph queryGraph,
-                                     List<OuterJoinDesc> outerJoinDescList,
+                                     OuterJoinDesc[] outerJoinDescList,
                                      String[] streamNames,
                                      EventType[] typesPerStream,
                                      HistoricalViewableDesc historicalViewableDesc,
@@ -86,7 +86,7 @@ public class NStreamOuterQueryPlanBuilder
         // Build a map of inner joins.
         OuterInnerDirectionalGraph outerInnerGraph;
         InnerJoinGraph innerJoinGraph;
-        if (!outerJoinDescList.isEmpty()) {
+        if (outerJoinDescList.length > 0) {
             outerInnerGraph = graphOuterJoins(numStreams, outerJoinDescList);
             innerJoinGraph = InnerJoinGraph.graphInnerJoins(numStreams, outerJoinDescList);
         }
@@ -135,7 +135,7 @@ public class NStreamOuterQueryPlanBuilder
                                                String[] streamNames,
                                                QueryGraph queryGraph,
                                                OuterInnerDirectionalGraph outerInnerGraph,
-                                               List<OuterJoinDesc> outerJoinDescList,
+                                               OuterJoinDesc[] outerJoinDescList,
                                                InnerJoinGraph innerJoinGraph,
                                                QueryPlanIndex[] indexSpecs,
                                                EventType[] typesPerStream,
@@ -228,7 +228,7 @@ public class NStreamOuterQueryPlanBuilder
             QueryGraph queryGraph,
             QueryPlanIndex[] indexSpecs,
             EventType[] typesPerStream,
-            List<OuterJoinDesc> outerJoinDescList,
+            OuterJoinDesc[] outerJoinDescList,
             boolean[] isHistorical,
             HistoricalStreamIndexList[] historicalStreamIndexLists,
             ExprEvaluatorContext exprEvaluatorContext)
@@ -256,15 +256,15 @@ public class NStreamOuterQueryPlanBuilder
                 {
                     // There may not be an outer-join descriptor, use if provided to build the associated expression
                     ExprNode outerJoinExpr = null;
-                    if (!outerJoinDescList.isEmpty()) {
+                    if (outerJoinDescList.length > 0) {
                         OuterJoinDesc outerJoinDesc;
                         if (toStream == 0)
                         {
-                            outerJoinDesc = outerJoinDescList.get(0);
+                            outerJoinDesc = outerJoinDescList[0];
                         }
                         else
                         {
-                            outerJoinDesc = outerJoinDescList.get(toStream - 1);
+                            outerJoinDesc = outerJoinDescList[toStream - 1];
                         }
                         outerJoinExpr = outerJoinDesc.makeExprNode(exprEvaluatorContext);
                     }
@@ -582,18 +582,18 @@ public class NStreamOuterQueryPlanBuilder
      * @param outerJoinDescList - list of outer join stream numbers and property names
      * @return graph object
      */
-    protected static OuterInnerDirectionalGraph graphOuterJoins(int numStreams, List<OuterJoinDesc> outerJoinDescList)
+    protected static OuterInnerDirectionalGraph graphOuterJoins(int numStreams, OuterJoinDesc[] outerJoinDescList)
     {
-        if ((outerJoinDescList.size() + 1) != numStreams)
+        if ((outerJoinDescList.length + 1) != numStreams)
         {
             throw new IllegalArgumentException("Number of outer join descriptors and number of streams not matching up");
         }
 
         OuterInnerDirectionalGraph graph = new OuterInnerDirectionalGraph(numStreams);
 
-        for (int i = 0; i < outerJoinDescList.size(); i++)
+        for (int i = 0; i < outerJoinDescList.length; i++)
         {
-            OuterJoinDesc desc = outerJoinDescList.get(i);
+            OuterJoinDesc desc = outerJoinDescList[i];
             int streamMax = i + 1;       // the outer join must references streams less then streamMax
 
             // Check outer join on-expression, if provided

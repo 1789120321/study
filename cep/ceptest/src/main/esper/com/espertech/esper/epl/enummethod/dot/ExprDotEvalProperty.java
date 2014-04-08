@@ -13,15 +13,16 @@ package com.espertech.esper.epl.enummethod.dot;
 
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventPropertyGetter;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.epl.expression.ExprDotEval;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 
 public class ExprDotEvalProperty implements ExprDotEval {
 
     private final EventPropertyGetter getter;
-    private final ExprDotEvalTypeInfo returnType;
+    private final ExpressionReturnType returnType;
 
-    public ExprDotEvalProperty(EventPropertyGetter getter, ExprDotEvalTypeInfo returnType) {
+    public ExprDotEvalProperty(EventPropertyGetter getter, ExpressionReturnType returnType) {
         this.getter = getter;
         this.returnType = returnType;
     }
@@ -33,7 +34,7 @@ public class ExprDotEvalProperty implements ExprDotEval {
         return getter.get((EventBean) target);
     }
 
-    public ExprDotEvalTypeInfo getTypeInfo() {
+    public ExpressionReturnType getTypeInfo() {
         return returnType;
     }
 }

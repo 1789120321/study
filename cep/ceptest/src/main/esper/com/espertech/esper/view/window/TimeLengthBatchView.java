@@ -87,7 +87,7 @@ public class TimeLengthBatchView extends ViewSupport implements CloneableView, S
             scheduleCallback(0);
         }
 
-        agentInstanceContext.getTerminationCallbacks().add(this);
+        agentInstanceContext.addTerminationCallback(this);
     }
 
     public View cloneView()
@@ -289,7 +289,7 @@ public class TimeLengthBatchView extends ViewSupport implements CloneableView, S
 
     public void stopView() {
         stopSchedule();
-        agentInstanceContext.getTerminationCallbacks().remove(this);
+        agentInstanceContext.removeTerminationCallback(this);
     }
 
     public void stop() {

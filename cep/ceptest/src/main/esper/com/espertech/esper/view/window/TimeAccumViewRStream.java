@@ -66,7 +66,7 @@ public class TimeAccumViewRStream extends ViewSupport implements CloneableView, 
             }
         };
         handle = new EPStatementHandleCallback(agentInstanceContext.getEpStatementAgentInstanceHandle(), callback);
-        agentInstanceContext.getTerminationCallbacks().add(this);
+        agentInstanceContext.addTerminationCallback(this);
     }
 
     public View cloneView()
@@ -231,7 +231,7 @@ public class TimeAccumViewRStream extends ViewSupport implements CloneableView, 
 
     public void stopView() {
         stopSchedule();
-        agentInstanceContext.getTerminationCallbacks().remove(this);
+        agentInstanceContext.removeTerminationCallback(this);
     }
 
     public void stop() {

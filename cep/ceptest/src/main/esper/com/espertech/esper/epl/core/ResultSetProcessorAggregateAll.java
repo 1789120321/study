@@ -8,12 +8,6 @@
  **************************************************************************************/
 package com.espertech.esper.epl.core;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventType;
 import com.espertech.esper.collection.ArrayEventIterator;
@@ -25,6 +19,8 @@ import com.espertech.esper.epl.expression.ExprEvaluator;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 import com.espertech.esper.epl.spec.OutputLimitLimitType;
 import com.espertech.esper.view.Viewable;
+
+import java.util.*;
 
 /**
  * Result set processor for the case: aggregation functions used in the select clause, and no group-by,
@@ -585,19 +581,4 @@ public class ResultSetProcessorAggregateAll implements ResultSetProcessor
     public boolean hasAggregation() {
         return true;
     }
-
-	/*
-	 * 优化代码：
-	 * 
-	 * 返回select子句中是否包含rstream逻辑，prototype内保存了该结果。
-	 * 如果包含则返回true
-	 * 
-	 * Code line： 513-515
-	 * Author: luonq@primeton.com
-	 * Date: 2013-6-16 12：00
-	 */
-	public boolean isSelectRStream()
-	{
-		return prototype.isSelectRStream();
-	}
 }

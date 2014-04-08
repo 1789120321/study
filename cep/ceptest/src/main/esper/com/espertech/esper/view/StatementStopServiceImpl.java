@@ -23,16 +23,21 @@ public class StatementStopServiceImpl implements StatementStopService
      */
     public StatementStopServiceImpl()
     {
-        statementStopCallbacks = new LinkedList<StatementStopCallback>();
     }
 
     public void addSubscriber(StatementStopCallback callback)
     {
+        if (statementStopCallbacks == null) {
+            statementStopCallbacks = new LinkedList<StatementStopCallback>();
+        }
         statementStopCallbacks.add(callback);
     }
 
     public void fireStatementStopped()
     {
+        if (statementStopCallbacks == null) {
+            return;
+        }
         for (StatementStopCallback statementStopCallback : statementStopCallbacks)
         {
             statementStopCallback.statementStopped();

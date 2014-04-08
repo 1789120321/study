@@ -19,4 +19,10 @@ public interface ScheduleHandle
      * @return statement id
      */
     public String getStatementId();
+
+    /**
+     * Returns the agent instance id.
+     * @return agent instance id
+     */
+    public int getAgentInstanceId();
 }

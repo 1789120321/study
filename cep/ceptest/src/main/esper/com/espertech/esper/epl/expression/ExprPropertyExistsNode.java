@@ -34,17 +34,17 @@ public class ExprPropertyExistsNode extends ExprNodeBase implements ExprEvaluato
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() != 1)
+        if (this.getChildNodes().length != 1)
         {
             throw new ExprValidationException("Exists function node must have exactly 1 child node");
         }
 
-        if (!(this.getChildNodes().get(0) instanceof ExprIdentNode))
+        if (!(this.getChildNodes()[0] instanceof ExprIdentNode))
         {
             throw new ExprValidationException("Exists function expects an property value expression as the child node");
         }
 
-        identNode = (ExprIdentNode) this.getChildNodes().get(0);
+        identNode = (ExprIdentNode) this.getChildNodes()[0];
     }
 
     public Map<String, Object> getEventType() {
@@ -70,7 +70,7 @@ public class ExprPropertyExistsNode extends ExprNodeBase implements ExprEvaluato
     {
         StringBuilder buffer = new StringBuilder();
         buffer.append("exists(");
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
         buffer.append(')');
         return buffer.toString();
     }

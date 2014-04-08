@@ -12,6 +12,7 @@
 package com.espertech.esper.core.context.mgr;
 
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.client.context.ContextPartitionDescriptor;
 import com.espertech.esper.client.context.ContextPartitionSelector;
 import com.espertech.esper.core.context.util.ContextDescriptor;
 import com.espertech.esper.epl.expression.ExprValidationException;
@@ -22,10 +23,10 @@ import com.espertech.esper.type.NumberSetParameter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public interface ContextManager extends FilterFaultHandler {
     public ContextDescriptor getContextDescriptor();
+    public int getNumNestingLevels();
 
     public void addStatement(ContextControllerStatementBase statement, boolean isRecoveringResilient) throws ExprValidationException;
     public void stopStatement(String statementName, String statementId);
@@ -36,7 +37,11 @@ public interface ContextManager extends FilterFaultHandler {
     public void setContextPartitionRange(List<NumberSetParameter> partitionRanges);
     public FilterSpecLookupable getFilterLookupable(EventType eventType);
 
-    public void deactivateContextPartitions(Set<Integer> agentInstanceIds);
+    public ContextStatePathDescriptor extractPaths(ContextPartitionSelector contextPartitionSelector);
+    public ContextStatePathDescriptor extractStopPaths(ContextPartitionSelector contextPartitionSelector);
+    public ContextStatePathDescriptor extractDestroyPaths(ContextPartitionSelector contextPartitionSelector);
+    public void importStartPaths(ContextControllerState state, AgentInstanceSelector agentInstanceSelector);
+    public Map<Integer, ContextPartitionDescriptor> startPaths(ContextPartitionSelector contextPartitionSelector);
 
     public Collection<Integer> getAgentInstanceIds(ContextPartitionSelector contextPartitionSelector);
     public Map<String, ContextControllerStatementDesc> getStatements();

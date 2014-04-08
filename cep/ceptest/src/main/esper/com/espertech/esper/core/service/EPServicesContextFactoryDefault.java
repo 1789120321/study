@@ -86,7 +86,7 @@ public class EPServicesContextFactoryDefault implements EPServicesContextFactory
         }
 
         // Make services that depend on snapshot config entries
-        EventAdapterServiceImpl eventAdapterService = new EventAdapterServiceImpl(eventTypeIdGenerator);
+        EventAdapterServiceImpl eventAdapterService = new EventAdapterServiceImpl(eventTypeIdGenerator, configSnapshot.getEngineDefaults().getEventMeta().getAnonymousCacheSize());
         init(eventAdapterService, configSnapshot);
 
         // New read-write lock for concurrent event processing
@@ -517,7 +517,9 @@ public class EPServicesContextFactoryDefault implements EPServicesContextFactory
     {
         ConfigurationEngineDefaults.Expression expression = configSnapshot.getEngineDefaults().getExpression();
         EngineImportServiceImpl engineImportService = new EngineImportServiceImpl(expression.isExtendedAggregation(),
-                expression.isUdfCache(), expression.isDuckTyping());
+                expression.isUdfCache(), expression.isDuckTyping(),
+                configSnapshot.getEngineDefaults().getLanguage().isSortUsingCollator(),
+                configSnapshot.getEngineDefaults().getExpression().getMathContext());
         engineImportService.addMethodRefs(configSnapshot.getMethodInvocationReferences());
 
         // Add auto-imports
@@ -531,6 +533,11 @@ public class EPServicesContextFactoryDefault implements EPServicesContextFactory
             for (ConfigurationPlugInAggregationFunction config : configSnapshot.getPlugInAggregationFunctions())
             {
                 engineImportService.addAggregation(config.getName(), config);
+            }
+
+            for (ConfigurationPlugInAggregationMultiFunction config : configSnapshot.getPlugInAggregationMultiFunctions())
+            {
+                engineImportService.addAggregationMultiFunction(config);
             }
 
             for (ConfigurationPlugInSingleRowFunction config : configSnapshot.getPlugInSingleRowFunctions())

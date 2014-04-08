@@ -12,20 +12,14 @@
 package com.espertech.esper.core.context.mgr;
 
 public class ContextStatePathKey implements Comparable {
-    private final String contextName;
     private final int level;
     private final int parentPath;
     private final int subPath;
 
-    public ContextStatePathKey(String contextName, int level, int parentPath, int subPath) {
-        this.contextName = contextName;
+    public ContextStatePathKey(int level, int parentPath, int subPath) {
         this.level = level;
         this.parentPath = parentPath;
         this.subPath = subPath;
-    }
-
-    public String getContextName() {
-        return contextName;
     }
 
     public int getLevel() {
@@ -45,9 +39,6 @@ public class ContextStatePathKey implements Comparable {
             throw new IllegalArgumentException("Cannot compare " + ContextStatePathKey.class.getName() + " to " + o.getClass().getName());
         }
         ContextStatePathKey other = (ContextStatePathKey) o;
-        if (!this.getContextName().equals(other.getContextName())) {
-            return this.getContextName().compareTo(other.getContextName());
-        }
         if (this.getLevel() != other.getLevel()) {
             return this.getLevel() < other.getLevel() ? -1 : 1;
         }
@@ -69,14 +60,12 @@ public class ContextStatePathKey implements Comparable {
         if (level != that.level) return false;
         if (parentPath != that.parentPath) return false;
         if (subPath != that.subPath) return false;
-        if (!contextName.equals(that.contextName)) return false;
 
         return true;
     }
 
     public int hashCode() {
-        int result = contextName.hashCode();
-        result = 31 * result + level;
+        int result = level;
         result = 31 * result + parentPath;
         result = 31 * result + subPath;
         return result;
@@ -84,8 +73,7 @@ public class ContextStatePathKey implements Comparable {
 
     public String toString() {
         return "ContextStatePathKey{" +
-                "contextName='" + contextName + '\'' +
-                ", level=" + level +
+                "level=" + level +
                 ", parentPath=" + parentPath +
                 ", subPath=" + subPath +
                 '}';

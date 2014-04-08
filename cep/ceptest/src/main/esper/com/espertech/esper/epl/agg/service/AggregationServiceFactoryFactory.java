@@ -12,11 +12,9 @@ import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventType;
 import com.espertech.esper.client.annotation.Hint;
 import com.espertech.esper.client.annotation.HintEnum;
-import com.espertech.esper.epl.agg.access.AggregationAccessor;
 import com.espertech.esper.epl.agg.access.AggregationAccessorSlotPair;
 import com.espertech.esper.epl.expression.*;
 import com.espertech.esper.epl.variable.VariableService;
-import com.espertech.esper.util.CollectionUtil;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -70,14 +68,14 @@ public class AggregationServiceFactoryFactory
             for (AggregationServiceAggExpressionDesc aggregation : equivalencyPerStream.getValue())
             {
                 ExprAggregateNode aggregateNode = aggregation.getAggregationNode();
-                if (aggregateNode.getChildNodes().size() > 1)
+                if (aggregateNode.getChildNodes().length > 1)
                 {
                     evaluators[index] = getMultiNodeEvaluator(aggregateNode.getChildNodes(), exprEvaluatorContext);
                 }
-                else if (!aggregateNode.getChildNodes().isEmpty())
+                else if (aggregateNode.getChildNodes().length > 0)
                 {
                     // Use the evaluation node under the aggregation node to obtain the aggregation value
-                    evaluators[index] = aggregateNode.getChildNodes().get(0).getExprEvaluator();
+                    evaluators[index] = aggregateNode.getChildNodes()[0].getExprEvaluator();
                 }
                 // For aggregation that doesn't evaluate any particular sub-expression, return null on evaluation
                 else
@@ -194,13 +192,13 @@ public class AggregationServiceFactoryFactory
         int columnNumber = 0;
         for (AggregationServiceAggExpressionDesc entry : aggregations)
         {
-            if (entry.getFactory().getSpec(false) == null) {
+            if (!entry.getFactory().isAccessAggregation()) {
                 entry.setColumnNum(columnNumber++);
             }
         }
         for (AggregationServiceAggExpressionDesc entry : aggregations)
         {
-            if (entry.getFactory().getSpec(false) != null) {
+            if (entry.getFactory().isAccessAggregation()) {
                 entry.setColumnNum(columnNumber++);
             }
         }
@@ -209,26 +207,21 @@ public class AggregationServiceFactoryFactory
         List<AggregationMethodFactory> aggregators = new ArrayList<AggregationMethodFactory>();
         List<ExprEvaluator> evaluators = new ArrayList<ExprEvaluator>();
 
-        // handle accessor aggregation (direct data window by-group access to properties)
-        Map<Integer, Integer> streamSlots = new TreeMap<Integer, Integer>();
-        List<AggregationAccessorSlotPair> accessorPairs = new ArrayList<AggregationAccessorSlotPair>();
-
         // Construct a list of evaluation node for the aggregation functions (regular agg).
         // For example "sum(2 * 3)" would make the sum an evaluation node.
         // Also determine all the streams that need direct access and compute a index (slot) for each (access agg).
-        int currentSlot = 0;
         for (AggregationServiceAggExpressionDesc aggregation : aggregations)
         {
             ExprAggregateNode aggregateNode = aggregation.getAggregationNode();
-            if (aggregateNode.getFactory().getSpec(false) == null) {
+            if (!aggregateNode.getFactory().isAccessAggregation()) {
                 ExprEvaluator evaluator;
-                if (aggregateNode.getChildNodes().size() > 1)
+                if (aggregateNode.getChildNodes().length > 1)
                 {
                     evaluator = getMultiNodeEvaluator(aggregateNode.getChildNodes(), exprEvaluatorContext);
                 }
-                else if (!aggregateNode.getChildNodes().isEmpty())
+                else if (aggregateNode.getChildNodes().length > 0)
                 {
-                    if (aggregateNode.getChildNodes().get(0) instanceof ExprNumberSetWildcardMarker) {
+                    if (aggregateNode.getChildNodes()[0] instanceof ExprNumberSetWildcardMarker) {
                         final Class returnType = typesPerStream != null && typesPerStream.length > 0 ? typesPerStream[0].getUnderlyingType() : null;
                         if (isJoin || returnType == null) {
                             throw new ExprValidationException("Invalid use of wildcard (*) for stream selection in a join or an empty from-clause, please use the stream-alias syntax to select a specific stream instead");
@@ -247,7 +240,7 @@ public class AggregationServiceFactoryFactory
                     }
                     else {
                         // Use the evaluation node under the aggregation node to obtain the aggregation value
-                        evaluator = aggregateNode.getChildNodes().get(0).getExprEvaluator();
+                        evaluator = aggregateNode.getChildNodes()[0].getExprEvaluator();
                     }
                 }
                 // For aggregation that doesn't evaluate any particular sub-expression, return null on evaluation
@@ -272,38 +265,27 @@ public class AggregationServiceFactoryFactory
                 evaluators.add(evaluator);
                 aggregators.add(aggregator);
             }
-            else {
-                AggregationSpec spec = aggregateNode.getFactory().getSpec(false);
-                AggregationAccessor accessor = aggregateNode.getFactory().getAccessor();
-
-                Integer slot = streamSlots.get(spec.getStreamNum());
-                if (slot == null) {
-                    streamSlots.put(spec.getStreamNum(), currentSlot);
-                    slot = currentSlot++;
-                }
-
-                accessorPairs.add(new AggregationAccessorSlotPair(slot, accessor));
-            }
         }
-
-        // handle no group-by clause cases
         ExprEvaluator[] evaluatorsArr = evaluators.toArray(new ExprEvaluator[evaluators.size()]);
         AggregationMethodFactory[] aggregatorsArr = aggregators.toArray(new AggregationMethodFactory[aggregators.size()]);
-        AggregationAccessorSlotPair[] pairs = accessorPairs.toArray(new AggregationAccessorSlotPair[accessorPairs.size()]);
-        int[] accessedStreams = CollectionUtil.intArray(streamSlots.keySet());
+
+        // handle access aggregations
+        AggregationMultiFunctionAnalysisResult multiFunctionAggPlan = AggregationMultiFunctionAnalysisHelper.analyzeAccessAggregations(aggregations);
+        AggregationAccessorSlotPair[] accessorPairs = multiFunctionAggPlan.getAccessorPairs();
+        AggregationStateFactory[] accessAggregations = multiFunctionAggPlan.getStateFactories();
 
         AggregationServiceFactory serviceFactory;
 
         // Handle without a group-by clause: we group all into the same pot
         if (!hasGroupByClause) {
-            if ((evaluatorsArr.length > 0) && (accessorPairs.isEmpty())) {
+            if ((evaluatorsArr.length > 0) && (accessorPairs.length == 0)) {
                 serviceFactory = factoryService.getNoGroupNoAccess(evaluatorsArr, aggregatorsArr);
             }
-            else if ((evaluatorsArr.length == 0) && (!accessorPairs.isEmpty())) {
-                serviceFactory = factoryService.getNoGroupAccessOnly(pairs, accessedStreams, isJoin);
+            else if ((evaluatorsArr.length == 0) && (accessorPairs.length > 0)) {
+                serviceFactory = factoryService.getNoGroupAccessOnly(accessorPairs, accessAggregations, isJoin);
             }
             else {
-                serviceFactory = factoryService.getNoGroupAccessMixed(evaluatorsArr, aggregatorsArr, pairs, accessedStreams, isJoin);
+                serviceFactory = factoryService.getNoGroupAccessMixed(evaluatorsArr, aggregatorsArr, accessorPairs, accessAggregations, isJoin);
             }
         }
         else {
@@ -312,27 +294,27 @@ public class AggregationServiceFactoryFactory
             Hint reclaimGroupFrequency = HintEnum.RECLAIM_GROUP_AGED.getHint(annotations);
             if (hasNoReclaim)
             {
-                if ((evaluatorsArr.length > 0) && (accessorPairs.isEmpty())) {
+                if ((evaluatorsArr.length > 0) && (accessorPairs.length == 0)) {
                     serviceFactory = factoryService.getGroupedNoReclaimNoAccess(evaluatorsArr, aggregatorsArr);
                 }
-                else if ((evaluatorsArr.length == 0) && (!accessorPairs.isEmpty())) {
-                    serviceFactory = factoryService.getGroupNoReclaimAccessOnly(pairs, accessedStreams, isJoin);
+                else if ((evaluatorsArr.length == 0) && (accessorPairs.length > 0)) {
+                    serviceFactory = factoryService.getGroupNoReclaimAccessOnly(accessorPairs, accessAggregations, isJoin);
                 }
                 else {
-                    serviceFactory = factoryService.getGroupNoReclaimMixed(evaluatorsArr, aggregatorsArr, pairs, accessedStreams, isJoin);
+                    serviceFactory = factoryService.getGroupNoReclaimMixed(evaluatorsArr, aggregatorsArr, accessorPairs, accessAggregations, isJoin);
                 }
             }
             else if (reclaimGroupAged != null)
             {
-                serviceFactory = factoryService.getGroupReclaimAged(evaluatorsArr, aggregatorsArr, reclaimGroupAged, reclaimGroupFrequency, variableService, pairs, accessedStreams, isJoin);
+                serviceFactory = factoryService.getGroupReclaimAged(evaluatorsArr, aggregatorsArr, reclaimGroupAged, reclaimGroupFrequency, variableService, accessorPairs, accessAggregations, isJoin);
             }
             else
             {
-                if ((evaluatorsArr.length > 0) && (accessorPairs.isEmpty())) {
-                    serviceFactory = factoryService.getGroupReclaimNoAccess(evaluatorsArr, aggregatorsArr, pairs, accessedStreams, isJoin);
+                if ((evaluatorsArr.length > 0) && (accessorPairs.length == 0)) {
+                    serviceFactory = factoryService.getGroupReclaimNoAccess(evaluatorsArr, aggregatorsArr, accessorPairs, accessAggregations, isJoin);
                 }
                 else {
-                    serviceFactory = factoryService.getGroupReclaimMixable(evaluatorsArr, aggregatorsArr, pairs, accessedStreams, isJoin);
+                    serviceFactory = factoryService.getGroupReclaimMixable(evaluatorsArr, aggregatorsArr, accessorPairs, accessAggregations, isJoin);
                 }
             }
         }
@@ -340,10 +322,10 @@ public class AggregationServiceFactoryFactory
         return new AggregationServiceFactoryDesc(serviceFactory, aggregations);
     }
 
-    private static ExprEvaluator getMultiNodeEvaluator(List<ExprNode> childNodes, ExprEvaluatorContext exprEvaluatorContext)
+    private static ExprEvaluator getMultiNodeEvaluator(ExprNode[] childNodes, ExprEvaluatorContext exprEvaluatorContext)
     {
-        final int size = childNodes.size();
-        final List<ExprNode> exprNodes = childNodes;
+        final int size = childNodes.length;
+        final ExprNode[] exprNodes = childNodes;
         final Object[] prototype = new Object[size];
 
         // determine constant nodes

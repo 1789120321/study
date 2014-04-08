@@ -8,9 +8,9 @@
  **************************************************************************************/
 package com.espertech.esper.epl.expression;
 
-import com.espertech.esper.util.JavaClassHelper;
-import com.espertech.esper.util.CoercionException;
 import com.espertech.esper.client.EventBean;
+import com.espertech.esper.util.CoercionException;
+import com.espertech.esper.util.JavaClassHelper;
 
 import java.util.Map;
 
@@ -33,14 +33,14 @@ public class ExprCoalesceNode extends ExprNodeBase implements ExprEvaluator
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() < 2)
+        if (this.getChildNodes().length < 2)
         {
             throw new ExprValidationException("Coalesce node must have at least 2 child nodes");
         }
         evaluators = ExprNodeUtility.getEvaluators(this.getChildNodes());
 
         // get child expression types
-        Class[] childTypes = new Class[getChildNodes().size()];
+        Class[] childTypes = new Class[getChildNodes().length];
         for (int i = 0; i < evaluators.length; i++)
         {
             childTypes[i] = evaluators[i].getType();
@@ -56,7 +56,7 @@ public class ExprCoalesceNode extends ExprNodeBase implements ExprEvaluator
         }
 
         // determine which child nodes need numeric coercion
-        isNumericCoercion = new boolean[getChildNodes().size()];
+        isNumericCoercion = new boolean[getChildNodes().length];
         for (int i = 0; i < evaluators.length; i++)
         {
             if ((JavaClassHelper.getBoxedType(evaluators[i].getType()) != resultType) &&
@@ -116,10 +116,10 @@ public class ExprCoalesceNode extends ExprNodeBase implements ExprEvaluator
         buffer.append("coalesce(");
 
         String delimiter = "";
-        for (int i = 0; i < this.getChildNodes().size(); i++)
+        for (int i = 0; i < this.getChildNodes().length; i++)
         {
             buffer.append(delimiter);
-            buffer.append(this.getChildNodes().get(i).toExpressionString());
+            buffer.append(this.getChildNodes()[i].toExpressionString());
             delimiter = ",";
         }
         buffer.append(')');

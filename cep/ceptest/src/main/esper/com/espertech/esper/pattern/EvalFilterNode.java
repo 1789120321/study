@@ -12,15 +12,13 @@ import com.espertech.esper.filter.FilterValueSetParam;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.List;
-
 /**
  * This class represents a filter of events in the evaluation tree representing any event expressions.
  */
 public class EvalFilterNode extends EvalNodeBase
 {
     protected final EvalFilterFactoryNode factoryNode;
-    private final List<FilterValueSetParam> addendumFilters;
+    private final FilterValueSetParam[] addendumFilters;
 
     public EvalFilterNode(PatternAgentInstanceContext context, EvalFilterFactoryNode factoryNode) {
         super(context);
@@ -37,7 +35,7 @@ public class EvalFilterNode extends EvalNodeBase
         return factoryNode;
     }
 
-    public List<FilterValueSetParam> getAddendumFilters() {
+    public FilterValueSetParam[] getAddendumFilters() {
         return addendumFilters;
     }
 

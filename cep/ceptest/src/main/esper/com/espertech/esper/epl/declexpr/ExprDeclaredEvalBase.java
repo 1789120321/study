@@ -41,6 +41,10 @@ public abstract class ExprDeclaredEvalBase implements ExprEvaluator, ExprEvaluat
         this.isCache = isCache;
     }
 
+    public ExprEvaluator getInnerEvaluator() {
+        return innerEvaluator;
+    }
+
     public Map<String, Object> getEventType() throws ExprValidationException {
         return innerEvaluator.getEventType();
     }

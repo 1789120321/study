@@ -179,7 +179,6 @@ public class StatementLifecycleSvcUtil {
 
     public static SelectClauseSpecCompiled compileSelectClause(SelectClauseSpecRaw spec) {
         List<SelectClauseElementCompiled> selectElements = new ArrayList<SelectClauseElementCompiled>();
-        SelectClauseSpecCompiled selectClauseCompiled = new SelectClauseSpecCompiled(selectElements, spec.isDistinct());
         for (SelectClauseElementRaw raw : spec.getSelectExprList())
         {
             if (raw instanceof SelectClauseExprRawSpec)
@@ -202,6 +201,6 @@ public class StatementLifecycleSvcUtil {
                 throw new IllegalStateException("Unexpected select clause element class : " + raw.getClass().getName());
             }
         }
-        return selectClauseCompiled;
+        return new SelectClauseSpecCompiled(selectElements.toArray(new SelectClauseElementCompiled[selectElements.size()]), spec.isDistinct());
     }
 }

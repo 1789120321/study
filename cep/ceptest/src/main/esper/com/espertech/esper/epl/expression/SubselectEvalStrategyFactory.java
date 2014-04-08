@@ -36,14 +36,14 @@ public class SubselectEvalStrategyFactory
                                                        boolean isAny,
                                                        RelationalOpEnum relationalOp) throws ExprValidationException
     {
-        if (subselectExpression.getChildNodes().size() != 1)
+        if (subselectExpression.getChildNodes().length != 1)
         {
             throw new ExprValidationException("The Subselect-IN requires 1 child expression");
         }
-        ExprNode valueExpr = subselectExpression.getChildNodes().get(0);
+        ExprNode valueExpr = subselectExpression.getChildNodes()[0];
 
         // Must be the same boxed type returned by expressions under this
-        Class typeOne = JavaClassHelper.getBoxedType(subselectExpression.getChildNodes().get(0).getExprEvaluator().getType());
+        Class typeOne = JavaClassHelper.getBoxedType(subselectExpression.getChildNodes()[0].getExprEvaluator().getType());
 
         // collections, array or map not supported
         if ((typeOne.isArray()) || (JavaClassHelper.isImplementsInterface(typeOne, Collection.class)) || (JavaClassHelper.isImplementsInterface(typeOne, Map.class)))

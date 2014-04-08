@@ -38,8 +38,8 @@ public class AggregationAccessorFirst implements AggregationAccessor
         this.eventsPerStream = new EventBean[streamNum + 1];
     }
 
-    public Object getValue(AggregationAccess access) {
-        EventBean bean = access.getFirstValue();
+    public Object getValue(AggregationState state) {
+        EventBean bean = ((AggregationStateLinear) state).getFirstValue();
         if (bean == null) {
             return null;
         }
@@ -47,15 +47,15 @@ public class AggregationAccessorFirst implements AggregationAccessor
         return childNode.evaluate(eventsPerStream, true, null);
     }
 
-    public Collection<EventBean> getCollectionReadOnly(AggregationAccess access) {
-        EventBean bean = access.getFirstValue();
+    public Collection<EventBean> getEnumerableEvents(AggregationState state) {
+        EventBean bean = ((AggregationStateLinear) state).getFirstValue();
         if (bean == null) {
             return null;
         }
         return Collections.singletonList(bean);
     }
 
-    public EventBean getEventBean(AggregationAccess currentAcces) {
-        return currentAcces.getFirstValue();
+    public EventBean getEnumerableEvent(AggregationState state) {
+        return ((AggregationStateLinear) state).getFirstValue();
     }
 }

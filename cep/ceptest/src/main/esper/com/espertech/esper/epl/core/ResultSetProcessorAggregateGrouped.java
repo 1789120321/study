@@ -8,18 +8,6 @@
  **************************************************************************************/
 package com.espertech.esper.epl.core;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventType;
 import com.espertech.esper.collection.ArrayEventIterator;
@@ -35,6 +23,10 @@ import com.espertech.esper.epl.spec.OutputLimitLimitType;
 import com.espertech.esper.epl.view.OutputConditionPolled;
 import com.espertech.esper.epl.view.OutputConditionPolledFactory;
 import com.espertech.esper.view.Viewable;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.util.*;
 
 /**
  * Result-set processor for the aggregate-grouped case:
@@ -1599,19 +1591,4 @@ public class ResultSetProcessorAggregateGrouped implements ResultSetProcessor, A
     public void removed(Object key) {
         eventGroupReps.remove(key);
     }
-
-	/*
-	 * 优化代码：
-	 * 
-	 * 返回select子句中是否包含rstream逻辑，prototype内保存了该结果。
-	 * 如果包含则返回true
-	 * 
-	 * Code line： 513-515
-	 * Author: luonq@primeton.com
-	 * Date: 2013-6-16 12：00
-	 */
-	public boolean isSelectRStream()
-	{
-		return prototype.isSelectRStream();
-	}
 }

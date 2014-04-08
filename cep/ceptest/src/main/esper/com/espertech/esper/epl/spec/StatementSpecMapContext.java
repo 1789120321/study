@@ -9,13 +9,16 @@
 package com.espertech.esper.epl.spec;
 
 import com.espertech.esper.client.ConfigurationInformation;
+import com.espertech.esper.client.ConfigurationPlugInAggregationMultiFunction;
 import com.espertech.esper.core.context.mgr.ContextManagementService;
 import com.espertech.esper.epl.core.EngineImportService;
 import com.espertech.esper.epl.declexpr.ExprDeclaredService;
 import com.espertech.esper.epl.named.NamedWindowService;
 import com.espertech.esper.epl.variable.VariableService;
 import com.espertech.esper.pattern.PatternNodeFactory;
+import com.espertech.esper.plugin.PlugInAggregationMultiFunctionFactory;
 import com.espertech.esper.schedule.SchedulingService;
+import com.espertech.esper.util.LazyAllocatedMap;
 
 import java.util.*;
 
@@ -39,6 +42,7 @@ public class StatementSpecMapContext
     private Set<String> variableNames;
     private Map<String, ExpressionDeclItem> expressionDeclarations;
     private Map<String, ExpressionScriptProvided> scripts;
+    private LazyAllocatedMap<ConfigurationPlugInAggregationMultiFunction, PlugInAggregationMultiFunctionFactory> plugInAggregations = new LazyAllocatedMap<ConfigurationPlugInAggregationMultiFunction, PlugInAggregationMultiFunctionFactory>();
     private String contextName;
 
     /**
@@ -174,5 +178,9 @@ public class StatementSpecMapContext
 
     public ExprDeclaredService getExprDeclaredService() {
         return exprDeclaredService;
+    }
+
+    public LazyAllocatedMap<ConfigurationPlugInAggregationMultiFunction, PlugInAggregationMultiFunctionFactory> getPlugInAggregations() {
+        return plugInAggregations;
     }
 }

@@ -790,7 +790,7 @@ public class BeanEventType implements EventTypeSPI, NativeEventType
             String methodName = PropertyHelper.getSetterMethodName(mapProp.getPropertyNameAtomic());
             Method setterMethod;
             try {
-                setterMethod = MethodResolver.resolveMethod(clazz, methodName, new Class[] {String.class, Object.class}, true);
+                setterMethod = MethodResolver.resolveMethod(clazz, methodName, new Class[] {String.class, Object.class}, true, new boolean[2], new boolean[2]);
             }
             catch (EngineNoSuchMethodException e) {
                 log.info("Failed to find mapped property setter method '" + methodName + "' for writing to property '" + propertyName + "' taking {String, Object} as parameters");
@@ -808,7 +808,7 @@ public class BeanEventType implements EventTypeSPI, NativeEventType
             String methodName = PropertyHelper.getSetterMethodName(indexedProp.getPropertyNameAtomic());
             Method setterMethod;
             try {
-                setterMethod = MethodResolver.resolveMethod(clazz, methodName, new Class[] {int.class, Object.class}, true);
+                setterMethod = MethodResolver.resolveMethod(clazz, methodName, new Class[] {int.class, Object.class}, true, new boolean[2], new boolean[2]);
             }
             catch (EngineNoSuchMethodException e) {
                 log.info("Failed to find indexed property setter method '" + methodName + "' for writing to property '" + propertyName + "' taking {int, Object} as parameters");

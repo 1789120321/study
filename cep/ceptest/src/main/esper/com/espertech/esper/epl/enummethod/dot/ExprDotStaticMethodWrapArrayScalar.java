@@ -11,13 +11,10 @@
 
 package com.espertech.esper.epl.enummethod.dot;
 
-import com.espertech.esper.client.EventBean;
-import com.espertech.esper.event.EventAdapterService;
-import com.espertech.esper.event.bean.BeanEventType;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class ExprDotStaticMethodWrapArrayScalar implements ExprDotStaticMethodWrap {
@@ -31,8 +28,8 @@ public class ExprDotStaticMethodWrapArrayScalar implements ExprDotStaticMethodWr
         this.componentType = componentType;
     }
 
-    public ExprDotEvalTypeInfo getTypeInfo() {
-        return ExprDotEvalTypeInfo.componentColl(componentType);
+    public ExpressionReturnType getTypeInfo() {
+        return ExpressionReturnType.collectionOfSingleValue(componentType);
     }
 
     public Collection convert(Object result) {

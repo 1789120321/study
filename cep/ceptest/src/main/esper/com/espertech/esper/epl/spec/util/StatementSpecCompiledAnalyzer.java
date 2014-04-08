@@ -36,7 +36,7 @@ public class StatementSpecCompiledAnalyzer {
         return new StatementSpecCompiledAnalyzerResult(filters, namedWindows);
     }
 
-    private static void addFilters(List<StreamSpecCompiled> streams, List<FilterSpecCompiled> filters, List<NamedWindowConsumerStreamSpec> namedWindows) {
+    private static void addFilters(StreamSpecCompiled[] streams, List<FilterSpecCompiled> filters, List<NamedWindowConsumerStreamSpec> namedWindows) {
         for (StreamSpecCompiled compiled : streams) {
             if (compiled instanceof FilterStreamSpecCompiled) {
                 FilterStreamSpecCompiled c = (FilterStreamSpecCompiled) compiled;

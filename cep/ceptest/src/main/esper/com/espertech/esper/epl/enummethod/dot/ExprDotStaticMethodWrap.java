@@ -11,10 +11,12 @@
 
 package com.espertech.esper.epl.enummethod.dot;
 
+import com.espertech.esper.client.util.ExpressionReturnType;
+
 import java.util.Collection;
 
 public interface ExprDotStaticMethodWrap {
-    public ExprDotEvalTypeInfo getTypeInfo();
+    public ExpressionReturnType getTypeInfo();
     public Collection convert(Object result);
 }
 

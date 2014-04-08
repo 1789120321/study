@@ -101,7 +101,7 @@ public class MethodPollingViewableFactory
             String getterMethodName = methodStreamSpec.getMethodName() + "Metadata";
             try
             {
-                typeGetterMethod = methodResolutionService.resolveMethod(methodStreamSpec.getClassName(), getterMethodName, new Class[0]);
+                typeGetterMethod = methodResolutionService.resolveMethod(methodStreamSpec.getClassName(), getterMethodName, new Class[0], new boolean[0], new boolean[0]);
             }
             catch(Exception e)
             {

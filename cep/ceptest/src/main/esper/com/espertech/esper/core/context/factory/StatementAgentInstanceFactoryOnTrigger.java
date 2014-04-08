@@ -83,11 +83,6 @@ public class StatementAgentInstanceFactoryOnTrigger implements StatementAgentIns
     public StatementAgentInstanceFactoryOnTriggerResult newContext(final AgentInstanceContext agentInstanceContext, boolean isRecoveringResilient)
     {
         final List<StopCallback> stopCallbacks = new ArrayList<StopCallback>();
-        StopCallback stopCallback = new StopCallback() {
-            public void stop() {
-                StatementAgentInstanceUtil.stopSafe(agentInstanceContext.getTerminationCallbacks(), stopCallbacks, statementContext);
-            }
-        };
 
         View onExprView;
         Map<ExprSubselectNode, SubSelectStrategyHolder> subselectStrategies;
@@ -134,7 +129,7 @@ public class StatementAgentInstanceFactoryOnTrigger implements StatementAgentIns
                 }
 
                 OnTriggerSplitStreamDesc desc = (OnTriggerSplitStreamDesc) statementSpec.getOnTriggerDesc();
-                onExprView = new RouteResultView(desc.isFirst(), activatorResultEventType, statementContext.getEpStatementHandle(), services.getInternalEventRouter(), splitDesc.getNamedWindowInsert(), processors, splitDesc.getWhereClauses(), statementContext);
+                onExprView = new RouteResultView(desc.isFirst(), activatorResultEventType, statementContext.getEpStatementHandle(), services.getInternalEventRouter(), splitDesc.getNamedWindowInsert(), processors, splitDesc.getWhereClauses(), agentInstanceContext);
             }
 
             // attach stream to view
@@ -161,11 +156,13 @@ public class StatementAgentInstanceFactoryOnTrigger implements StatementAgentIns
             }
         }
         catch (RuntimeException ex) {
+            StopCallback stopCallback = StatementAgentInstanceUtil.getStopCallback(stopCallbacks, agentInstanceContext);
             StatementAgentInstanceUtil.stopSafe(stopCallback, statementContext);
             throw ex;
         }
 
         log.debug(".start Statement start completed");
+        StopCallback stopCallback = StatementAgentInstanceUtil.getStopCallback(stopCallbacks, agentInstanceContext);
         return new StatementAgentInstanceFactoryOnTriggerResult(onExprView, stopCallback, agentInstanceContext, aggregationService, subselectStrategies, optPatternRoot);
     }
 }

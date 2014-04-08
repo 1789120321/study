@@ -28,7 +28,7 @@ public class ExprDotEvalStreamEventBean implements ExprEvaluator
 
     public Class getType()
     {
-        return evaluators[evaluators.length - 1].getTypeInfo().getScalar();
+        return evaluators[evaluators.length - 1].getTypeInfo().getSingleValueType();
     }
 
     public Map<String, Object> getEventType() {

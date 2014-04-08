@@ -20,7 +20,6 @@ import com.espertech.esper.view.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
@@ -76,7 +75,7 @@ public class TimeBatchViewRStream extends ViewSupport implements CloneableView, 
             scheduleCallback();
             isCallbackScheduled = true;
         }
-        agentInstanceContext.getTerminationCallbacks().add(this);
+        agentInstanceContext.addTerminationCallback(this);
     }
 
     public View cloneView()
@@ -259,7 +258,7 @@ public class TimeBatchViewRStream extends ViewSupport implements CloneableView, 
 
     public void stopView() {
         stopSchedule();
-        agentInstanceContext.getTerminationCallbacks().remove(this);
+        agentInstanceContext.removeTerminationCallback(this);
     }
 
     public void stop() {

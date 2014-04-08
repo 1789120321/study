@@ -84,7 +84,7 @@ public class SortWindowViewFactory implements DataWindowViewFactory, DataWindowV
             if (validated[i] instanceof ExprOrderedExpr)
             {
                 isDescendingValues[i - 1] = ((ExprOrderedExpr) validated[i]).isDescending();
-                sortCriteriaExpressions[i - 1] = validated[i].getChildNodes().get(0);
+                sortCriteriaExpressions[i - 1] = validated[i].getChildNodes()[0];
             }
             else
             {

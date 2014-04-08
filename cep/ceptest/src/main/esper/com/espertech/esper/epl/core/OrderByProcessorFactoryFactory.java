@@ -38,7 +38,7 @@ public class OrderByProcessorFactoryFactory {
      * @throws com.espertech.esper.epl.expression.ExprValidationException when validation of expressions fails
      */
     public static OrderByProcessorFactory getProcessor(List<SelectClauseExprCompiledSpec> selectionList,
-											   List<ExprNode> groupByNodes,
+											   ExprNode[] groupByNodes,
 											   List<OrderByItem> orderByList,
                                                RowLimitSpec rowLimitSpec,
                                                VariableService variableService,

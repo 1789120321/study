@@ -173,6 +173,22 @@ public class SelectExprInsertEventBeanFactory
                     EventType columnEventType = (EventType) columnType;
                     final Class returnType = columnEventType.getUnderlyingType();
                     widener = TypeWidenerFactory.getCheckPropertyAssignType(columnNames[i], columnEventType.getUnderlyingType(), desc.getType(), desc.getPropertyName());
+
+                    // handle evaluator returning an event
+                    if (JavaClassHelper.isSubclassOrImplementsInterface(returnType, desc.getType())) {
+                        selectedWritable = desc;
+                        widener = new TypeWidener() {
+                            public Object widen(Object input) {
+                                if (input instanceof EventBean) {
+                                    return ((EventBean) input).getUnderlying();
+                                }
+                                return input;
+                            }
+                        };
+                        continue;
+                    }
+
+                    // find stream
                     int streamNum = 0;
                     for (int j = 0; j < typeService.getEventTypes().length; j++)
                     {

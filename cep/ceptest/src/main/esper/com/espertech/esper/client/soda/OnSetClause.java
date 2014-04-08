@@ -80,15 +80,6 @@ public class OnSetClause extends OnClause
     public void toEPL(StringWriter writer, EPStatementFormatter formatter)
     {
         formatter.beginOnSet(writer);
-        writer.write("set ");
-        String delimiter = "";
-        for (AssignmentPair pair : assignments)
-        {
-            writer.write(delimiter);
-            writer.write(pair.getName());
-            writer.write(" = ");
-            pair.getValue().toEPL(writer, ExpressionPrecedenceEnum.MINIMUM);
-            delimiter = ", ";
-        }
+        UpdateClause.renderEPLAssignments(writer, assignments);
     }
 }

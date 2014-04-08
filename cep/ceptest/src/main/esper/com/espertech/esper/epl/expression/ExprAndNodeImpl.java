@@ -40,7 +40,7 @@ public class ExprAndNodeImpl extends ExprNodeBase implements ExprEvaluator, Expr
             }
         }
 
-        if (this.getChildNodes().size() <= 1)
+        if (this.getChildNodes().length <= 1)
         {
             throw new ExprValidationException("The AND operator requires at least 2 child expressions");
         }

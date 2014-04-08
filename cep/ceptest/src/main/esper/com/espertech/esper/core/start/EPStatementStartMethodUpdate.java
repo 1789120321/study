@@ -49,7 +49,6 @@ public class EPStatementStartMethodUpdate extends EPStatementStartMethodBase
     public EPStatementStartResult startInternal(final EPServicesContext services, final StatementContext statementContext, boolean isNewStatement, boolean isRecoveringStatement, boolean isRecoveringResilient) throws ExprValidationException, ViewProcessingException {
         // define stop
         final List<StopCallback> stopCallbacks = new LinkedList<StopCallback>();
-        final EPStatementStopMethod stopMethod = new EPStatementStopMethodImpl(statementContext, stopCallbacks);
 
         // determine context
         final String contextName = statementSpec.getOptionalContextName();
@@ -60,7 +59,7 @@ public class EPStatementStartMethodUpdate extends EPStatementStartMethodBase
         // First we create streams for subselects, if there are any
         SubSelectActivationCollection subSelectStreamDesc = EPStatementStartMethodHelperSubselect.createSubSelectActivation(services, statementSpec, statementContext);
 
-        final StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs().get(0);
+        final StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs()[0];
         final UpdateDesc updateSpec = statementSpec.getUpdateSpec();
         String triggereventTypeName;
 
@@ -126,6 +125,7 @@ public class EPStatementStartMethodUpdate extends EPStatementStartMethodBase
         Map<ExprSubselectNode, SubSelectStrategyHolder> subselectStrategyInstances;
 
         // With context - delegate instantiation to context
+        final EPStatementStopMethod stopMethod = new EPStatementStopMethodImpl(statementContext, stopCallbacks);
         if (statementSpec.getOptionalContextName() != null) {
 
             // use statement-wide agent-instance-specific subselects

@@ -33,6 +33,8 @@ public class ExpressionBatchView extends ExpressionViewBase {
     protected EventBean[] lastBatch;
     protected long newestEventTimestamp;
     protected long oldestEventTimestamp;
+    protected EventBean oldestEvent;
+    protected EventBean newestEvent;
 
     /**
      * Constructor creates a moving window extending the specified number of elements into the past.
@@ -69,7 +71,7 @@ public class ExpressionBatchView extends ExpressionViewBase {
     public void scheduleCallback() {
         boolean fireBatch = evaluateExpression(null, window.size());
         if (fireBatch) {
-            expire();
+            expire(window.size());
         }
     }
 
@@ -86,31 +88,46 @@ public class ExpressionBatchView extends ExpressionViewBase {
                 aggregationService.applyLeave(oldData, null, agentInstanceContext);
             }
 
+            if (!window.isEmpty()) {
+                oldestEvent = window.iterator().next();
+            }
+            else {
+                oldestEvent = null;
+            }
+
             fireBatch = evaluateExpression(null, window.size());
         }
 
         // add data points to the window
-        if (newData != null)
+        int numEventsInBatch = -1;
+        if (newData != null && newData.length > 0)
         {
             if (window.isEmpty()) {
                 oldestEventTimestamp = agentInstanceContext.getStatementContext().getSchedulingService().getTime();
             }
             newestEventTimestamp = agentInstanceContext.getStatementContext().getSchedulingService().getTime();
+            if (oldestEvent == null) {
+                oldestEvent = newData[0];
+            }
 
             for (EventBean newEvent : newData) {
                 window.add(newEvent);
                 if (aggregationService != null) {
                     aggregationService.applyEnter(new EventBean[] {newEvent}, null, agentInstanceContext);
                 }
+                newestEvent = newEvent;
                 if (!fireBatch) {
                     fireBatch = evaluateExpression(newEvent, window.size());
+                    if (fireBatch && !dataWindowViewFactory.isIncludeTriggeringEvent()) {
+                        numEventsInBatch = window.size() - 1;
+                    }
                 }
             }
         }
 
         // may fire the batch
         if (fireBatch) {
-            expire();
+            expire(numEventsInBatch);
         }
         else {
             if (newData != null) {
@@ -121,23 +138,51 @@ public class ExpressionBatchView extends ExpressionViewBase {
 
     // Called based on schedule evaluation registered when a variable changes (new data is null).
     // Called when new data arrives.
-    public void expire() {
-        EventBean[] batchNewData = window.toArray(new EventBean[window.size()]);
+    public void expire(int numEventsInBatch) {
 
-        if (viewUpdatedCollection != null) {
-            viewUpdatedCollection.update(batchNewData, lastBatch);
+        if (numEventsInBatch == window.size() || numEventsInBatch == -1) {
+            EventBean[] batchNewData = window.toArray(new EventBean[window.size()]);
+            if (viewUpdatedCollection != null) {
+                viewUpdatedCollection.update(batchNewData, lastBatch);
+            }
+
+            // post
+            if (batchNewData != null || lastBatch != null) {
+                updateChildren(batchNewData, lastBatch);
+            }
+
+            // clear
+            window.clear();
+            lastBatch = batchNewData;
+            if (aggregationService != null) {
+                aggregationService.clearResults(agentInstanceContext);
+            }
+            oldestEvent = null;
+            newestEvent = null;
         }
+        else {
+            EventBean[] batchNewData = new EventBean[numEventsInBatch];
+            Iterator<EventBean> it = window.iterator();
+            for (int i = 0; i < batchNewData.length; i++) {
+                batchNewData[i] = it.next();
+                it.remove();
+            }
 
-        // post
-        if (batchNewData != null || lastBatch != null) {
-            updateChildren(batchNewData, lastBatch);
-        }
+            if (viewUpdatedCollection != null) {
+                viewUpdatedCollection.update(batchNewData, lastBatch);
+            }
 
-        // clear
-        window.clear();
-        lastBatch = batchNewData;
-        if (aggregationService != null) {
-            aggregationService.clearResults(agentInstanceContext);
+            // post
+            if (batchNewData != null || lastBatch != null) {
+                updateChildren(batchNewData, lastBatch);
+            }
+
+            // clear
+            lastBatch = batchNewData;
+            if (aggregationService != null) {
+                aggregationService.applyLeave(batchNewData, null, agentInstanceContext);
+            }
+            oldestEvent = window.iterator().next();
         }
     }
 
@@ -148,6 +193,8 @@ public class ExpressionBatchView extends ExpressionViewBase {
         builtinEventProps.getProperties().put(ExpressionViewUtil.NEWEST_TIMESTAMP, newestEventTimestamp);
         builtinEventProps.getProperties().put(ExpressionViewUtil.VIEW_REFERENCE, this);
         builtinEventProps.getProperties().put(ExpressionViewUtil.EXPIRED_COUNT, 0);
+        builtinEventProps.getProperties().put(ExpressionViewUtil.OLDEST_EVENT, oldestEvent);
+        builtinEventProps.getProperties().put(ExpressionViewUtil.NEWEST_EVENT, newestEvent);
         eventsPerStream[0] = arriving;
 
         for (AggregationServiceAggExpressionDesc aggregateNode : aggregateNodes) {

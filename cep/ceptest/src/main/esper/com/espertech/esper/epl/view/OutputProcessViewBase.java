@@ -8,19 +8,16 @@
  **************************************************************************************/
 package com.espertech.esper.epl.view;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.espertech.esper.client.EventType;
 import com.espertech.esper.core.service.UpdateDispatchView;
 import com.espertech.esper.epl.core.ResultSetProcessor;
 import com.espertech.esper.epl.join.base.JoinExecutionStrategy;
 import com.espertech.esper.epl.join.base.JoinSetIndicator;
 import com.espertech.esper.view.View;
+import com.espertech.esper.view.ViewSupport;
 import com.espertech.esper.view.Viewable;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public abstract class OutputProcessViewBase implements View, JoinSetIndicator, OutputProcessViewTerminable
 {
@@ -52,11 +49,11 @@ public abstract class OutputProcessViewBase implements View, JoinSetIndicator, O
         return this;
     }
 
-    public List<View> getViews() {
+    public View[] getViews() {
         if (childView == null) {
-            return Collections.emptyList();
+            return ViewSupport.EMPTY_VIEW_ARRAY;
         }
-        return Collections.<View>singletonList(childView);
+        return new View[] {childView};
     }
 
     public void removeAllViews()
@@ -95,19 +92,4 @@ public abstract class OutputProcessViewBase implements View, JoinSetIndicator, O
     {
         this.joinExecutionStrategy = joinExecutionStrategy;
     }
-
-	/*
-	 * 代码优化：
-	 * 
-	 * 返回ResultSetProcessor对象，为各种BatchView提供查询是否需要缓存上一批Batch的接口
-	 * 可查看ResultSetProcessor的isSelectRStream接口
-	 * 
-	 * Code line： 108-111
-	 * Author: luonq@primeton.com
-	 * Date: 2013-6-16 12：00
-	 */
-	public ResultSetProcessor getResultSetProcessor()
-	{
-		return resultSetProcessor;
-	}
 }

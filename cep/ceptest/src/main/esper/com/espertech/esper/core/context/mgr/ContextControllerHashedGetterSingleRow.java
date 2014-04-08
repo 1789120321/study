@@ -19,6 +19,7 @@ import com.espertech.esper.collection.Pair;
 import com.espertech.esper.epl.core.EngineImportSingleRowDesc;
 import com.espertech.esper.epl.core.MethodResolutionService;
 import com.espertech.esper.epl.expression.*;
+import com.espertech.esper.event.EventAdapterService;
 import com.espertech.esper.util.JavaClassHelper;
 import net.sf.cglib.reflect.FastMethod;
 import org.apache.commons.logging.Log;
@@ -35,10 +36,10 @@ public class ContextControllerHashedGetterSingleRow implements EventPropertyGett
     private final ExprEvaluator[] evaluators;
     private final int granularity;
 
-    public ContextControllerHashedGetterSingleRow(String statementName, String functionName, Pair<Class, EngineImportSingleRowDesc> func, List<ExprNode> parameters, int granularity, MethodResolutionService methodResolutionService, EventType eventType)
+    public ContextControllerHashedGetterSingleRow(String statementName, String functionName, Pair<Class, EngineImportSingleRowDesc> func, List<ExprNode> parameters, int granularity, MethodResolutionService methodResolutionService, EventType eventType, EventAdapterService eventAdapterService, String statementId)
         throws ExprValidationException
     {
-        ExprNodeUtilSingleRowMethodDesc staticMethodDesc = ExprNodeUtility.resolveSingleRowPluginFunc(func.getFirst().getName(), func.getSecond().getMethodName(), parameters, methodResolutionService, true, eventType, func.getSecond().getMethodName(), true);
+        ExprNodeUtilMethodDesc staticMethodDesc = ExprNodeUtility.resolveMethodAllowWildcardAndStream(func.getFirst().getName(), null, func.getSecond().getMethodName(), parameters, methodResolutionService, eventAdapterService, statementId, true, eventType, new ExprNodeUtilResolveExceptionHandlerDefault(func.getSecond().getMethodName(), true), func.getSecond().getMethodName());
         this.statementName = statementName;
         this.evaluators = staticMethodDesc.getChildEvals();
         this.granularity = granularity;

@@ -67,11 +67,6 @@ public class StatementAgentInstanceFactoryCreateWindow implements StatementAgent
     public StatementAgentInstanceFactoryCreateWindowResult newContext(final AgentInstanceContext agentInstanceContext, boolean isRecoveringResilient)
     {
         final List<StopCallback> stopCallbacks = new ArrayList<StopCallback>();
-        StopCallback stopCallback = new StopCallback() {
-            public void stop() {
-                StatementAgentInstanceUtil.stopSafe(agentInstanceContext.getTerminationCallbacks(), stopCallbacks, statementContext);
-            }
-        };
 
         String windowName = statementSpec.getCreateWindowDesc().getWindowName();
         Viewable finalView;
@@ -137,10 +132,12 @@ public class StatementAgentInstanceFactoryCreateWindow implements StatementAgent
                     }
                     else {
                         NamedWindowProcessorInstance instance = processor.getProcessorInstance(agentInstanceContext);
-                        if (instance.getRootViewInstance().isVirtualDataWindow()) {
+                        if (instance != null && instance.getRootViewInstance().isVirtualDataWindow()) {
                             instance.getRootViewInstance().getVirtualDataWindow().handleStopWindow();
                         }
-                        processor.removeProcessorInstance(instance);
+                        if (instance != null) {
+                            processor.removeProcessorInstance(instance);
+                        }
                     }
                     if (environmentStopCallback != null) {
                         environmentStopCallback.stop();
@@ -204,11 +201,13 @@ public class StatementAgentInstanceFactoryCreateWindow implements StatementAgent
             }
         }
         catch (RuntimeException ex) {
+            StopCallback stopCallback = StatementAgentInstanceUtil.getStopCallback(stopCallbacks, agentInstanceContext);
             StatementAgentInstanceUtil.stopSafe(stopCallback, statementContext);
             throw ex;
         }
 
         log.debug(".start Statement start completed");
+        StopCallback stopCallback = StatementAgentInstanceUtil.getStopCallback(stopCallbacks, agentInstanceContext);
         return new StatementAgentInstanceFactoryCreateWindowResult(finalView, stopCallback, agentInstanceContext, eventStreamParentViewable, postLoad, topView);
     }
 }

@@ -33,7 +33,7 @@ public class ExprIStreamNode extends ExprNodeBase implements ExprEvaluator
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() != 0)
+        if (this.getChildNodes().length != 0)
         {
             throw new ExprValidationException("current_timestamp function node must have exactly 1 child node");
         }

@@ -35,6 +35,7 @@ import javax.xml.xpath.XPathConstants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.math.MathContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -139,6 +140,10 @@ class ConfigurationParser {
             else if (nodeName.equals("plugin-aggregation-function"))
             {
                 handlePlugInAggregation(configuration, element);
+            }
+            else if (nodeName.equals("plugin-aggregation-multifunction"))
+            {
+                handlePlugInMultiFunctionAggregation(configuration, element);
             }
             else if (nodeName.equals("plugin-singlerow-function"))
             {
@@ -642,6 +647,32 @@ class ConfigurationParser {
         else {
             configuration.addPlugInAggregationFunction(name, functionClassName);
         }
+    }
+
+    private static void handlePlugInMultiFunctionAggregation(Configuration configuration, Element element)
+    {
+        String functionNames = getRequiredAttribute(element,"function-names");
+        String factoryClassName = getOptionalAttribute(element, "factory-class");
+
+        DOMElementIterator nodeIterator = new DOMElementIterator(element.getChildNodes());
+        Map<String, Object> additionalProps = null;
+        while (nodeIterator.hasNext())
+        {
+            Element subElement = nodeIterator.next();
+            if (subElement.getNodeName().equals("init-arg"))
+            {
+                String name = getRequiredAttribute(subElement, "name");
+                String value = getRequiredAttribute(subElement, "value");
+                if (additionalProps == null) {
+                    additionalProps = new HashMap<String, Object>();
+                }
+                additionalProps.put(name, value);
+            }
+        }
+
+        ConfigurationPlugInAggregationMultiFunction config = new ConfigurationPlugInAggregationMultiFunction(functionNames.split(","), factoryClassName);
+        config.setAdditionalConfiguredProperties(additionalProps);
+        configuration.addPlugInAggregationMultiFunction(config);
     }
 
     private static void handlePlugInSingleRow(Configuration configuration, Element element)
@@ -1407,6 +1438,17 @@ class ConfigurationParser {
             boolean duckTyping = Boolean.parseBoolean(duckTypingStr);
             configuration.getEngineDefaults().getExpression().setDuckTyping(duckTyping);
         }
+        String mathContextStr = getOptionalAttribute(parentElement, "math-context");
+        if (mathContextStr != null)
+        {
+            try {
+                MathContext mathContext = new MathContext(mathContextStr);
+                configuration.getEngineDefaults().getExpression().setMathContext(mathContext);
+            }
+            catch (IllegalArgumentException ex) {
+                throw new ConfigurationException("Failed to parse '" + mathContextStr + "' as a MathContext");
+            }
+        }
     }
 
     private static void handleExecution(Configuration configuration, Element parentElement)
@@ -1520,6 +1562,14 @@ class ConfigurationParser {
                     String typeText = typeNode.getTextContent();
                     Configuration.EventRepresentation value = Configuration.EventRepresentation.valueOf(typeText.toUpperCase());
                     configuration.getEngineDefaults().getEventMeta().setDefaultEventRepresentation(value);
+                }
+            }
+
+            if (subElement.getNodeName().equals("anonymous-cache"))
+            {
+                Node sizeNode = subElement.getAttributes().getNamedItem("size");
+                if (sizeNode != null) {
+                    configuration.getEngineDefaults().getEventMeta().setAnonymousCacheSize(Integer.parseInt(sizeNode.getTextContent()));
                 }
             }
         }

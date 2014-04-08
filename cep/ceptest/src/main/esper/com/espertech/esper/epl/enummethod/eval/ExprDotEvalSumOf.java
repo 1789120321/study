@@ -12,11 +12,12 @@
 package com.espertech.esper.epl.enummethod.eval;
 
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.epl.core.MethodResolutionService;
 import com.espertech.esper.epl.core.StreamTypeService;
 import com.espertech.esper.epl.enummethod.dot.ExprDotEvalEnumMethodBase;
 import com.espertech.esper.epl.enummethod.dot.ExprDotEvalParam;
 import com.espertech.esper.epl.enummethod.dot.ExprDotEvalParamLambda;
-import com.espertech.esper.epl.enummethod.dot.ExprDotEvalTypeInfo;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.epl.expression.ExprDotNodeUtility;
 import com.espertech.esper.event.EventAdapterService;
 import com.espertech.esper.event.arr.ObjectArrayEventType;
@@ -32,18 +33,18 @@ public class ExprDotEvalSumOf extends ExprDotEvalEnumMethodBase {
         return ExprDotNodeUtility.getSingleLambdaParamEventType(enumMethodUsedName, goesToNames, inputEventType, collectionComponentType);
     }
 
-    public EnumEval getEnumEval(EventAdapterService eventAdapterService, StreamTypeService streamTypeService, String statementId, String enumMethodUsedName, List<ExprDotEvalParam> bodiesAndParameters, EventType inputEventType, Class collectionComponentType, int numStreamsIncoming) {
+    public EnumEval getEnumEval(MethodResolutionService methodResolutionService, EventAdapterService eventAdapterService, StreamTypeService streamTypeService, String statementId, String enumMethodUsedName, List<ExprDotEvalParam> bodiesAndParameters, EventType inputEventType, Class collectionComponentType, int numStreamsIncoming) {
 
         if (bodiesAndParameters.isEmpty()) {
             ExprDotEvalSumMethodFactory aggMethodFactory = getAggregatorFactory(collectionComponentType);
-            super.setTypeInfo(ExprDotEvalTypeInfo.scalarOrUnderlying(JavaClassHelper.getBoxedType(aggMethodFactory.getValueType())));
+            super.setTypeInfo(ExpressionReturnType.singleValue(JavaClassHelper.getBoxedType(aggMethodFactory.getValueType())));
             return new EnumEvalSumScalar(numStreamsIncoming, aggMethodFactory);
         }
 
         ExprDotEvalParamLambda first = (ExprDotEvalParamLambda) bodiesAndParameters.get(0);
         ExprDotEvalSumMethodFactory aggMethodFactory = getAggregatorFactory(first.getBodyEvaluator().getType());
         Class returnType = JavaClassHelper.getBoxedType(aggMethodFactory.getValueType());
-        super.setTypeInfo(ExprDotEvalTypeInfo.scalarOrUnderlying(returnType));
+        super.setTypeInfo(ExpressionReturnType.singleValue(returnType));
         if (inputEventType == null) {
             return new EnumEvalSumScalarLambda(first.getBodyEvaluator(), first.getStreamCountIncoming(), aggMethodFactory,
                     (ObjectArrayEventType) first.getGoesToTypes()[0]);

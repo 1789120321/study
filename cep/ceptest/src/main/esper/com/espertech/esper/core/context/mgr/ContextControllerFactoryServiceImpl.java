@@ -15,11 +15,18 @@ import com.espertech.esper.epl.expression.ExprValidationException;
 
 public class ContextControllerFactoryServiceImpl implements ContextControllerFactoryService {
 
-    public final static ContextControllerFactoryServiceImpl DEFAULT_FACTORY = new ContextControllerFactoryServiceImpl();
     private final static ContextStateCache CACHE_NO_SAVE = new ContextStateCacheNoSave();
 
+    public final static ContextControllerFactoryServiceImpl DEFAULT_FACTORY = new ContextControllerFactoryServiceImpl(CACHE_NO_SAVE);
+
+    private final ContextStateCache cache;
+
+    public ContextControllerFactoryServiceImpl(ContextStateCache cache) {
+        this.cache = cache;
+    }
+
     public ContextControllerFactory[] getFactory(ContextControllerFactoryServiceContext serviceContext) throws ExprValidationException {
-        return ContextControllerFactoryHelper.getFactory(serviceContext, CACHE_NO_SAVE);
+        return ContextControllerFactoryHelper.getFactory(serviceContext, cache);
     }
 
     public ContextPartitionIdManager allocatePartitionIdMgr(String contextName, String contextStmtId) {

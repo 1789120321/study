@@ -24,4 +24,8 @@ public class AIRegistryExprMap extends AIRegistryExprBase {
     public AIRegistryPrior allocateAIRegistryPrior() {
         return new AIRegistryPriorMap();
     }
+
+    public AIRegistryAggregation allocateAIRegistrySubselectAggregation() {
+        return new AIRegistryAggregationMap();
+    }
 }

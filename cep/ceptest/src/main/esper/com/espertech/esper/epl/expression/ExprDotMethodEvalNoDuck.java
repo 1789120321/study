@@ -12,7 +12,7 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.client.EventBean;
-import com.espertech.esper.epl.enummethod.dot.ExprDotEvalTypeInfo;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.util.JavaClassHelper;
 import net.sf.cglib.reflect.FastMethod;
 import org.apache.commons.logging.Log;
@@ -58,7 +58,7 @@ public class ExprDotMethodEvalNoDuck implements ExprDotEval
         return null;
     }
 
-    public ExprDotEvalTypeInfo getTypeInfo() {
-        return ExprDotEvalTypeInfo.fromMethod(method.getJavaMethod());
+    public ExpressionReturnType getTypeInfo() {
+        return ExpressionReturnType.fromMethod(method.getJavaMethod());
     }
 }

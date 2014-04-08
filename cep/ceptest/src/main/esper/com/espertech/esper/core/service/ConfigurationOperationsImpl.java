@@ -119,6 +119,17 @@ public class ConfigurationOperationsImpl implements ConfigurationOperations
         }
     }
 
+    public void addPlugInAggregationMultiFunction(ConfigurationPlugInAggregationMultiFunction config) throws ConfigurationException {
+        try
+        {
+            engineImportService.addAggregationMultiFunction(config);
+        }
+        catch (EngineImportException e)
+        {
+            throw new ConfigurationException(e.getMessage(), e);
+        }
+    }
+
     public void addPlugInAggregationFunctionFactory(String functionName, String aggregationFactoryClassName)
     {
         try

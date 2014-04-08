@@ -286,20 +286,20 @@ public final class FilterSpecCompiler
         throws ExprValidationException {
 
         StatementSpecCompiled statementSpec = subselect.getStatementSpecCompiled();
-        StreamSpecCompiled filterStreamSpec = statementSpec.getStreamSpecs().get(0);
+        StreamSpecCompiled filterStreamSpec = statementSpec.getStreamSpecs()[0];
 
         ViewFactoryChain viewFactoryChain;
         String subselecteventTypeName = null;
 
         // construct view factory chain
         try {
-            if (statementSpec.getStreamSpecs().get(0) instanceof FilterStreamSpecCompiled)
+            if (statementSpec.getStreamSpecs()[0] instanceof FilterStreamSpecCompiled)
             {
-                FilterStreamSpecCompiled filterStreamSpecCompiled = (FilterStreamSpecCompiled) statementSpec.getStreamSpecs().get(0);
+                FilterStreamSpecCompiled filterStreamSpecCompiled = (FilterStreamSpecCompiled) statementSpec.getStreamSpecs()[0];
                 subselecteventTypeName = filterStreamSpecCompiled.getFilterSpec().getFilterForEventTypeName();
 
                 // A child view is required to limit the stream
-                if (filterStreamSpec.getViewSpecs().size() == 0)
+                if (filterStreamSpec.getViewSpecs().length == 0)
                 {
                     throw new ExprValidationException("Subqueries require one or more views to limit the stream, consider declaring a length or time window");
                 }
@@ -310,7 +310,7 @@ public final class FilterSpecCompiler
             }
             else
             {
-                NamedWindowConsumerStreamSpec namedSpec = (NamedWindowConsumerStreamSpec) statementSpec.getStreamSpecs().get(0);
+                NamedWindowConsumerStreamSpec namedSpec = (NamedWindowConsumerStreamSpec) statementSpec.getStreamSpecs()[0];
                 NamedWindowProcessor processor = statementContext.getNamedWindowService().getProcessor(namedSpec.getWindowName());
                 viewFactoryChain = statementContext.getViewService().createFactories(0, processor.getNamedWindowType(), namedSpec.getViewSpecs(), namedSpec.getOptions(), statementContext);
                 subselecteventTypeName = namedSpec.getWindowName();
@@ -356,13 +356,13 @@ public final class FilterSpecCompiler
 
         // Validate select expression
         SelectClauseSpecCompiled selectClauseSpec = subselect.getStatementSpecCompiled().getSelectClauseSpec();
-        if (selectClauseSpec.getSelectExprList().size() > 0)
+        if (selectClauseSpec.getSelectExprList().length > 0)
         {
-            if (selectClauseSpec.getSelectExprList().size() > 1) {
+            if (selectClauseSpec.getSelectExprList().length > 1) {
                 throw new ExprValidationException("Subquery multi-column select is not allowed in this context.");
             }
 
-            SelectClauseElementCompiled element = selectClauseSpec.getSelectExprList().get(0);
+            SelectClauseElementCompiled element = selectClauseSpec.getSelectExprList()[0];
             if (element instanceof SelectClauseExprCompiledSpec)
             {
                 // validate
@@ -581,7 +581,7 @@ public final class FilterSpecCompiler
 
     private static FilterSpecParam handleRangeNode(ExprBetweenNode betweenNode, LinkedHashMap<String, Pair<EventType, String>> arrayEventTypes, ExprEvaluatorContext exprEvaluatorContext, String statementName)
     {
-        ExprNode left = betweenNode.getChildNodes().get(0);
+        ExprNode left = betweenNode.getChildNodes()[0];
         if (left instanceof ExprFilterOptimizableNode)
         {
             ExprFilterOptimizableNode filterOptimizableNode = (ExprFilterOptimizableNode) left;
@@ -589,8 +589,8 @@ public final class FilterSpecCompiler
             FilterOperator op = FilterOperator.parseRangeOperator(betweenNode.isLowEndpointIncluded(), betweenNode.isHighEndpointIncluded(),
                     betweenNode.isNotBetween());
 
-            FilterSpecParamRangeValue low = handleRangeNodeEndpoint(betweenNode.getChildNodes().get(1), arrayEventTypes, exprEvaluatorContext, statementName);
-            FilterSpecParamRangeValue high = handleRangeNodeEndpoint(betweenNode.getChildNodes().get(2), arrayEventTypes, exprEvaluatorContext, statementName);
+            FilterSpecParamRangeValue low = handleRangeNodeEndpoint(betweenNode.getChildNodes()[1], arrayEventTypes, exprEvaluatorContext, statementName);
+            FilterSpecParamRangeValue high = handleRangeNodeEndpoint(betweenNode.getChildNodes()[2], arrayEventTypes, exprEvaluatorContext, statementName);
 
             if ((low != null) && (high != null))
             {
@@ -646,7 +646,7 @@ public final class FilterSpecCompiler
     private static FilterSpecParam handleInSetNode(ExprInNode constituent, LinkedHashMap<String, Pair<EventType, String>> arrayEventTypes, ExprEvaluatorContext exprEvaluatorContext, String statementName)
             throws ExprValidationException
     {
-        ExprNode left = constituent.getChildNodes().get(0);
+        ExprNode left = constituent.getChildNodes()[0];
         if (!(left instanceof ExprFilterOptimizableNode)) {
             return null;
         }
@@ -659,9 +659,9 @@ public final class FilterSpecCompiler
             op = FilterOperator.NOT_IN_LIST_OF_VALUES;
         }
 
-        int expectedNumberOfConstants = constituent.getChildNodes().size() - 1;
+        int expectedNumberOfConstants = constituent.getChildNodes().length - 1;
         List<FilterSpecParamInValue> listofValues = new ArrayList<FilterSpecParamInValue>();
-        Iterator<ExprNode> it = constituent.getChildNodes().iterator();
+        Iterator<ExprNode> it = Arrays.asList(constituent.getChildNodes()).iterator();
         it.next();  // ignore the first node as it's the identifier
         while (it.hasNext())
         {
@@ -802,8 +802,8 @@ public final class FilterSpecCompiler
             }
         }
 
-        ExprNode left = constituent.getChildNodes().get(0);
-        ExprNode right = constituent.getChildNodes().get(1);
+        ExprNode left = constituent.getChildNodes()[0];
+        ExprNode right = constituent.getChildNodes()[1];
 
         // check identifier and constant combination
         if ((ExprNodeUtility.isConstantValueExpr(right)) && (left instanceof ExprFilterOptimizableNode))

@@ -49,11 +49,11 @@ public class ExprArrayNode extends ExprNodeBase implements ExprEvaluator, ExprEv
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        length = this.getChildNodes().size();
+        length = this.getChildNodes().length;
         evaluators = ExprNodeUtility.getEvaluators(this.getChildNodes());
 
         // Can be an empty array with no content
-        if (this.getChildNodes().size() == 0)
+        if (this.getChildNodes().length == 0)
         {
             arrayReturnType = Object.class;
             constantResult = new Object[0];

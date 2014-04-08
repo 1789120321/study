@@ -59,7 +59,7 @@ public class ExprRelationalOpNodeImpl extends ExprNodeBase implements ExprEvalua
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
         // Must have 2 child nodes
-        if (this.getChildNodes().size() != 2)
+        if (this.getChildNodes().length != 2)
         {
             throw new IllegalStateException("Relational op node does not have exactly 2 child nodes");
         }
@@ -116,9 +116,9 @@ public class ExprRelationalOpNodeImpl extends ExprNodeBase implements ExprEvalua
     {
         StringBuilder buffer = new StringBuilder();
 
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
         buffer.append(relationalOpEnum.getExpressionText());
-        buffer.append(this.getChildNodes().get(1).toExpressionString());
+        buffer.append(this.getChildNodes()[1].toExpressionString());
 
         return buffer.toString();
     }

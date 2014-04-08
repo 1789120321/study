@@ -35,7 +35,7 @@ public class ExprDotEvalVariable implements ExprEvaluator
             return variableReader.getType();
         }
         else {
-            return chainEval[chainEval.length - 1].getTypeInfo().getScalar();
+            return chainEval[chainEval.length - 1].getTypeInfo().getSingleValueType();
         }
     }
 

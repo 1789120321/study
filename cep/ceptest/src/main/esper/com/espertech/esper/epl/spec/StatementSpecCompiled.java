@@ -10,10 +10,14 @@ package com.espertech.esper.epl.spec;
 
 import com.espertech.esper.epl.declexpr.ExprDeclaredNode;
 import com.espertech.esper.epl.expression.ExprNode;
+import com.espertech.esper.epl.expression.ExprNodeUtility;
 import com.espertech.esper.epl.expression.ExprSubselectNode;
 
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Specification object representing a complete EPL statement including all EPL constructs.
@@ -24,7 +28,7 @@ public class StatementSpecCompiled
 
     static {
         DEFAULT_SELECT_ALL_EMPTY = new StatementSpecCompiled();
-        DEFAULT_SELECT_ALL_EMPTY.getSelectClauseSpec().add(new SelectClauseElementWildcard());
+        DEFAULT_SELECT_ALL_EMPTY.getSelectClauseSpec().setSelectExprList(new SelectClauseElementWildcard());
     }
 
     private final OnTriggerDesc onTriggerDesc;
@@ -35,18 +39,18 @@ public class StatementSpecCompiled
     private InsertIntoDesc insertIntoDesc;
     private SelectClauseStreamSelectorEnum selectStreamDirEnum;
     private SelectClauseSpecCompiled selectClauseSpec;
-    private final List<StreamSpecCompiled> streamSpecs;
-    private final List<OuterJoinDesc> outerJoinDescList;
+    private final StreamSpecCompiled[] streamSpecs;
+    private final OuterJoinDesc[] outerJoinDescList;
     private ExprNode filterExprRootNode;
-    private final List<ExprNode> groupByExpressions;
+    private final ExprNode[] groupByExpressions;
     private final ExprNode havingExprRootNode;
     private final OutputLimitSpec outputLimitSpec;
-    private final List<OrderByItem> orderByList;
-    private final List<ExprSubselectNode> subSelectExpressions;
-    private final List<ExprDeclaredNode> declaredExpressions;
+    private final OrderByItem[] orderByList;
+    private final ExprSubselectNode[] subSelectExpressions;
+    private final ExprDeclaredNode[] declaredExpressions;
     private final Set<String> variableReferences;
     private final RowLimitSpec rowLimitSpec;
-    private final Set<String> eventTypeReferences;
+    private final String[] eventTypeReferences;
     private final Annotation[] annotations;
     private final UpdateDesc updateSpec;
     private final MatchRecognizeSpec matchRecognizeSpec;
@@ -56,6 +60,7 @@ public class StatementSpecCompiled
     private final String optionalContextName;
     private final CreateDataFlowDesc createGraphDesc;
     private final CreateExpressionDesc createExpressionDesc;
+    private final FireAndForgetSpec fireAndForgetSpec;
 
     /**
      * Ctor.
@@ -89,18 +94,18 @@ public class StatementSpecCompiled
                                  InsertIntoDesc insertIntoDesc,
                                  SelectClauseStreamSelectorEnum selectClauseStreamSelectorEnum,
                                  SelectClauseSpecCompiled selectClauseSpec,
-                                 List<StreamSpecCompiled> streamSpecs,
-                                 List<OuterJoinDesc> outerJoinDescList,
+                                 StreamSpecCompiled[] streamSpecs,
+                                 OuterJoinDesc[] outerJoinDescList,
                                  ExprNode filterExprRootNode,
-                                 List<ExprNode> groupByExpressions,
+                                 ExprNode[] groupByExpressions,
                                  ExprNode havingExprRootNode,
                                  OutputLimitSpec outputLimitSpec,
-                                 List<OrderByItem> orderByList,
-                                 List<ExprSubselectNode> subSelectExpressions,
-                                 List<ExprDeclaredNode> declaredExpressions,
+                                 OrderByItem[] orderByList,
+                                 ExprSubselectNode[] subSelectExpressions,
+                                 ExprDeclaredNode[] declaredExpressions,
                                  Set<String> variableReferences,
                                  RowLimitSpec rowLimitSpec,
-                                 Set<String> eventTypeReferences,
+                                 String[] eventTypeReferences,
                                  Annotation[] annotations,
                                  UpdateDesc updateSpec,
                                  MatchRecognizeSpec matchRecognizeSpec,
@@ -109,7 +114,8 @@ public class StatementSpecCompiled
                                  CreateContextDesc contextDesc,
                                  String optionalContextName,
                                  CreateDataFlowDesc createGraphDesc,
-                                 CreateExpressionDesc createExpressionDesc)
+                                 CreateExpressionDesc createExpressionDesc,
+                                 FireAndForgetSpec fireAndForgetSpec)
     {
         this.onTriggerDesc = onTriggerDesc;
         this.createWindowDesc = createWindowDesc;
@@ -140,6 +146,7 @@ public class StatementSpecCompiled
         this.optionalContextName = optionalContextName;
         this.createGraphDesc = createGraphDesc;
         this.createExpressionDesc = createExpressionDesc;
+        this.fireAndForgetSpec = fireAndForgetSpec;
     }
 
     /**
@@ -155,18 +162,18 @@ public class StatementSpecCompiled
         insertIntoDesc = null;
         selectStreamDirEnum = SelectClauseStreamSelectorEnum.RSTREAM_ISTREAM_BOTH;
         selectClauseSpec = new SelectClauseSpecCompiled(false);
-        streamSpecs = new ArrayList<StreamSpecCompiled>();
-        outerJoinDescList = new ArrayList<OuterJoinDesc>();
+        streamSpecs = StreamSpecCompiled.EMPTY_STREAM_ARRAY;
+        outerJoinDescList = OuterJoinDesc.EMPTY_OUTERJOIN_ARRAY;
         filterExprRootNode = null;
-        groupByExpressions = new ArrayList<ExprNode>();
+        groupByExpressions = ExprNodeUtility.EMPTY_EXPR_ARRAY;
         havingExprRootNode = null;
         outputLimitSpec = null;
-        orderByList = new ArrayList<OrderByItem>();
-        subSelectExpressions = new ArrayList<ExprSubselectNode>();
-        declaredExpressions = new ArrayList<ExprDeclaredNode>();
+        orderByList = OrderByItem.EMPTY_ORDERBY_ARRAY;
+        subSelectExpressions = ExprSubselectNode.EMPTY_SUBSELECT_ARRAY;
+        declaredExpressions = ExprNodeUtility.EMPTY_DECLARED_ARR;
         variableReferences = new HashSet<String>();
         rowLimitSpec = null;
-        eventTypeReferences = new HashSet<String>();
+        eventTypeReferences = new String[0];
         annotations = new Annotation[0];
         updateSpec = null;
         matchRecognizeSpec = null;
@@ -176,6 +183,7 @@ public class StatementSpecCompiled
         optionalContextName = null;
         createGraphDesc = null;
         createExpressionDesc = null;
+        fireAndForgetSpec = null;
     }
 
     /**
@@ -200,7 +208,7 @@ public class StatementSpecCompiled
      * Returns the FROM-clause stream definitions.
      * @return list of stream specifications
      */
-    public List<StreamSpecCompiled> getStreamSpecs()
+    public StreamSpecCompiled[] getStreamSpecs()
     {
         return streamSpecs;
     }
@@ -227,7 +235,7 @@ public class StatementSpecCompiled
      * Returns the LEFT/RIGHT/FULL OUTER JOIN-type and property name descriptor, if applicable. Returns null if regular join.
      * @return outer join type, stream names and property names
      */
-    public List<OuterJoinDesc> getOuterJoinDescList()
+    public OuterJoinDesc[] getOuterJoinDescList()
     {
         return outerJoinDescList;
     }
@@ -236,7 +244,7 @@ public class StatementSpecCompiled
      * Returns list of group-by expressions.
      * @return group-by expression nodes as specified in group-by clause
      */
-    public List<ExprNode> getGroupByExpressions()
+    public ExprNode[] getGroupByExpressions()
     {
         return groupByExpressions;
     }
@@ -272,7 +280,7 @@ public class StatementSpecCompiled
      * Returns the list of order-by expression as specified in the ORDER BY clause.
      * @return Returns the orderByList.
      */
-    public List<OrderByItem> getOrderByList() {
+    public OrderByItem[] getOrderByList() {
         return orderByList;
     }
 
@@ -298,7 +306,7 @@ public class StatementSpecCompiled
      * Returns the list of lookup expression nodes.
      * @return lookup nodes
      */
-    public List<ExprSubselectNode> getSubSelectExpressions()
+    public ExprSubselectNode[] getSubSelectExpressions()
     {
         return subSelectExpressions;
     }
@@ -342,7 +350,7 @@ public class StatementSpecCompiled
      * Returns the event type name in used by the statement.
      * @return set of event type name
      */
-    public Set<String> getEventTypeReferences()
+    public String[] getEventTypeReferences()
     {
         return eventTypeReferences;
     }
@@ -423,7 +431,7 @@ public class StatementSpecCompiled
         return sqlParameters;
     }
 
-    public List<ExprDeclaredNode> getDeclaredExpressions() {
+    public ExprDeclaredNode[] getDeclaredExpressions() {
         return declaredExpressions;
     }
 
@@ -441,5 +449,9 @@ public class StatementSpecCompiled
 
     public CreateExpressionDesc getCreateExpressionDesc() {
         return createExpressionDesc;
+    }
+
+    public FireAndForgetSpec getFireAndForgetSpec() {
+        return fireAndForgetSpec;
     }
 }

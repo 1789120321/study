@@ -28,6 +28,7 @@ public class PlugInEventTypeHandlerContext
      * of the event representation URI and may carry additional parameters
      * @param typeInitializer optional configuration for the type, or null if none supplied
      * @param eventTypeName the name of the event
+     * @param eventTypeId event type id
      */
     public PlugInEventTypeHandlerContext(URI eventTypeResolutionURI, Serializable typeInitializer, String eventTypeName, int eventTypeId)
     {
@@ -37,6 +38,10 @@ public class PlugInEventTypeHandlerContext
         this.eventTypeId = eventTypeId;
     }
 
+    /**
+     * Returns the event type id.
+     * @return event type id
+     */
     public int getEventTypeId() {
         return eventTypeId;
     }

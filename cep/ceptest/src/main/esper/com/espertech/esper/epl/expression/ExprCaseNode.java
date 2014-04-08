@@ -8,13 +8,13 @@
  **************************************************************************************/
 package com.espertech.esper.epl.expression;
 
-import com.espertech.esper.collection.UniformPair;
 import com.espertech.esper.client.EventBean;
+import com.espertech.esper.collection.UniformPair;
 import com.espertech.esper.event.map.MapEventType;
 import com.espertech.esper.util.CoercionException;
 import com.espertech.esper.util.JavaClassHelper;
-import com.espertech.esper.util.SimpleNumberCoercerFactory;
 import com.espertech.esper.util.SimpleNumberCoercer;
+import com.espertech.esper.util.SimpleNumberCoercerFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -236,7 +236,7 @@ public class ExprCaseNode extends ExprNodeBase implements ExprEvaluator
         // Case 1 expression example:
         //      case when a=b then x [when c=d then y...] [else y]
         //
-        ExprNode[] children = this.getChildNodes().toArray(new ExprNode[this.getChildNodes().size()]);
+        ExprNode[] children = this.getChildNodes();
         if (children.length < 2)
         {
             throw new ExprValidationException("Case node must have at least 2 child nodes");
@@ -262,7 +262,7 @@ public class ExprCaseNode extends ExprNodeBase implements ExprEvaluator
         // Case 2 expression example:
         //      case p when p1 then x [when p2 then y...] [else z]
         //
-        ExprNode[] children = this.getChildNodes().toArray(new ExprNode[this.getChildNodes().size()]);
+        ExprNode[] children = this.getChildNodes();
         if (children.length < 3)
         {
             throw new ExprValidationException("Case node must have at least 3 child nodes");

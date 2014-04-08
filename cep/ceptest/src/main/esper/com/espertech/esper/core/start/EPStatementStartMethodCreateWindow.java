@@ -58,7 +58,6 @@ public class EPStatementStartMethodCreateWindow extends EPStatementStartMethodBa
 
         // define stop
         final List<StopCallback> stopCallbacks = new ArrayList<StopCallback>();
-        final EPStatementStopMethod stopMethod = new EPStatementStopMethodImpl(statementContext, stopCallbacks);
 
         // determine context
         final String contextName = statementSpec.getOptionalContextName();
@@ -72,7 +71,7 @@ public class EPStatementStartMethodCreateWindow extends EPStatementStartMethodBa
 
         // Create view factories and parent view based on a filter specification
         // Since only for non-joins we get the existing stream's lock and try to reuse it's views
-        final FilterStreamSpecCompiled filterStreamSpec = (FilterStreamSpecCompiled) statementSpec.getStreamSpecs().get(0);
+        final FilterStreamSpecCompiled filterStreamSpec = (FilterStreamSpecCompiled) statementSpec.getStreamSpecs()[0];
         ViewableActivatorFilterProxy activator = new ViewableActivatorFilterProxy(services, filterStreamSpec.getFilterSpec(), statementContext.getAnnotations(), false);
 
         // create data window view factories
@@ -112,8 +111,7 @@ public class EPStatementStartMethodCreateWindow extends EPStatementStartMethodBa
             });
 
             // Add a wildcard to the select clause as subscribers received the window contents
-            statementSpec.getSelectClauseSpec().getSelectExprList().clear();
-            statementSpec.getSelectClauseSpec().add(new SelectClauseElementWildcard());
+            statementSpec.getSelectClauseSpec().setSelectExprList(new SelectClauseElementWildcard());
             statementSpec.setSelectStreamDirEnum(SelectClauseStreamSelectorEnum.RSTREAM_ISTREAM_BOTH);
 
             // obtain result set processor factory
@@ -128,6 +126,7 @@ public class EPStatementStartMethodCreateWindow extends EPStatementStartMethodBa
             StatementAgentInstanceFactoryCreateWindow contextFactory = new StatementAgentInstanceFactoryCreateWindow(statementContext, statementSpec, services, activator, unmaterializedViewChain, resultSetProcessorPrototype, outputViewFactory, isRecoveringStatement);
 
             // With context - delegate instantiation to context
+            final EPStatementStopMethod stopMethod = new EPStatementStopMethodImpl(statementContext, stopCallbacks);
             if (statementSpec.getOptionalContextName() != null) {
 
                 ContextMergeView mergeView = new ContextMergeView(processor.getNamedWindowType());

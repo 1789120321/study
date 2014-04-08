@@ -8,19 +8,15 @@
  **************************************************************************************/
 package com.espertech.esper.epl.spec;
 
-import com.espertech.esper.util.MetaDefItem;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.io.Serializable;
-
 /**
  * Encapsulates the parsed select expressions in a select-clause in an EPL statement.
  */
 public class SelectClauseSpecCompiled
 {
+    private final static SelectClauseElementCompiled[] EMPTY = new SelectClauseElementCompiled[0];
+
     private final boolean isDistinct;
-	private List<SelectClauseElementCompiled> selectClauseElements;
+	private SelectClauseElementCompiled[] selectClauseElements;
 
     /**
      * Ctor.
@@ -28,7 +24,7 @@ public class SelectClauseSpecCompiled
      */
     public SelectClauseSpecCompiled(boolean isDistinct)
 	{
-		selectClauseElements = new ArrayList<SelectClauseElementCompiled>();
+		selectClauseElements = EMPTY;
         this.isDistinct = isDistinct;
     }
 
@@ -37,26 +33,21 @@ public class SelectClauseSpecCompiled
      * @param selectList for a populates list of select expressions
      * @param isDistinct indicates distinct or not
      */
-    public SelectClauseSpecCompiled(List<SelectClauseElementCompiled> selectList, boolean isDistinct)
+    public SelectClauseSpecCompiled(SelectClauseElementCompiled[] selectList, boolean isDistinct)
 	{
         this.selectClauseElements = selectList;
         this.isDistinct = isDistinct;
 	}
 
-    /**
-     * Adds an select expression within the select clause.
-     * @param element is the expression to add
-     */
-    public void add(SelectClauseElementCompiled element)
-	{
-		selectClauseElements.add(element);
-	}
+    public void setSelectExprList(SelectClauseElementWildcard selectClauseElement) {
+        selectClauseElements = new SelectClauseElementWildcard[] {selectClauseElement};
+    }
 
     /**
      * Returns the list of select expressions.
      * @return list of expressions
      */
-    public List<SelectClauseElementCompiled> getSelectExprList()
+    public SelectClauseElementCompiled[] getSelectExprList()
 	{
 		return selectClauseElements;
 	}

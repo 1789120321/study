@@ -849,7 +849,7 @@ public class EPRuntimeIsolatedImpl implements EPRuntimeIsolatedSPI, InternalEven
                         }
                         else
                         {
-                            return new HashMap<EPStatementAgentInstanceHandle, ArrayDeque<FilterHandleCallback>>(10000);
+                            return new HashMap<EPStatementAgentInstanceHandle, ArrayDeque<FilterHandleCallback>>();
                         }
                     }
                 };
@@ -864,7 +864,7 @@ public class EPRuntimeIsolatedImpl implements EPRuntimeIsolatedSPI, InternalEven
                 }
                 else
                 {
-                    return new HashMap<EPStatementAgentInstanceHandle, Object>(10000);
+                    return new HashMap<EPStatementAgentInstanceHandle, Object>();
                 }
             }
         };

@@ -16,7 +16,6 @@ import com.espertech.esper.epl.spec.OuterJoinDesc;
 import com.espertech.esper.type.OuterJoinType;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class InnerJoinGraph {
@@ -67,9 +66,9 @@ public class InnerJoinGraph {
         return hasInnerJoin;
     }
 
-    public static InnerJoinGraph graphInnerJoins(int numStreams, List<OuterJoinDesc> outerJoinDescList)
+    public static InnerJoinGraph graphInnerJoins(int numStreams, OuterJoinDesc[] outerJoinDescList)
     {
-        if ((outerJoinDescList.size() + 1) != numStreams)
+        if ((outerJoinDescList.length + 1) != numStreams)
         {
             throw new IllegalArgumentException("Number of outer join descriptors and number of streams not matching up");
         }
@@ -77,9 +76,9 @@ public class InnerJoinGraph {
         Set<InterchangeablePair<Integer, Integer>> graph = new HashSet<InterchangeablePair<Integer, Integer>>();
 
         boolean allInnerJoin = true;
-        for (int i = 0; i < outerJoinDescList.size(); i++)
+        for (int i = 0; i < outerJoinDescList.length; i++)
         {
-            OuterJoinDesc desc = outerJoinDescList.get(i);
+            OuterJoinDesc desc = outerJoinDescList[i];
             int streamMax = i + 1;       // the outer join must references streams less then streamMax
 
             // Check outer join on-expression, if provided

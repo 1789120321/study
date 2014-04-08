@@ -8,10 +8,9 @@
  **************************************************************************************/
 package com.espertech.esper.core.service;
 
-import com.espertech.esper.client.UpdateListener;
 import com.espertech.esper.client.StatementAwareUpdateListener;
-
-import java.util.concurrent.CopyOnWriteArraySet;
+import com.espertech.esper.client.UpdateListener;
+import com.espertech.esper.util.CollectionUtil;
 
 /**
  * Provides update listeners for use by statement instances, and the management methods around these.
@@ -23,9 +22,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 public class EPStatementListenerSet
 {
-    Object subscriber;
-    CopyOnWriteArraySet<UpdateListener> listeners;
-    CopyOnWriteArraySet<StatementAwareUpdateListener> stmtAwareListeners;
+    private final static UpdateListener[] EMPTY_UPDLISTEN_ARRAY = new UpdateListener[0];
+    private final static StatementAwareUpdateListener[] EMPTY_UPDLISTENSA_ARRAY = new StatementAwareUpdateListener[0];
+
+    private Object subscriber;
+    private volatile UpdateListener[] listeners;
+    private volatile StatementAwareUpdateListener[] stmtAwareListeners;
 
 
     /**
@@ -33,17 +35,11 @@ public class EPStatementListenerSet
      */
     public EPStatementListenerSet()
     {
-        listeners = new CopyOnWriteArraySet<UpdateListener>();
-        stmtAwareListeners = new CopyOnWriteArraySet<StatementAwareUpdateListener>();
+        listeners = EMPTY_UPDLISTEN_ARRAY;
+        stmtAwareListeners = EMPTY_UPDLISTENSA_ARRAY;
     }
 
-    /**
-     * Ctor.
-     * @param listeners is a set of update listener
-     * @param stmtAwareListeners is a set of statement-aware update listener
-     */
-    public EPStatementListenerSet(CopyOnWriteArraySet<UpdateListener> listeners, CopyOnWriteArraySet<StatementAwareUpdateListener> stmtAwareListeners)
-    {
+    public EPStatementListenerSet(UpdateListener[] listeners, StatementAwareUpdateListener[] stmtAwareListeners) {
         this.listeners = listeners;
         this.stmtAwareListeners = stmtAwareListeners;
     }
@@ -52,7 +48,7 @@ public class EPStatementListenerSet
      * Returns the set of listeners to the statement.
      * @return statement listeners
      */
-    public CopyOnWriteArraySet<UpdateListener> getListeners()
+    public UpdateListener[] getListeners()
     {
         return listeners;
     }
@@ -61,7 +57,7 @@ public class EPStatementListenerSet
      * Returns the set of statement-aware listeners.
      * @return statement-aware listeners
      */
-    public CopyOnWriteArraySet<StatementAwareUpdateListener> getStmtAwareListeners()
+    public StatementAwareUpdateListener[] getStmtAwareListeners()
     {
         return stmtAwareListeners;
     }
@@ -80,65 +76,95 @@ public class EPStatementListenerSet
      * Add a listener to the statement.
      * @param listener to add
      */
-    public void addListener(UpdateListener listener)
+    public synchronized void addListener(UpdateListener listener)
     {
         if (listener == null)
         {
             throw new IllegalArgumentException("Null listener reference supplied");
         }
 
-        listeners.add(listener);
+        for (UpdateListener existing : listeners) {
+            if (existing == listener) {
+                return;
+            }
+        }
+        listeners = (UpdateListener[]) CollectionUtil.arrayExpandAddSingle(listeners, listener);
     }
 
     /**
      * Remove a listeners to a statement.
      * @param listener to remove
      */
-    public void removeListener(UpdateListener listener)
+    public synchronized void removeListener(UpdateListener listener)
     {
         if (listener == null)
         {
             throw new IllegalArgumentException("Null listener reference supplied");
         }
 
-        listeners.remove(listener);
+        int index = -1;
+        for (int i = 0; i < listeners.length; i++) {
+             if (listeners[i] == listener) {
+                 index = i;
+                 break;
+             }
+        }
+        if (index == -1) {
+            return;
+        }
+        listeners = (UpdateListener[]) CollectionUtil.arrayShrinkRemoveSingle(listeners, index);
     }
 
     /**
      * Remove all listeners to a statement.
      */
-    public void removeAllListeners()
+    public synchronized void removeAllListeners()
     {
-        listeners.clear();
-        stmtAwareListeners.clear();
+        listeners = EMPTY_UPDLISTEN_ARRAY;
+        stmtAwareListeners = EMPTY_UPDLISTENSA_ARRAY;
     }
 
     /**
      * Add a listener to the statement.
      * @param listener to add
      */
-    public void addListener(StatementAwareUpdateListener listener)
+    public synchronized void addListener(StatementAwareUpdateListener listener)
     {
         if (listener == null)
         {
             throw new IllegalArgumentException("Null listener reference supplied");
         }
 
-        stmtAwareListeners.add(listener);
+        for (StatementAwareUpdateListener existing : stmtAwareListeners) {
+            if (existing == listener) {
+                return;
+            }
+        }
+        stmtAwareListeners = (StatementAwareUpdateListener[]) CollectionUtil.arrayExpandAddSingle(stmtAwareListeners, listener);
     }
 
     /**
      * Remove a listeners to a statement.
      * @param listener to remove
      */
-    public void removeListener(StatementAwareUpdateListener listener)
+    public synchronized void removeListener(StatementAwareUpdateListener listener)
     {
         if (listener == null)
         {
             throw new IllegalArgumentException("Null listener reference supplied");
         }
 
-        stmtAwareListeners.remove(listener);
+        int index = -1;
+        for (int i = 0; i < stmtAwareListeners.length; i++) {
+            if (stmtAwareListeners[i] == listener) {
+                index = i;
+                break;
+            }
+        }
+        if (index == -1) {
+            return;
+        }
+        stmtAwareListeners = (StatementAwareUpdateListener[]) CollectionUtil.arrayShrinkRemoveSingle(stmtAwareListeners, index);
     }
 
     /**

@@ -13,15 +13,16 @@ package com.espertech.esper.epl.enummethod.dot;
 
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.epl.expression.ExprDotEval;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 
 public class ExprDotEvalUnpackBean implements ExprDotEval {
 
-    private final ExprDotEvalTypeInfo returnType;
+    private final ExpressionReturnType returnType;
 
     public ExprDotEvalUnpackBean(EventType lambdaType) {
-        returnType = ExprDotEvalTypeInfo.scalarOrUnderlying(lambdaType.getUnderlyingType());
+        returnType = ExpressionReturnType.singleValue(lambdaType.getUnderlyingType());
     }
 
     public Object evaluate(Object target, EventBean[] eventsPerStream, boolean isNewData, ExprEvaluatorContext exprEvaluatorContext) {
@@ -32,7 +33,7 @@ public class ExprDotEvalUnpackBean implements ExprDotEval {
         return theEvent.getUnderlying();
     }
 
-    public ExprDotEvalTypeInfo getTypeInfo() {
+    public ExpressionReturnType getTypeInfo() {
         return returnType;
     }
 }

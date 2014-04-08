@@ -9,8 +9,7 @@
 package com.espertech.esper.epl.agg.service;
 
 import com.espertech.esper.core.context.util.AgentInstanceContext;
-import com.espertech.esper.epl.agg.access.AggregationAccess;
-import com.espertech.esper.epl.agg.access.AggregationAccessUtil;
+import com.espertech.esper.epl.agg.access.AggregationState;
 import com.espertech.esper.epl.agg.access.AggregationAccessorSlotPair;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
 import com.espertech.esper.epl.core.MethodResolutionService;
@@ -22,19 +21,19 @@ import com.espertech.esper.epl.expression.ExprEvaluator;
 public class AggSvcGroupAllMixedAccessFactory extends AggregationServiceFactoryBase
 {
     protected final AggregationAccessorSlotPair[] accessors;
-    protected final int[] streams;
+    protected final AggregationStateFactory[] accessAggregations;
     protected final boolean isJoin;
 
-    public AggSvcGroupAllMixedAccessFactory(ExprEvaluator evaluators[], AggregationMethodFactory aggregators[], AggregationAccessorSlotPair[] accessors, int[] streams, boolean join) {
+    public AggSvcGroupAllMixedAccessFactory(ExprEvaluator evaluators[], AggregationMethodFactory aggregators[], AggregationAccessorSlotPair[] accessors, AggregationStateFactory[] accessAggregations, boolean join) {
         super(evaluators, aggregators);
         this.accessors = accessors;
-        this.streams = streams;
+        this.accessAggregations = accessAggregations;
         isJoin = join;
     }
 
     public AggregationService makeService(AgentInstanceContext agentInstanceContext, MethodResolutionService methodResolutionService) {
-        AggregationAccess[] accesses = AggregationAccessUtil.getNewAccesses(agentInstanceContext.getAgentInstanceId(), isJoin, streams, methodResolutionService, null);
+        AggregationState[] states = methodResolutionService.newAccesses(agentInstanceContext.getAgentInstanceId(), isJoin, accessAggregations);
         AggregationMethod[] aggregatorsAgentInstance = methodResolutionService.newAggregators(super.aggregators, agentInstanceContext.getAgentInstanceId());
-        return new AggSvcGroupAllMixedAccessImpl(evaluators, aggregatorsAgentInstance, accessors, accesses);
+        return new AggSvcGroupAllMixedAccessImpl(evaluators, aggregatorsAgentInstance, accessors, states);
     }
 }

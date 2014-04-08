@@ -38,7 +38,7 @@ public class JoinSetComposerPrototypeImpl implements JoinSetComposerPrototype {
 
     private final String statementName;
     private final String statementId;
-    private final List<OuterJoinDesc> outerJoinDescList;
+    private final OuterJoinDesc[] outerJoinDescList;
     private final ExprNode optionalFilterNode;
     private final EventType[] streamTypes;
     private final String[] streamNames;
@@ -54,7 +54,7 @@ public class JoinSetComposerPrototypeImpl implements JoinSetComposerPrototype {
 
     public JoinSetComposerPrototypeImpl(String statementName,
                                         String statementId,
-                                        List<OuterJoinDesc> outerJoinDescList,
+                                        OuterJoinDesc[] outerJoinDescList,
                                         ExprNode optionalFilterNode,
                                         EventType[] streamTypes,
                                         String[] streamNames,
@@ -136,7 +136,7 @@ public class JoinSetComposerPrototypeImpl implements JoinSetComposerPrototype {
         // If this is not unidirectional and not a self-join (excluding self-outer-join)
         JoinSetComposerDesc joinSetComposerDesc;
         if ((!streamJoinAnalysisResult.isUnidirectional()) &&
-            (!streamJoinAnalysisResult.isPureSelfJoin() || !outerJoinDescList.isEmpty()))
+            (!streamJoinAnalysisResult.isPureSelfJoin() || outerJoinDescList.length > 0))
         {
             JoinSetComposer composer;
             if (historicalViewableDesc.isHasHistorical())
@@ -224,12 +224,12 @@ public class JoinSetComposerPrototypeImpl implements JoinSetComposerPrototype {
         return joinSetComposerDesc;
     }
 
-    private ExprNode getFilterExpressionInclOnClause(ExprNode optionalFilterNode, List<OuterJoinDesc> outerJoinDescList)
+    private ExprNode getFilterExpressionInclOnClause(ExprNode optionalFilterNode, OuterJoinDesc[] outerJoinDescList)
     {
         if (optionalFilterNode == null) {   // no need to add as query planning is fully based on on-clause
             return null;
         }
-        if (outerJoinDescList.isEmpty()) {  // not an outer-join syntax
+        if (outerJoinDescList.length == 0) {  // not an outer-join syntax
             return optionalFilterNode;
         }
         if (!OuterJoinDesc.consistsOfAllInnerJoins(outerJoinDescList)) {    // all-inner joins

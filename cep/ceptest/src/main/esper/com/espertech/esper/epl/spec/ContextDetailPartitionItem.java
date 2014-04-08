@@ -15,7 +15,6 @@ import com.espertech.esper.filter.FilterSpecCompiled;
 import com.espertech.esper.filter.FilterValueSetParam;
 
 import java.io.Serializable;
-import java.util.ArrayDeque;
 import java.util.List;
 
 public class ContextDetailPartitionItem implements Serializable {
@@ -25,7 +24,7 @@ public class ContextDetailPartitionItem implements Serializable {
     private final List<String> propertyNames;
 
     private transient FilterSpecCompiled filterSpecCompiled;
-    private transient ArrayDeque<FilterValueSetParam> parametersCompiled;
+    private transient FilterValueSetParam[] parametersCompiled;
 
     public ContextDetailPartitionItem(FilterSpecRaw filterSpecRaw, List<String> propertyNames) {
         this.filterSpecRaw = filterSpecRaw;
@@ -49,7 +48,7 @@ public class ContextDetailPartitionItem implements Serializable {
         this.parametersCompiled = filterSpecCompiled.getValueSet(null, null, null).getParameters();
     }
 
-    public ArrayDeque<FilterValueSetParam> getParametersCompiled() {
+    public FilterValueSetParam[] getParametersCompiled() {
         return parametersCompiled;
     }
 }

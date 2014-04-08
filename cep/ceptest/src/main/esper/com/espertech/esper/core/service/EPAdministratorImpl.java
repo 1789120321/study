@@ -9,13 +9,12 @@
 package com.espertech.esper.core.service;
 
 import com.espertech.esper.client.*;
+import com.espertech.esper.client.context.EPContextPartitionAdmin;
 import com.espertech.esper.client.deploy.EPDeploymentAdmin;
 import com.espertech.esper.client.soda.*;
 import com.espertech.esper.core.deploy.EPDeploymentAdminImpl;
 import com.espertech.esper.epl.expression.ExprNode;
 import com.espertech.esper.epl.spec.*;
-import com.espertech.esper.event.EventTypeIdGeneratorContext;
-import com.espertech.esper.event.EventTypeIdGeneratorFactory;
 import com.espertech.esper.pattern.EvalFactoryNode;
 import com.espertech.esper.util.JavaClassHelper;
 import org.apache.commons.logging.Log;
@@ -297,7 +296,7 @@ public class EPAdministratorImpl implements EPAdministratorSPI
     {
         String toCompile = "select * from java.lang.Object.win:time(" + expression + ")";
         StatementSpecRaw raw = EPAdministratorHelper.compileEPL(toCompile, expression, false, null, services, SelectClauseStreamSelectorEnum.ISTREAM_ONLY);
-        return raw.getStreamSpecs().get(0).getViewSpecs().get(0).getObjectParameters().get(0);
+        return raw.getStreamSpecs().get(0).getViewSpecs()[0].getObjectParameters().get(0);
     }
 
     public Expression compileExpressionToSODA(String expression) throws EPException
@@ -324,6 +323,10 @@ public class EPAdministratorImpl implements EPAdministratorSPI
         String toCompile = "select * from java.lang.Object match_recognize(measures a.b as c pattern (" + matchRecogPatternExpression + ") define A as true)";
         StatementSpecRaw raw = EPAdministratorHelper.compileEPL(toCompile, matchRecogPatternExpression, false, null, services, SelectClauseStreamSelectorEnum.ISTREAM_ONLY);
         return StatementSpecMapper.unmap(raw.getMatchRecognizeSpec().getPattern());
+    }
+
+    public EPContextPartitionAdmin getContextPartitionAdmin() {
+        return new EPContextPartitionAdminImpl(services);
     }
 
     private static Log log = LogFactory.getLog(EPAdministratorImpl.class);

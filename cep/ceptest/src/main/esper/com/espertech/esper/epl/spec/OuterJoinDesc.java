@@ -13,13 +13,15 @@ import com.espertech.esper.type.OuterJoinType;
 import com.espertech.esper.util.MetaDefItem;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Contains the ON-clause criteria in an outer join.
  */
 public class OuterJoinDesc implements MetaDefItem, Serializable
 {
+    public static final OuterJoinDesc[] EMPTY_OUTERJOIN_ARRAY = new OuterJoinDesc[0];
+
     private OuterJoinType outerJoinType;
     private ExprIdentNode optLeftNode;
     private ExprIdentNode optRightNode;
@@ -123,13 +125,20 @@ public class OuterJoinDesc implements MetaDefItem, Serializable
         return representativeNode;
     }
 
-    public static boolean consistsOfAllInnerJoins(List<OuterJoinDesc> outerJoinDescList) {
+    public static boolean consistsOfAllInnerJoins(OuterJoinDesc[] outerJoinDescList) {
         for (OuterJoinDesc desc : outerJoinDescList) {
             if (desc.getOuterJoinType() != OuterJoinType.INNER) {
                 return false;
             }
         }
         return true;
+    }
+
+    public static OuterJoinDesc[] toArray(Collection<OuterJoinDesc> expressions) {
+        if (expressions.isEmpty()) {
+            return EMPTY_OUTERJOIN_ARRAY;
+        }
+        return expressions.toArray(new OuterJoinDesc[expressions.size()]);
     }
 
     private void topValidate(ExprNode exprNode, ExprEvaluatorContext exprEvaluatorContext) {

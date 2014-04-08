@@ -9,8 +9,6 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
-import com.espertech.esper.epl.core.MethodResolutionService;
-import com.espertech.esper.epl.core.StreamTypeService;
 
 /**
  * Represents the leaving() aggregate function is an expression tree.
@@ -28,10 +26,10 @@ public class ExprLeavingAggNode extends ExprAggregateNodeBase
         super(distinct);
     }
 
-    public AggregationMethodFactory validateAggregationChild(StreamTypeService streamTypeService, MethodResolutionService methodResolutionService, ExprEvaluatorContext exprEvaluatorContext) throws ExprValidationException
+    public AggregationMethodFactory validateAggregationChild(ExprValidationContext validationContext) throws ExprValidationException
     {
         String message = "The leaving aggregation function requires no parameters";
-        if (this.getChildNodes().size() > 0) {
+        if (this.getChildNodes().length > 0) {
             throw new ExprValidationException(message);
         }
 

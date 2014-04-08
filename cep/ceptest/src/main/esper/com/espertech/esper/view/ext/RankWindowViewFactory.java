@@ -118,7 +118,7 @@ public class RankWindowViewFactory implements DataWindowViewFactory, DataWindowV
             if (validated[i] instanceof ExprOrderedExpr)
             {
                 isDescendingValues[count] = ((ExprOrderedExpr) validated[i]).isDescending();
-                sortCriteriaExpressions[count] = validated[i].getChildNodes().get(0);
+                sortCriteriaExpressions[count] = validated[i].getChildNodes()[0];
             }
             else
             {

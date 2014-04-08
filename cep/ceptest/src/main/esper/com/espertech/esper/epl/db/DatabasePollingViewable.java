@@ -26,6 +26,7 @@ import com.espertech.esper.schedule.SchedulingService;
 import com.espertech.esper.schedule.TimeProvider;
 import com.espertech.esper.view.HistoricalEventViewable;
 import com.espertech.esper.view.View;
+import com.espertech.esper.view.ViewSupport;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -227,9 +228,9 @@ public class DatabasePollingViewable implements HistoricalEventViewable
         return view;
     }
 
-    public List<View> getViews()
+    public View[] getViews()
     {
-        return Collections.emptyList();
+        return ViewSupport.EMPTY_VIEW_ARRAY;
     }
 
     public boolean removeView(View view)

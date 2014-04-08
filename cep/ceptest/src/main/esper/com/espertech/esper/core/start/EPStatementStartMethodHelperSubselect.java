@@ -44,7 +44,9 @@ import com.espertech.esper.util.AuditPath;
 import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.util.JavaClassHelper;
 import com.espertech.esper.util.StopCallback;
-import com.espertech.esper.view.*;
+import com.espertech.esper.view.ViewFactoryChain;
+import com.espertech.esper.view.ViewProcessingException;
+import com.espertech.esper.view.ViewServiceHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -66,14 +68,14 @@ public class EPStatementStartMethodHelperSubselect
         for (ExprSubselectNode subselect : statementSpecContainer.getSubSelectExpressions())
         {
             StatementSpecCompiled statementSpec = subselect.getStatementSpecCompiled();
-            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs().get(0);
+            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs()[0];
 
             if (streamSpec instanceof FilterStreamSpecCompiled)
             {
-                FilterStreamSpecCompiled filterStreamSpec = (FilterStreamSpecCompiled) statementSpec.getStreamSpecs().get(0);
+                FilterStreamSpecCompiled filterStreamSpec = (FilterStreamSpecCompiled) statementSpec.getStreamSpecs()[0];
 
                 // A child view is required to limit the stream
-                if (filterStreamSpec.getViewSpecs().size() == 0)
+                if (filterStreamSpec.getViewSpecs().length == 0)
                 {
                     throw new ExprValidationException("Subqueries require one or more views to limit the stream, consider declaring a length or time window");
                 }
@@ -90,7 +92,7 @@ public class EPStatementStartMethodHelperSubselect
             }
             else
             {
-                NamedWindowConsumerStreamSpec namedSpec = (NamedWindowConsumerStreamSpec) statementSpec.getStreamSpecs().get(0);
+                NamedWindowConsumerStreamSpec namedSpec = (NamedWindowConsumerStreamSpec) statementSpec.getStreamSpecs()[0];
                 NamedWindowProcessor processor = services.getNamedWindowService().getProcessor(namedSpec.getWindowName());
                 EventType namedWindowType = processor.getTailView().getEventType();
                 if (namedSpec.getOptPropertyEvaluator() != null) {
@@ -127,7 +129,7 @@ public class EPStatementStartMethodHelperSubselect
                                                                String[] outerEventTypeNamees,
                                                                List<StopCallback> stopCallbacks,
                                                                Annotation[] annotations,
-                                                               List<ExprDeclaredNode> declaredExpressions,
+                                                               ExprDeclaredNode[] declaredExpressions,
                                                                ContextPropertyRegistry contextPropertyRegistry)
             throws ExprValidationException, ViewProcessingException
     {
@@ -146,7 +148,7 @@ public class EPStatementStartMethodHelperSubselect
             }
 
             StatementSpecCompiled statementSpec = subselect.getStatementSpecCompiled();
-            StreamSpecCompiled filterStreamSpec = statementSpec.getStreamSpecs().get(0);
+            StreamSpecCompiled filterStreamSpec = statementSpec.getStreamSpecs()[0];
 
             String subselecteventTypeName = null;
             if (filterStreamSpec instanceof FilterStreamSpecCompiled)
@@ -177,7 +179,7 @@ public class EPStatementStartMethodHelperSubselect
 
             // Expression declarations are copies of a predefined expression body with their own stream context.
             // Should only be invoked if the subselect belongs to that instance.
-            if (!declaredExpressions.isEmpty()) {
+            if (declaredExpressions.length > 0) {
                 // Find that subselect within that declaration
                 ExprNodeSubselectDeclaredDotVisitor visitor = new ExprNodeSubselectDeclaredDotVisitor();
                 for (ExprDeclaredNode declaration : declaredExpressions) {
@@ -219,14 +221,14 @@ public class EPStatementStartMethodHelperSubselect
             List<String> assignedNames = new ArrayList<String>();
             boolean isWildcard = false;
             boolean isStreamWildcard = false;
-            if (selectClauseSpec.getSelectExprList().size() > 0)
+            if (selectClauseSpec.getSelectExprList().length > 0)
             {
                 List<ExprAggregateNode> aggExprNodes = new LinkedList<ExprAggregateNode>();
 
                 ExprEvaluatorContextStatement evaluatorContextStmt = new ExprEvaluatorContextStatement(statementContext);
                 ExprValidationContext validationContext = new ExprValidationContext(subselectTypeService, statementContext.getMethodResolutionService(), viewResourceDelegateSubselect, statementContext.getSchedulingService(), statementContext.getVariableService(), evaluatorContextStmt, statementContext.getEventAdapterService(), statementContext.getStatementName(), statementContext.getStatementId(), statementContext.getAnnotations(), statementContext.getContextDescriptor());
-                for (int i = 0; i < selectClauseSpec.getSelectExprList().size(); i++) {
-                    SelectClauseElementCompiled element = selectClauseSpec.getSelectExprList().get(i);
+                for (int i = 0; i < selectClauseSpec.getSelectExprList().length; i++) {
+                    SelectClauseElementCompiled element = selectClauseSpec.getSelectExprList()[i];
 
                     if (element instanceof SelectClauseExprCompiledSpec)
                     {

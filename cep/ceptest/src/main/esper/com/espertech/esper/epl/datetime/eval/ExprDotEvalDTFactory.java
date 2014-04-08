@@ -19,7 +19,7 @@ import com.espertech.esper.epl.datetime.interval.IntervalOp;
 import com.espertech.esper.epl.datetime.interval.IntervalOpFactory;
 import com.espertech.esper.epl.datetime.reformatop.ReformatOp;
 import com.espertech.esper.epl.datetime.reformatop.ReformatOpFactory;
-import com.espertech.esper.epl.enummethod.dot.ExprDotEvalTypeInfo;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.epl.expression.*;
 import com.espertech.esper.epl.methodbase.DotMethodFPProvided;
 import com.espertech.esper.epl.methodbase.DotMethodInputTypeMatcher;
@@ -34,22 +34,22 @@ import java.util.Map;
 
 public class ExprDotEvalDTFactory {
 
-    public static ExprDotEvalDTMethodDesc validateMake(StreamTypeService streamTypeService, Deque<ExprChainedSpec> chainSpecStack, DatetimeMethodEnum dtMethod, String dtMethodName, ExprDotEvalTypeInfo inputType, List<ExprNode> parameters, ExprDotNodeFilterAnalyzerInput inputDesc)
+    public static ExprDotEvalDTMethodDesc validateMake(StreamTypeService streamTypeService, Deque<ExprChainedSpec> chainSpecStack, DatetimeMethodEnum dtMethod, String dtMethodName, ExpressionReturnType inputType, List<ExprNode> parameters, ExprDotNodeFilterAnalyzerInput inputDesc)
             throws ExprValidationException
     {
         // verify input
         String message = "Date-time enumeration method '" + dtMethodName + "' requires either a Calendar, Date or long value as input or events of an event type that declares a timestamp property";
-        if (inputType.getEventType() != null) {
-            if (inputType.getEventType().getStartTimestampPropertyName() == null) {
+        if (inputType.getSingleEventEventType() != null) {
+            if (inputType.getSingleEventEventType().getStartTimestampPropertyName() == null) {
                 throw new ExprValidationException(message);
             }
         }
         else {
-            if (!inputType.isScalar() || inputType.getScalar() == null) {
-                throw new ExprValidationException(message + " but received " + inputType.toTypeName());
+            if (!inputType.isSingleValueNonNull() || inputType.getSingleValueType() == null) {
+                throw new ExprValidationException(message + " but received " + inputType.toTypeDescriptive());
             }
-            if (!JavaClassHelper.isDatetimeClass(inputType.getScalar())) {
-                throw new ExprValidationException(message + " but received " + JavaClassHelper.getClassNameFullyQualPretty(inputType.getScalar()));
+            if (!JavaClassHelper.isDatetimeClass(inputType.getSingleValueType())) {
+                throw new ExprValidationException(message + " but received " + JavaClassHelper.getClassNameFullyQualPretty(inputType.getSingleValueType()));
             }
         }
 
@@ -121,9 +121,9 @@ public class ExprDotEvalDTFactory {
         }
 
         ExprDotEval dotEval;
-        ExprDotEvalTypeInfo returnType;
+        ExpressionReturnType returnType;
 
-        dotEval = new ExprDotEvalDT(calendarOps, reformatOp, intervalOp, inputType.getScalar(), inputType.getEventType());
+        dotEval = new ExprDotEvalDT(calendarOps, reformatOp, intervalOp, inputType.getSingleValueType(), inputType.getSingleEventEventType());
         returnType = dotEval.getTypeInfo();
         return new ExprDotEvalDTMethodDesc(dotEval, returnType, filterAnalyzerDesc);
     }

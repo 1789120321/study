@@ -25,7 +25,6 @@ public class ContextControllerConditionFactory {
                                                          ContextControllerConditionCallback callback,
                                                          ContextInternalFilterAddendum filterAddendum,
                                                          boolean isStartEndpoint,
-                                                         String outermostContextName,
                                                          int nestingLevel,
                                                          int pathId,
                                                          int subpathId) {
@@ -39,14 +38,14 @@ public class ContextControllerConditionFactory {
             return new ContextControllerConditionFilter(servicesContext, agentInstanceContext, filter, callback, filterAddendum);
         }
         else if (endpoint instanceof ContextDetailConditionPattern) {
-            ContextStatePathKey key = new ContextStatePathKey(outermostContextName, nestingLevel, pathId, subpathId);
+            ContextStatePathKey key = new ContextStatePathKey(nestingLevel, pathId, subpathId);
             ContextDetailConditionPattern pattern = (ContextDetailConditionPattern) endpoint;
             return new ContextControllerConditionPattern(servicesContext, agentInstanceContext, pattern, callback, filterAddendum, isStartEndpoint, key);
         }
         else if (endpoint instanceof ContextDetailConditionTimePeriod) {
-            ContextDetailConditionTimePeriod timePeriond = (ContextDetailConditionTimePeriod) endpoint;
+            ContextDetailConditionTimePeriod timePeriod = (ContextDetailConditionTimePeriod) endpoint;
             ScheduleSlot scheduleSlot = agentInstanceContext.getStatementContext().getScheduleBucket().allocateSlot();
-            return new ContextControllerConditionTimePeriod(contextName, agentInstanceContext, scheduleSlot, timePeriond, callback, filterAddendum);
+            return new ContextControllerConditionTimePeriod(contextName, agentInstanceContext, scheduleSlot, timePeriod, callback, filterAddendum);
         }
         throw new IllegalStateException("Unrecognized context range endpoint " + endpoint.getClass());
     }

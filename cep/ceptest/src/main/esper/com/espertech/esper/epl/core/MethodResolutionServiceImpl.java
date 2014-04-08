@@ -11,12 +11,14 @@ package com.espertech.esper.epl.core;
 import com.espertech.esper.client.EPException;
 import com.espertech.esper.client.hook.AggregationFunctionFactory;
 import com.espertech.esper.collection.Pair;
-import com.espertech.esper.epl.agg.access.AggregationAccess;
-import com.espertech.esper.epl.agg.access.AggregationAccessImpl;
-import com.espertech.esper.epl.agg.access.AggregationAccessJoinImpl;
+import com.espertech.esper.epl.agg.access.*;
 import com.espertech.esper.epl.agg.aggregator.*;
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
+import com.espertech.esper.epl.agg.service.AggregationStateFactory;
 import com.espertech.esper.epl.agg.service.AggregationSupport;
+import com.espertech.esper.epl.expression.ExprEvaluator;
+import com.espertech.esper.plugin.PlugInAggregationMultiFunctionStateContext;
+import com.espertech.esper.plugin.PlugInAggregationMultiFunctionStateFactory;
 import com.espertech.esper.schedule.TimeProvider;
 import com.espertech.esper.type.MinMaxTypeEnum;
 import org.apache.commons.logging.Log;
@@ -57,6 +59,10 @@ public class MethodResolutionServiceImpl implements MethodResolutionService
         return engineImportService.isDuckType();
     }
 
+    public boolean isSortUsingCollator() {
+        return engineImportService.isSortUsingCollator();
+    }
+
     public AggregationSupport makePlugInAggregator(String functionName)
     {
         try
@@ -73,10 +79,10 @@ public class MethodResolutionServiceImpl implements MethodResolutionService
         }
     }
 
-    public Method resolveMethod(String className, String methodName, Class[] paramTypes)
+    public Method resolveMethod(String className, String methodName, Class[] paramTypes, boolean[] allowEventBeanType, boolean[] allowEventBeanCollType)
 			throws EngineImportException
     {
-        return engineImportService.resolveMethod(className, methodName, paramTypes);
+        return engineImportService.resolveMethod(className, methodName, paramTypes, allowEventBeanType, allowEventBeanCollType);
 	}
 
     public Method resolveMethod(String className, String methodName)
@@ -95,9 +101,9 @@ public class MethodResolutionServiceImpl implements MethodResolutionService
         return engineImportService.resolveClass(className);
 	}
 
-    public Method resolveMethod(Class clazz, String methodName, Class[] paramTypes) throws EngineImportException
+    public Method resolveMethod(Class clazz, String methodName, Class[] paramTypes, boolean[] allowEventBeanType, boolean[] allowEventBeanCollType) throws EngineImportException
     {
-        return engineImportService.resolveMethod(clazz, methodName, paramTypes);
+        return engineImportService.resolveMethod(clazz, methodName, paramTypes, allowEventBeanType, allowEventBeanCollType);
     }
 
     public AggregationMethod makeCountAggregator(int agentInstanceId, int groupId, int aggregationId, boolean isIgnoreNull, boolean hasFilter)
@@ -231,13 +237,13 @@ public class MethodResolutionServiceImpl implements MethodResolutionService
         if (hasFilter) {
             if ((type == BigDecimal.class) || (type == BigInteger.class))
             {
-                return new AggregatorAvgBigDecimalFilter();
+                return new AggregatorAvgBigDecimalFilter(engineImportService.getDefaultMathContext());
             }
             return new AggregatorAvgFilter();
         }
         if ((type == BigDecimal.class) || (type == BigInteger.class))
         {
-            return new AggregatorAvgBigDecimal();
+            return new AggregatorAvgBigDecimal(engineImportService.getDefaultMathContext());
         }
         return new AggregatorAvg();
     }
@@ -348,7 +354,7 @@ public class MethodResolutionServiceImpl implements MethodResolutionService
         return row;
     }
 
-    public long getCurrentRowCount(AggregationMethod[] aggregators, AggregationAccess[] groupAccesses)
+    public long getCurrentRowCount(AggregationMethod[] aggregators, AggregationState[] groupStates)
     {
         return 0;   // since the aggregators are always fresh ones 
     }
@@ -358,14 +364,47 @@ public class MethodResolutionServiceImpl implements MethodResolutionService
         // To be overridden by implementations that care when aggregators get removed
     }
 
-    public AggregationAccess makeAccessStreamId(int agentInstanceId, boolean isJoin, int streamId, Object groupKey)
-    {
-        if (isJoin) {
-            return new AggregationAccessJoinImpl(streamId);
+    public AggregationState[] newAccesses(int agentInstanceId, boolean isJoin, AggregationStateFactory[] accessAggSpecs) {
+        return newAccessInternal(agentInstanceId, accessAggSpecs, isJoin, null);
+    }
+
+    public AggregationState[] newAccesses(int agentInstanceId, boolean isJoin, AggregationStateFactory[] accessAggSpecs, Object groupKey) {
+        return newAccessInternal(agentInstanceId, accessAggSpecs, isJoin, groupKey);
+    }
+
+    private AggregationState[] newAccessInternal(int agentInstanceId, AggregationStateFactory[] accessAggSpecs, boolean isJoin, Object groupKey) {
+        AggregationState[] row = new AggregationState[accessAggSpecs.length];
+        int i = 0;
+        for (AggregationStateFactory spec : accessAggSpecs) {
+            row[i] = spec.createAccess(this, agentInstanceId, 0, i, isJoin, groupKey);   // no group id assigned
+            i++;
         }
-        else {
-            return new AggregationAccessImpl(streamId);
-        }
+        return row;
+    }
+
+    public AggregationState makeAccessAggLinearNonJoin(int agentInstanceId, int groupId, int aggregationId, int streamNum) {
+        return new AggregationStateImpl(streamNum);
+    }
+
+    public AggregationState makeAccessAggLinearJoin(int agentInstanceId, int groupId, int aggregationId, int streamNum) {
+        return new AggregationStateJoinImpl(streamNum);
+    }
+
+    public AggregationState makeAccessAggSortedNonJoin(int agentInstanceId, int groupId, int aggregationId, AggregationStateSortedSpec spec) {
+        return new AggregationStateSortedImpl(spec);
+    }
+
+    public AggregationState makeAccessAggSortedJoin(int agentInstanceId, int groupId, int aggregationId, AggregationStateSortedSpec spec) {
+        return new AggregationStateSortedJoin(spec);
+    }
+
+    public AggregationState makeAccessAggMinMaxEver(int agentInstanceId, int groupId, int aggregationId, AggregationStateMinMaxByEverSpec spec) {
+        return new AggregationStateMinMaxByEver(spec);
+    }
+
+    public AggregationState makeAccessAggPlugin(int agentInstanceId, int groupId, int aggregationId, boolean join, PlugInAggregationMultiFunctionStateFactory providerFactory, Object groupKey) {
+        PlugInAggregationMultiFunctionStateContext context = new PlugInAggregationMultiFunctionStateContext(agentInstanceId, groupKey);
+        return providerFactory.makeAggregationState(context);
     }
 
     public void destroyedAgentInstance(int agentInstanceId) {
@@ -374,5 +413,9 @@ public class MethodResolutionServiceImpl implements MethodResolutionService
 
     public EngineImportService getEngineImportService() {
         return engineImportService;
+    }
+
+    public Object getCriteriaKeyBinding(ExprEvaluator[] evaluators) {
+        return null;    // no bindings
     }
 }

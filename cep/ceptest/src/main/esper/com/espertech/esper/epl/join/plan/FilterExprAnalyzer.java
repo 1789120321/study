@@ -68,11 +68,11 @@ public class FilterExprAnalyzer
     }
 
     private static void analyzeRelationalOpNode(ExprRelationalOpNode relNode, QueryGraph queryGraph) {
-        if ( ((relNode.getChildNodes().get(0) instanceof ExprIdentNode)) &&
-             ((relNode.getChildNodes().get(1) instanceof ExprIdentNode)))
+        if ( ((relNode.getChildNodes()[0] instanceof ExprIdentNode)) &&
+             ((relNode.getChildNodes()[1] instanceof ExprIdentNode)))
         {
-            ExprIdentNode identNodeLeft = (ExprIdentNode) relNode.getChildNodes().get(0);
-            ExprIdentNode identNodeRight = (ExprIdentNode) relNode.getChildNodes().get(1);
+            ExprIdentNode identNodeLeft = (ExprIdentNode) relNode.getChildNodes()[0];
+            ExprIdentNode identNodeRight = (ExprIdentNode) relNode.getChildNodes()[1];
 
             if (identNodeLeft.getStreamId() != identNodeRight.getStreamId())
             {
@@ -86,17 +86,17 @@ public class FilterExprAnalyzer
         String indexedProp = null;
         ExprNode exprNodeNoIdent = null;
 
-        if (relNode.getChildNodes().get(0) instanceof ExprIdentNode) {
-            ExprIdentNode identNode = (ExprIdentNode) relNode.getChildNodes().get(0);
+        if (relNode.getChildNodes()[0] instanceof ExprIdentNode) {
+            ExprIdentNode identNode = (ExprIdentNode) relNode.getChildNodes()[0];
             indexedStream = identNode.getStreamId();
             indexedProp = identNode.getResolvedPropertyName();
-            exprNodeNoIdent = relNode.getChildNodes().get(1);
+            exprNodeNoIdent = relNode.getChildNodes()[1];
         }
-        else if (relNode.getChildNodes().get(1) instanceof ExprIdentNode) {
-            ExprIdentNode identNode = (ExprIdentNode) relNode.getChildNodes().get(1);
+        else if (relNode.getChildNodes()[1] instanceof ExprIdentNode) {
+            ExprIdentNode identNode = (ExprIdentNode) relNode.getChildNodes()[1];
             indexedStream = identNode.getStreamId();
             indexedProp = identNode.getResolvedPropertyName();
-            exprNodeNoIdent = relNode.getChildNodes().get(0);
+            exprNodeNoIdent = relNode.getChildNodes()[0];
         }
         if (indexedStream == -1) {
             return;     // require property of right/left side of equals
@@ -111,7 +111,7 @@ public class FilterExprAnalyzer
     }
 
     private static void analyzeBetweenNode(ExprBetweenNode betweenNode, QueryGraph queryGraph) {
-        RangeFilterAnalyzer.apply(betweenNode.getChildNodes().get(0), betweenNode.getChildNodes().get(1), betweenNode.getChildNodes().get(2),
+        RangeFilterAnalyzer.apply(betweenNode.getChildNodes()[0], betweenNode.getChildNodes()[1], betweenNode.getChildNodes()[2],
                 betweenNode.isLowEndpointIncluded(), betweenNode.isHighEndpointIncluded(), betweenNode.isNotBetween(),
                 queryGraph);
     }
@@ -123,11 +123,11 @@ public class FilterExprAnalyzer
      */
     protected static void analyzeEqualsNode(ExprEqualsNode equalsNode, QueryGraph queryGraph, boolean isOuterJoin)
     {
-        if ( (equalsNode.getChildNodes().get(0) instanceof ExprIdentNode) &&
-             (equalsNode.getChildNodes().get(1) instanceof ExprIdentNode))
+        if ( (equalsNode.getChildNodes()[0] instanceof ExprIdentNode) &&
+             (equalsNode.getChildNodes()[1] instanceof ExprIdentNode))
         {
-            ExprIdentNode identNodeLeft = (ExprIdentNode) equalsNode.getChildNodes().get(0);
-            ExprIdentNode identNodeRight = (ExprIdentNode) equalsNode.getChildNodes().get(1);
+            ExprIdentNode identNodeLeft = (ExprIdentNode) equalsNode.getChildNodes()[0];
+            ExprIdentNode identNodeRight = (ExprIdentNode) equalsNode.getChildNodes()[1];
 
             if (identNodeLeft.getStreamId() != identNodeRight.getStreamId())
             {
@@ -146,17 +146,17 @@ public class FilterExprAnalyzer
         String indexedProp = null;
         ExprNode exprNodeNoIdent = null;
 
-        if (equalsNode.getChildNodes().get(0) instanceof ExprIdentNode) {
-            ExprIdentNode identNode = (ExprIdentNode) equalsNode.getChildNodes().get(0);
+        if (equalsNode.getChildNodes()[0] instanceof ExprIdentNode) {
+            ExprIdentNode identNode = (ExprIdentNode) equalsNode.getChildNodes()[0];
             indexedStream = identNode.getStreamId();
             indexedProp = identNode.getResolvedPropertyName();
-            exprNodeNoIdent = equalsNode.getChildNodes().get(1);
+            exprNodeNoIdent = equalsNode.getChildNodes()[1];
         }
-        else if (equalsNode.getChildNodes().get(1) instanceof ExprIdentNode) {
-            ExprIdentNode identNode = (ExprIdentNode) equalsNode.getChildNodes().get(1);
+        else if (equalsNode.getChildNodes()[1] instanceof ExprIdentNode) {
+            ExprIdentNode identNode = (ExprIdentNode) equalsNode.getChildNodes()[1];
             indexedStream = identNode.getStreamId();
             indexedProp = identNode.getResolvedPropertyName();
-            exprNodeNoIdent = equalsNode.getChildNodes().get(0);
+            exprNodeNoIdent = equalsNode.getChildNodes()[0];
         }
         if (indexedStream == -1) {
             return;     // require property of right/left side of equals

@@ -179,14 +179,17 @@ public class ExpressionWindowView extends ExpressionViewBase {
         }
     }
 
-    private boolean checkEvent(ExpressionWindowTimestampEventPair pair, ExpressionWindowTimestampEventPair newest, int numExpired) {
+    private boolean checkEvent(ExpressionWindowTimestampEventPair first, ExpressionWindowTimestampEventPair newest, int numExpired) {
 
         builtinEventProps.getProperties().put(ExpressionViewUtil.CURRENT_COUNT, window.size());
-        builtinEventProps.getProperties().put(ExpressionViewUtil.OLDEST_TIMESTAMP, pair.getTimestamp());
+        builtinEventProps.getProperties().put(ExpressionViewUtil.OLDEST_TIMESTAMP, first.getTimestamp());
         builtinEventProps.getProperties().put(ExpressionViewUtil.NEWEST_TIMESTAMP, newest.getTimestamp());
         builtinEventProps.getProperties().put(ExpressionViewUtil.VIEW_REFERENCE, this);
         builtinEventProps.getProperties().put(ExpressionViewUtil.EXPIRED_COUNT, numExpired);
-        eventsPerStream[0] = pair.getTheEvent();
+        builtinEventProps.getProperties().put(ExpressionViewUtil.NEWEST_EVENT, newest.getTheEvent());
+        builtinEventProps.getProperties().put(ExpressionViewUtil.OLDEST_EVENT, first.getTheEvent());
+
+        eventsPerStream[0] = first.getTheEvent();
 
         for (AggregationServiceAggExpressionDesc aggregateNode : aggregateNodes) {
             aggregateNode.assignFuture(aggregationService);

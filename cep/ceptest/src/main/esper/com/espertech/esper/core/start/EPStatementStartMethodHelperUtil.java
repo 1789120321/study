@@ -26,8 +26,6 @@ import com.espertech.esper.view.ViewFactoryChain;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.List;
-
 public class EPStatementStartMethodHelperUtil
 {
     private static final Log log = LogFactory.getLog(EPStatementStartMethodHelperUtil.class);
@@ -54,13 +52,13 @@ public class EPStatementStartMethodHelperUtil
      * @return array of stream names
      */
     @SuppressWarnings({"StringContatenationInLoop"})
-    protected static String[] determineStreamNames(List<StreamSpecCompiled> streams)
+    protected static String[] determineStreamNames(StreamSpecCompiled[] streams)
     {
-        String[] streamNames = new String[streams.size()];
-        for (int i = 0; i < streams.size(); i++)
+        String[] streamNames = new String[streams.length];
+        for (int i = 0; i < streams.length; i++)
         {
             // Assign a stream name for joins, if not supplied
-            streamNames[i] = streams.get(i).getOptionalStreamName();
+            streamNames[i] = streams[i].getOptionalStreamName();
             if (streamNames[i] == null)
             {
                 streamNames[i] = "stream_" + i;
@@ -83,7 +81,7 @@ public class EPStatementStartMethodHelperUtil
 
     protected static boolean determineSubquerySameStream(StatementSpecCompiled statementSpec, FilterStreamSpecCompiled filterStreamSpec) {
         for (ExprSubselectNode subselect : statementSpec.getSubSelectExpressions()) {
-            StreamSpecCompiled streamSpec = subselect.getStatementSpecCompiled().getStreamSpecs().get(0);
+            StreamSpecCompiled streamSpec = subselect.getStatementSpecCompiled().getStreamSpecs()[0];
             if (!(streamSpec instanceof FilterStreamSpecCompiled)) {
                 continue;
             }

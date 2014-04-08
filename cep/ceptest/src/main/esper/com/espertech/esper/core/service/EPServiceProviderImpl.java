@@ -622,7 +622,7 @@ public class EPServiceProviderImpl implements EPServiceProviderSPI
         // Initialize extension services
         if (services.getExtensionServicesContext() != null)
         {
-            services.getExtensionServicesContext().init(services);
+            services.getExtensionServicesContext().init(services, runtimeSPI, adminSPI);
         }
 
         // Start metrics reporting, if any

@@ -18,20 +18,23 @@ import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 import com.espertech.esper.event.arr.ObjectArrayEventBean;
 import com.espertech.esper.event.arr.ObjectArrayEventType;
 
+import java.math.MathContext;
 import java.util.Collection;
 
 public class EnumEvalAverageBigDecimalScalarLambda extends EnumEvalBase implements EnumEval {
 
     private final ObjectArrayEventType resultEventType;
+    private final MathContext optionalMathContext;
 
-    public EnumEvalAverageBigDecimalScalarLambda(ExprEvaluator innerExpression, int streamCountIncoming, ObjectArrayEventType resultEventType) {
+    public EnumEvalAverageBigDecimalScalarLambda(ExprEvaluator innerExpression, int streamCountIncoming, ObjectArrayEventType resultEventType, MathContext optionalMathContext) {
         super(innerExpression, streamCountIncoming);
         this.resultEventType = resultEventType;
+        this.optionalMathContext = optionalMathContext;
     }
 
     public Object evaluateEnumMethod(EventBean[] eventsLambda, Collection target, boolean isNewData, ExprEvaluatorContext context) {
 
-        AggregatorAvgBigDecimal agg = new AggregatorAvgBigDecimal();
+        AggregatorAvgBigDecimal agg = new AggregatorAvgBigDecimal(optionalMathContext);
         ObjectArrayEventBean resultEvent = new ObjectArrayEventBean(new Object[1], resultEventType);
 
         Collection<Object> values = (Collection<Object>) target;

@@ -14,7 +14,7 @@ import com.espertech.esper.epl.expression.ExprNode;
 import com.espertech.esper.epl.expression.ExprNodeUtility;
 import com.espertech.esper.epl.expression.ExprValidationException;
 import com.espertech.esper.epl.spec.OrderByItem;
-import com.espertech.esper.util.*;
+import com.espertech.esper.util.CollectionUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -48,7 +48,7 @@ public class OrderByProcessorFactoryImpl implements OrderByProcessorFactory {
      * @throws com.espertech.esper.epl.expression.ExprValidationException when order-by items don't divulge a type
 	 */
 	public OrderByProcessorFactoryImpl(final List<OrderByItem> orderByList,
-                                       List<ExprNode> groupByNodes,
+                                       ExprNode[] groupByNodes,
                                        boolean needsGroupByKeys,
                                        boolean isSortUsingCollator)
             throws ExprValidationException
@@ -89,66 +89,14 @@ public class OrderByProcessorFactoryImpl implements OrderByProcessorFactory {
      */
     protected static Comparator<Object> getComparator(OrderByElement[] orderBy, boolean isSortUsingCollator) throws ExprValidationException
     {
-        Comparator<Object> comparator;
-
-        if (isSortUsingCollator)
-        {
-            // determine String types
-            boolean hasStringTypes = false;
-            boolean stringTypes[] = new boolean[orderBy.length];
-            int count = 0;
-            for (OrderByElement item : orderBy)
-            {
-                if (item.getExpr().getType() == String.class)
-                {
-                    hasStringTypes = true;
-                    stringTypes[count] = true;
-                }
-                count++;
-            }
-
-            if (!hasStringTypes)
-            {
-                if (orderBy.length > 1) {
-                    comparator = new MultiKeyCastingComparator(new MultiKeyComparator(getIsDescendingValues(orderBy)));
-                }
-                else {
-                    comparator = new ObjectComparator(getIsDescendingValues(orderBy)[0]);
-                }
-            }
-            else
-            {
-                if (orderBy.length > 1) {
-                    comparator = new MultiKeyCastingComparator(new MultiKeyCollatingComparator(getIsDescendingValues(orderBy), stringTypes));
-                }
-                else {
-                    comparator = new ObjectCollatingComparator(getIsDescendingValues(orderBy)[0]);
-                }
-            }
+        ExprEvaluator[] evaluators = new ExprEvaluator[orderBy.length];
+        boolean[] descending = new boolean[orderBy.length];
+        for (int i = 0; i < orderBy.length; i++) {
+            evaluators[i] = orderBy[i].getExpr();
+            descending[i] = orderBy[i].isDescending();
         }
-        else
-        {
-            if (orderBy.length > 1) {
-                comparator = new MultiKeyCastingComparator(new MultiKeyComparator(getIsDescendingValues(orderBy)));
-            }
-            else {
-                comparator = new ObjectComparator(getIsDescendingValues(orderBy)[0]);
-            }
-        }
-
-        return comparator;
+        return CollectionUtil.getComparator(evaluators, isSortUsingCollator, descending);
     }
-
-	private static boolean[] getIsDescendingValues(OrderByElement[] orderBy)
-	{
-		boolean[] isDescendingValues  = new boolean[orderBy.length];
-		int count = 0;
-		for(OrderByElement pair : orderBy)
-		{
-			isDescendingValues[count++] = pair.isDescending();
-		}
-		return isDescendingValues;
-	}
 
     private OrderByElement[] toElementArray(List<OrderByItem> orderByList) {
         OrderByElement[] elements = new OrderByElement[orderByList.size()];

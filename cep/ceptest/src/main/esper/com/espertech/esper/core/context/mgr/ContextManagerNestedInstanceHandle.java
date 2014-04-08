@@ -12,14 +12,22 @@
 package com.espertech.esper.core.context.mgr;
 
 public class ContextManagerNestedInstanceHandle implements ContextControllerInstanceHandle {
+    private final int subPathId;
     private final ContextController controller;
     private final int contextPartitionOrPathId;
     private final boolean branch;
+    private final ContextControllerTreeAgentInstanceList branchAgentInstances;
 
-    public ContextManagerNestedInstanceHandle(ContextController controller, int contextPartitionOrPathId, boolean branch) {
+    public ContextManagerNestedInstanceHandle(int subPathId, ContextController controller, int contextPartitionOrPathId, boolean branch, ContextControllerTreeAgentInstanceList branchAgentInstances) {
+        this.subPathId = subPathId;
         this.controller = controller;
         this.contextPartitionOrPathId = contextPartitionOrPathId;
         this.branch = branch;
+        this.branchAgentInstances = branchAgentInstances;
+    }
+
+    public int getSubPathId() {
+        return subPathId;
     }
 
     public ContextController getController() {
@@ -32,5 +40,9 @@ public class ContextManagerNestedInstanceHandle implements ContextControllerInst
 
     public boolean isBranch() {
         return branch;
+    }
+
+    public ContextControllerTreeAgentInstanceList getInstances() {
+        return branchAgentInstances;
     }
 }

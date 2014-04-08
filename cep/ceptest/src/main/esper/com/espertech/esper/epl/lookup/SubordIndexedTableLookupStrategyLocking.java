@@ -8,55 +8,59 @@
  **************************************************************************************/
 package com.espertech.esper.epl.lookup;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Collections;
-
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.core.service.StatementAgentInstanceLock;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 
+import java.util.*;
+
 /**
  * Index lookup strategy for subqueries.
  */
-public class SubordIndexedTableLookupStrategyLocking implements SubordTableLookupStrategy {
-	private final SubordTableLookupStrategy inner;
-	private final StatementAgentInstanceLock statementLock;
+public class SubordIndexedTableLookupStrategyLocking implements SubordTableLookupStrategy
+{
+    private final SubordTableLookupStrategy inner;
+    private final StatementAgentInstanceLock statementLock;
 
-	public SubordIndexedTableLookupStrategyLocking(SubordTableLookupStrategy inner, StatementAgentInstanceLock statementLock) {
-		this.inner = inner;
-		this.statementLock = statementLock;
-	}
+    public SubordIndexedTableLookupStrategyLocking(SubordTableLookupStrategy inner, StatementAgentInstanceLock statementLock) {
+        this.inner = inner;
+        this.statementLock = statementLock;
+    }
 
-	public Collection<EventBean> lookup(EventBean[] events, ExprEvaluatorContext context) {
-		statementLock.acquireReadLock();
-		try {
-			Collection<EventBean> result = inner.lookup(events, context);
-			if (result != null) {
-				return new ArrayDeque<EventBean>(result);
-			} else {
-				return Collections.emptyList();
-			}
-		} finally {
-			statementLock.releaseReadLock();
-		}
-	}
+    @Override
+    public Collection<EventBean> lookup(EventBean[] events, ExprEvaluatorContext context) {
+        statementLock.acquireReadLock();
+        try {
+            Collection<EventBean> result = inner.lookup(events, context);
+            if (result != null) {
+                return new ArrayDeque<EventBean>(result);
+            }
+            else {
+                return Collections.emptyList();
+            }
+        }
+        finally {
+            statementLock.releaseReadLock();
+        }
+    }
 
-	public Collection<EventBean> lookup(Object[] keys) {
-		statementLock.acquireReadLock();
-		try {
-			Collection<EventBean> result = inner.lookup(keys);
-			if (result != null) {
-				return new ArrayDeque<EventBean>(result);
-			} else {
-				return Collections.emptyList();
-			}
-		} finally {
-			statementLock.releaseReadLock();
-		}
-	}
+    public Collection<EventBean> lookup(Object[] keys) {
+        statementLock.acquireReadLock();
+        try {
+            Collection<EventBean> result = inner.lookup(keys);
+            if (result != null) {
+                return new ArrayDeque<EventBean>(result);
+            }
+            else {
+                return Collections.emptyList();
+            }
+        }
+        finally {
+            statementLock.releaseReadLock();
+        }
+    }
 
-	public String toQueryPlan() {
-		return this.getClass().getSimpleName() + " inner " + inner.toQueryPlan();
-	}
+    public String toQueryPlan() {
+        return this.getClass().getSimpleName() + " inner " + inner.toQueryPlan();
+    }
 }

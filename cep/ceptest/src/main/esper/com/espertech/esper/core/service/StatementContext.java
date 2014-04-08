@@ -19,7 +19,6 @@ import com.espertech.esper.epl.named.NamedWindowService;
 import com.espertech.esper.epl.script.AgentInstanceScriptContext;
 import com.espertech.esper.epl.variable.VariableService;
 import com.espertech.esper.event.EventAdapterService;
-import com.espertech.esper.event.EventTypeIdGenerator;
 import com.espertech.esper.event.vaevent.ValueAddEventService;
 import com.espertech.esper.filter.FilterService;
 import com.espertech.esper.pattern.PatternContextFactory;
@@ -35,7 +34,6 @@ import com.espertech.esper.view.ViewService;
 
 import java.lang.annotation.Annotation;
 import java.net.URI;
-import java.util.HashSet;
 
 /**
  * Contains handles to the implementation of the the scheduling service for use in view evaluation.
@@ -43,10 +41,7 @@ import java.util.HashSet;
 public final class StatementContext
 {
     private final StatementContextEngineServices stmtEngineServices;
-    private final String statementId;
     private final byte[] statementIdBytes;
-    private final String statementName;
-    private final String expression;
     private SchedulingService schedulingService;
     private final ScheduleBucket scheduleBucket;
     private final EPStatementHandle epStatementHandle;
@@ -59,7 +54,6 @@ public final class StatementContext
     private FilterService filterService;
     private InternalEventRouteDest internalEventEngineRouteDest;
     private final StatementResultService statementResultService;
-    private final HashSet<String> dynamicReferenceEventTypes;
     private final ScheduleAdjustmentService scheduleAdjustmentService;
     private final Annotation[] annotations;
     private final StatementAIResourceRegistry statementAgentInstanceRegistry;
@@ -94,10 +88,7 @@ public final class StatementContext
      * @param internalEventEngineRouteDest routing destination
      */
     public StatementContext(StatementContextEngineServices stmtEngineServices,
-                              String statementId,
                               byte[] statementIdBytes,
-                              String statementName,
-                              String expression,
                               SchedulingService schedulingService,
                               ScheduleBucket scheduleBucket,
                               EPStatementHandle epStatementHandle,
@@ -121,10 +112,7 @@ public final class StatementContext
                               AggregationServiceFactoryService aggregationServiceFactoryService)
     {
         this.stmtEngineServices = stmtEngineServices;
-        this.statementId = statementId;
         this.statementIdBytes = statementIdBytes;
-        this.statementName = statementName;
-        this.expression = expression;
         this.schedulingService = schedulingService;
         this.scheduleBucket = scheduleBucket;
         this.epStatementHandle = epStatementHandle;
@@ -136,7 +124,6 @@ public final class StatementContext
         this.patternContextFactory = patternContextFactory;
         this.filterService = filterService;
         this.statementResultService = statementResultService;
-        this.dynamicReferenceEventTypes = new HashSet<String>();
         this.internalEventEngineRouteDest = internalEventEngineRouteDest;
         this.scheduleAdjustmentService = new ScheduleAdjustmentService();
         this.annotations = annotations;
@@ -156,7 +143,7 @@ public final class StatementContext
      */
     public String getStatementId()
     {
-        return statementId;
+        return epStatementHandle.getStatementId();
     }
 
     /**
@@ -165,7 +152,7 @@ public final class StatementContext
      */
     public String getStatementName()
     {
-        return statementName;
+        return epStatementHandle.getStatementName();
     }
 
     /**
@@ -255,7 +242,7 @@ public final class StatementContext
      */
     public String getExpression()
     {
-        return expression;
+        return epStatementHandle.getEPL();
     }
 
     /**
@@ -328,24 +315,6 @@ public final class StatementContext
     public ValueAddEventService getValueAddEventService()
     {
         return stmtEngineServices.getValueAddEventService();
-    }
-
-    /**
-     * Add an event type name created during statement start and not available through static analysis.
-     * @param eventTypeName to add
-     */
-    public void addDynamicReferenceEventType(String eventTypeName)
-    {
-        dynamicReferenceEventTypes.add(eventTypeName);
-    }
-
-    /**
-     * Returns event type names created during statement start and not available through static analysis.
-     * @return event type names
-     */
-    public HashSet<String> getDynamicReferenceEventTypes()
-    {
-        return dynamicReferenceEventTypes;
     }
 
     /**
@@ -442,8 +411,8 @@ public final class StatementContext
 
     public String toString()
     {
-        return  " stmtId=" + statementId +
-                " stmtName=" + statementName;
+        return  " stmtId=" + epStatementHandle.getStatementId() +
+                " stmtName=" + epStatementHandle.getStatementName();
     }
 
     public int getAgentInstanceId() {
@@ -488,5 +457,9 @@ public final class StatementContext
 
     public AggregationServiceFactoryService getAggregationServiceFactoryService() {
         return aggregationServiceFactoryService;
+    }
+
+    public StatementEventTypeRef getStatementEventTypeRef() {
+        return stmtEngineServices.getStatementEventTypeRef();
     }
 }

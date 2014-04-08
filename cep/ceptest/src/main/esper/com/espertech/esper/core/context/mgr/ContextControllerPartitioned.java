@@ -12,13 +12,11 @@
 package com.espertech.esper.core.context.mgr;
 
 import com.espertech.esper.client.EventBean;
-import com.espertech.esper.client.context.ContextPartitionIdentifierPartitioned;
-import com.espertech.esper.client.context.ContextPartitionSelector;
-import com.espertech.esper.client.context.ContextPartitionSelectorFiltered;
-import com.espertech.esper.client.context.ContextPartitionSelectorSegmented;
+import com.espertech.esper.client.context.*;
 import com.espertech.esper.collection.MultiKeyUntyped;
 import com.espertech.esper.core.context.util.ContextControllerSelectorUtil;
 import com.espertech.esper.core.context.util.StatementAgentInstanceUtil;
+import com.espertech.esper.client.context.ContextPartitionState;
 import com.espertech.esper.epl.spec.ContextDetailPartitionItem;
 import com.espertech.esper.event.EventAdapterService;
 import com.espertech.esper.type.NumberSetParameter;
@@ -43,54 +41,66 @@ public class ContextControllerPartitioned implements ContextController, ContextC
         this.factory = factory;
     }
 
-    public Collection<Integer> getSelectedContextPartitionPathIds(ContextPartitionSelector contextPartitionSelector) {
-        boolean isMultiKey = factory.getContextDetailPartitionItems().get(0).getPropertyNames().size() > 1;
+    public void importContextPartitions(ContextControllerState state, int pathIdToUse, ContextInternalFilterAddendum filterAddendum, AgentInstanceSelector agentInstanceSelector) {
+        initializeFromState(null, null, filterAddendum, state, pathIdToUse, agentInstanceSelector);
+    }
+
+    public void deletePath(ContextPartitionIdentifier identifier) {
+        ContextPartitionIdentifierPartitioned partitioned = (ContextPartitionIdentifierPartitioned) identifier;
+        partitionKeys.remove(getKeyObjectForLookup(partitioned.getKeys()));
+    }
+
+    public void visitSelectedPartitions(ContextPartitionSelector contextPartitionSelector, ContextPartitionVisitor visitor) {
+        int nestingLevel = factory.getFactoryContext().getNestingLevel();
         if (contextPartitionSelector instanceof ContextPartitionSelectorFiltered) {
-            List<Integer> ids = new ArrayList<Integer>();
             ContextPartitionSelectorFiltered filtered = (ContextPartitionSelectorFiltered) contextPartitionSelector;
 
             ContextPartitionIdentifierPartitioned identifier = new ContextPartitionIdentifierPartitioned();
             for (Map.Entry<Object, ContextControllerInstanceHandle> entry : partitionKeys.entrySet()) {
                 identifier.setContextPartitionId(entry.getValue().getContextPartitionOrPathId());
-                if (isMultiKey) {
-                    identifier.setKeys(((MultiKeyUntyped)entry.getKey()).getKeys());
-                }
-                else {
-                    identifier.setKeys(new Object[] {entry.getKey()});
-                }
+                Object[] identifierOA = getKeyObjectsAccountForMultikey(entry.getKey());
+                identifier.setKeys(identifierOA);
 
                 if (filtered.filter(identifier)) {
-                    ids.add(entry.getValue().getContextPartitionOrPathId());
+                    visitor.visit(nestingLevel, pathId, factory.getBinding(), identifierOA, this, entry.getValue());
                 }
             }
-            return ids;
+            return;
         }
         else if (contextPartitionSelector instanceof ContextPartitionSelectorSegmented) {
             ContextPartitionSelectorSegmented partitioned = (ContextPartitionSelectorSegmented) contextPartitionSelector;
             if (partitioned.getPartitionKeys() == null || partitioned.getPartitionKeys().isEmpty()) {
-                return Collections.emptyList();
+                return;
             }
-            Set<Integer> ids = new HashSet<Integer>();
             for (Object[] keyObjects : partitioned.getPartitionKeys()) {
-
-                Object key;
-                if (isMultiKey) {
-                    key = new MultiKeyUntyped(keyObjects);
-                }
-                else {
-                    key = keyObjects[0];
-                }
+                Object key = getKeyObjectForLookup(keyObjects);
                 ContextControllerInstanceHandle instanceHandle = partitionKeys.get(key);
                 if (instanceHandle != null && instanceHandle.getContextPartitionOrPathId() != null) {
-                    ids.add(instanceHandle.getContextPartitionOrPathId());
+                    visitor.visit(nestingLevel, pathId, factory.getBinding(), keyObjects, this, instanceHandle);
                 }
             }
-            return ids;
+            return;
+        }
+        else if (contextPartitionSelector instanceof ContextPartitionSelectorById) {
+            ContextPartitionSelectorById filtered = (ContextPartitionSelectorById) contextPartitionSelector;
+
+            for (Map.Entry<Object, ContextControllerInstanceHandle> entry : partitionKeys.entrySet()) {
+                if (filtered.getContextPartitionIds().contains(entry.getValue().getContextPartitionOrPathId())) {
+                    visitor.visit(nestingLevel, pathId, factory.getBinding(), getKeyObjectsAccountForMultikey(entry.getKey()), this, entry.getValue());
+                }
+            }
+            return;
+        }
+        else if (contextPartitionSelector instanceof ContextPartitionSelectorAll) {
+            for (Map.Entry<Object, ContextControllerInstanceHandle> entry : partitionKeys.entrySet()) {
+                visitor.visit(nestingLevel, pathId, factory.getBinding(), getKeyObjectsAccountForMultikey(entry.getKey()), this, entry.getValue());
+            }
+            return;
         }
         throw ContextControllerSelectorUtil.getInvalidSelector(new Class[]{ContextPartitionSelectorSegmented.class}, contextPartitionSelector);
     }
 
-    public void activate(EventBean optionalTriggeringEvent, Map<String, Object> optionalTriggeringPattern, ContextControllerState controllerState, ContextInternalFilterAddendum filterAddendum) {
+    public void activate(EventBean optionalTriggeringEvent, Map<String, Object> optionalTriggeringPattern, ContextControllerState controllerState, ContextInternalFilterAddendum filterAddendum, Integer importPathId) {
         ContextControllerFactoryContext factoryContext = factory.getFactoryContext();
         this.activationFilterAddendum = filterAddendum;
 
@@ -113,35 +123,9 @@ public class ContextControllerPartitioned implements ContextController, ContextC
         if (controllerState == null) {
             return;
         }
-        TreeMap<ContextStatePathKey, ContextStatePathValue> states = controllerState.getStates();
 
-        // restart if there are states
-        int maxSubpathId = Integer.MIN_VALUE;
-        ContextStatePathKey start = new ContextStatePathKey(factoryContext.getOutermostContextName(), factoryContext.getNestingLevel(), pathId, Integer.MIN_VALUE);
-        ContextStatePathKey end = new ContextStatePathKey(factoryContext.getOutermostContextName(), factoryContext.getNestingLevel(), pathId, Integer.MAX_VALUE);
-        NavigableMap<ContextStatePathKey, ContextStatePathValue> childContexts = states.subMap(start, true, end, true);
-        EventAdapterService eventAdapterService = factory.getFactoryContext().getServicesContext().getEventAdapterService();
-
-        for (Map.Entry<ContextStatePathKey, ContextStatePathValue> entry : childContexts.entrySet()) {
-            String key = (String) factory.getBinding().byteArrayToObject(entry.getValue().getBlob(), eventAdapterService);
-            Map<String, Object> props = ContextPropertyEventType.getPartitionBean(factoryContext.getContextName(), 0, key, factory.getSegmentedSpec().getItems().get(0).getPropertyNames());
-
-            // merge filter addendum, if any
-            ContextInternalFilterAddendum myFilterAddendum = activationFilterAddendum;
-            if (factory.hasFiltersSpecsNestedContexts()) {
-                filterAddendum = activationFilterAddendum != null ? activationFilterAddendum.deepCopy() : new ContextInternalFilterAddendum();
-                factory.populateContextInternalFilterAddendums(filterAddendum, key);
-            }
-
-            ContextControllerInstanceHandle handle = activationCallback.contextPartitionInstantiate(entry.getValue().getOptionalContextPartitionId(), entry.getKey().getSubPath(), this, optionalTriggeringEvent, optionalTriggeringPattern, key, props, controllerState, myFilterAddendum, factoryContext.isRecoveringResilient());
-            partitionKeys.put(key, handle);
-
-            int subPathId = entry.getKey().getSubPath();
-            if (entry.getKey().getSubPath() > maxSubpathId) {
-                maxSubpathId = subPathId;
-            }
-        }
-        currentSubpathId = maxSubpathId != Integer.MIN_VALUE ? maxSubpathId : 0;
+        int pathIdToUse = importPathId != null ? importPathId : pathId;
+        initializeFromState(optionalTriggeringEvent, optionalTriggeringPattern, filterAddendum, controllerState, pathIdToUse, null);
     }
 
     public ContextControllerFactory getFactory() {
@@ -185,10 +169,79 @@ public class ContextControllerPartitioned implements ContextController, ContextC
             factory.populateContextInternalFilterAddendums(filterAddendum, key);
         }
 
-        ContextControllerInstanceHandle handle = activationCallback.contextPartitionInstantiate(null, currentSubpathId, this, theEvent, null, key, props, null, filterAddendum, false);
+        ContextControllerInstanceHandle handle = activationCallback.contextPartitionInstantiate(null, currentSubpathId, null, this, theEvent, null, key, props, null, filterAddendum, false, ContextPartitionState.STARTED);
 
         partitionKeys.put(key, handle);
 
-        factory.getStateCache().addContextPath(factoryContext.getOutermostContextName(), factoryContext.getNestingLevel(), pathId, currentSubpathId, handle.getContextPartitionOrPathId(), key, factory.getBinding());
+        Object[] keyObjectSaved = getKeyObjectsAccountForMultikey(key);
+        factory.getStateCache().addContextPath(factoryContext.getOutermostContextName(), factoryContext.getNestingLevel(), pathId, currentSubpathId, handle.getContextPartitionOrPathId(), keyObjectSaved, factory.getBinding());
+    }
+
+    private Object[] getKeyObjectsAccountForMultikey(Object key) {
+        if (key instanceof MultiKeyUntyped) {
+            return ((MultiKeyUntyped)key).getKeys();
+        }
+        else {
+            return new Object[] {key};
+        }
+    }
+
+    private Object getKeyObjectForLookup(Object[] keyObjects) {
+        if (keyObjects.length > 1) {
+            return new MultiKeyUntyped(keyObjects);
+        }
+        else {
+            return keyObjects[0];
+        }
+    }
+
+    private void initializeFromState(EventBean optionalTriggeringEvent,
+                                     Map<String, Object> optionalTriggeringPattern,
+                                     ContextInternalFilterAddendum filterAddendum,
+                                     ContextControllerState controllerState,
+                                     int pathIdToUse,
+                                     AgentInstanceSelector agentInstanceSelector) {
+
+        ContextControllerFactoryContext factoryContext = factory.getFactoryContext();
+        TreeMap<ContextStatePathKey, ContextStatePathValue> states = controllerState.getStates();
+
+        // restart if there are states
+        int maxSubpathId = Integer.MIN_VALUE;
+        NavigableMap<ContextStatePathKey, ContextStatePathValue> childContexts = ContextControllerStateUtil.getChildContexts(factoryContext, pathIdToUse, states);
+        EventAdapterService eventAdapterService = factory.getFactoryContext().getServicesContext().getEventAdapterService();
+
+        for (Map.Entry<ContextStatePathKey, ContextStatePathValue> entry : childContexts.entrySet()) {
+            Object[] keys = (Object[]) factory.getBinding().byteArrayToObject(entry.getValue().getBlob(), eventAdapterService);
+            Object mapKey = getKeyObjectForLookup(keys);
+
+            // merge filter addendum, if any
+            ContextInternalFilterAddendum myFilterAddendum = activationFilterAddendum;
+            if (factory.hasFiltersSpecsNestedContexts()) {
+                filterAddendum = activationFilterAddendum != null ? activationFilterAddendum.deepCopy() : new ContextInternalFilterAddendum();
+                factory.populateContextInternalFilterAddendums(filterAddendum, mapKey);
+            }
+
+            // check if exists already
+            if (controllerState.isImported()) {
+                ContextControllerInstanceHandle existingHandle = partitionKeys.get(mapKey);
+                if (existingHandle != null) {
+                    activationCallback.contextPartitionNavigate(existingHandle, this, controllerState, entry.getValue().getOptionalContextPartitionId(), myFilterAddendum, agentInstanceSelector, entry.getValue().getBlob());
+                    continue;
+                }
+            }
+
+            Map<String, Object> props = ContextPropertyEventType.getPartitionBean(factoryContext.getContextName(), 0, mapKey, factory.getSegmentedSpec().getItems().get(0).getPropertyNames());
+
+            int assignedSubpathId = !controllerState.isImported() ? entry.getKey().getSubPath() : ++currentSubpathId;
+            ContextControllerInstanceHandle handle = activationCallback.contextPartitionInstantiate(entry.getValue().getOptionalContextPartitionId(), assignedSubpathId, entry.getKey().getSubPath(), this, optionalTriggeringEvent, optionalTriggeringPattern, mapKey, props, controllerState, myFilterAddendum, factoryContext.isRecoveringResilient(), entry.getValue().getState());
+            partitionKeys.put(mapKey, handle);
+
+            if (entry.getKey().getSubPath() > maxSubpathId) {
+                maxSubpathId = assignedSubpathId;
+            }
+        }
+        if (!controllerState.isImported()) {
+            currentSubpathId = maxSubpathId != Integer.MIN_VALUE ? maxSubpathId : 0;
+        }
     }
 }

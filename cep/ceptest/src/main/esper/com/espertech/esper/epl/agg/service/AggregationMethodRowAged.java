@@ -11,7 +11,7 @@
 
 package com.espertech.esper.epl.agg.service;
 
-import com.espertech.esper.epl.agg.access.AggregationAccess;
+import com.espertech.esper.epl.agg.access.AggregationState;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
 
 /**
@@ -22,21 +22,21 @@ public class AggregationMethodRowAged
     private long refcount;
     private long lastUpdateTime;
     private final AggregationMethod[] methods;
-    private final AggregationAccess[] accesses;
+    private final AggregationState[] states;
 
     /**
      * Ctor.
      * @param lastUpdateTime time of creation
      * @param refcount number of items in state
      * @param methods aggregations
-     * @param accesses for first/last/window type access
+     * @param states for first/last/window type access
      */
-    public AggregationMethodRowAged(long refcount, long lastUpdateTime, AggregationMethod[] methods, AggregationAccess[] accesses)
+    public AggregationMethodRowAged(long refcount, long lastUpdateTime, AggregationMethod[] methods, AggregationState[] states)
     {
         this.refcount = refcount;
         this.lastUpdateTime = lastUpdateTime;
         this.methods = methods;
-        this.accesses = accesses;
+        this.states = states;
     }
 
     /**
@@ -92,11 +92,11 @@ public class AggregationMethodRowAged
     }
 
     /**
-     * Returns the accesses for first/last/window aggregation functions.
-     * @return accesses
+     * Returns the states for first/last/window aggregation functions.
+     * @return states
      */
-    public AggregationAccess[] getAccesses()
+    public AggregationState[] getStates()
     {
-        return accesses;
+        return states;
     }
 }

@@ -29,6 +29,11 @@ public class DateTime {
      */
     public static final String DEFAULT_XMLLIKE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
+    /**
+     * The default date-time format with time zone.
+     */
+    public static final String DEFAULT_XMLLIKE_DATE_FORMAT_WITH_ZONE = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
     private static final Log log = LogFactory.getLog(DateTime.class);
 
     /**
@@ -125,6 +130,15 @@ public class DateTime {
      */
     public static long parseDefaultMSec(String dateTime) {
         return parse(dateTime, new SimpleDateFormat(DEFAULT_XMLLIKE_DATE_FORMAT)).getTime();
+    }
+
+    /**
+     * Parse the date-time string using {@link #DEFAULT_XMLLIKE_DATE_FORMAT_WITH_ZONE}.
+     * @param dateTimeWithZone date-time string
+     * @return milliseconds
+     */
+    public static long parseDefaultMSecWZone(String dateTimeWithZone) {
+        return parse(dateTimeWithZone, new SimpleDateFormat(DEFAULT_XMLLIKE_DATE_FORMAT_WITH_ZONE)).getTime();
     }
 
     /**

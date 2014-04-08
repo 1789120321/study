@@ -17,6 +17,8 @@ import java.util.List;
  */
 public final class ViewSpec extends ObjectSpec
 {
+    public final static ViewSpec[] EMPTY_VIEWSPEC_ARRAY = new ViewSpec[0];
+
     private static final long serialVersionUID = -2881179463072647071L;
 
     /**
@@ -28,5 +30,12 @@ public final class ViewSpec extends ObjectSpec
     public ViewSpec(String namespace, String objectName, List<ExprNode> viewParameters)
     {
         super(namespace, objectName, viewParameters);
+    }
+
+    public static ViewSpec[] toArray(List<ViewSpec> viewSpecs) {
+        if (viewSpecs.isEmpty()) {
+            return EMPTY_VIEWSPEC_ARRAY;
+        }
+        return viewSpecs.toArray(new ViewSpec[viewSpecs.size()]);
     }
 }

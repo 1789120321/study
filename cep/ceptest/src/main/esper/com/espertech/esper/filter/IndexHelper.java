@@ -51,7 +51,9 @@ public class IndexHelper
                         return new Pair<FilterValueSetParam, FilterParamIndexBase>(parameter, index);
                     }
                 }
-                else if (index instanceof FilterParamIndexBooleanExpr) {
+                // if boolean-expression then match only if this is the last parameter,
+                // all others considered are higher order and sort ahead
+                else if (index instanceof FilterParamIndexBooleanExpr && parameters.size() == 1) {
                     if (operator.equals(FilterOperator.BOOLEAN_EXPRESSION)) {
                         return new Pair<FilterValueSetParam, FilterParamIndexBase>(parameter, index);
                     }

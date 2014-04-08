@@ -40,7 +40,7 @@ public class ExprOrNode extends ExprNodeBase implements ExprEvaluator
             }
         }
 
-        if (this.getChildNodes().size() <= 1)
+        if (this.getChildNodes().length <= 1)
         {
             throw new ExprValidationException("The OR operator requires at least 2 child expressions");
         }

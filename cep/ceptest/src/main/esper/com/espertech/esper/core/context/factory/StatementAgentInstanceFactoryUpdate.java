@@ -56,11 +56,6 @@ public class StatementAgentInstanceFactoryUpdate implements StatementAgentInstan
     public StatementAgentInstanceFactoryUpdateResult newContext(final AgentInstanceContext agentInstanceContext, boolean isRecoveringResilient)
     {
         final List<StopCallback> stopCallbacks = new ArrayList<StopCallback>();
-        StopCallback stopCallback = new StopCallback() {
-            public void stop() {
-                StatementAgentInstanceUtil.stopSafe(agentInstanceContext.getTerminationCallbacks(), stopCallbacks, statementContext);
-            }
-        };
 
         Map<ExprSubselectNode, SubSelectStrategyHolder> subselectStrategies;
 
@@ -79,11 +74,13 @@ public class StatementAgentInstanceFactoryUpdate implements StatementAgentInstan
             subselectStrategies = EPStatementStartMethodHelperSubselect.startSubselects(services, subSelectStrategyCollection, agentInstanceContext, stopCallbacks);
         }
         catch (RuntimeException ex) {
+            StopCallback stopCallback = StatementAgentInstanceUtil.getStopCallback(stopCallbacks, agentInstanceContext);
             StatementAgentInstanceUtil.stopSafe(stopCallback, statementContext);
             throw ex;
         }
 
         log.debug(".start Statement start completed");
+        StopCallback stopCallback = StatementAgentInstanceUtil.getStopCallback(stopCallbacks, agentInstanceContext);
         return new StatementAgentInstanceFactoryUpdateResult(onExprView, stopCallback, agentInstanceContext, subselectStrategies);
     }
 }

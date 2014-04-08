@@ -17,7 +17,6 @@ import com.espertech.esper.filter.FilterSpecLookupable;
 import com.espertech.esper.filter.FilterValueSetParam;
 
 import java.io.Serializable;
-import java.util.ArrayDeque;
 
 public class ContextDetailHashItem implements Serializable {
 
@@ -25,7 +24,7 @@ public class ContextDetailHashItem implements Serializable {
     private final ExprChainedSpec function;
     private final FilterSpecRaw filterSpecRaw;
 
-    private transient ArrayDeque<FilterValueSetParam> parametersCompiled;
+    private transient FilterValueSetParam[] parametersCompiled;
     private transient FilterSpecCompiled filterSpecCompiled;
     private FilterSpecLookupable lookupable;
 
@@ -51,7 +50,7 @@ public class ContextDetailHashItem implements Serializable {
         this.parametersCompiled = filterSpecCompiled.getValueSet(null, null, null).getParameters();
     }
 
-    public ArrayDeque<FilterValueSetParam> getParametersCompiled() {
+    public FilterValueSetParam[] getParametersCompiled() {
         return parametersCompiled;
     }
 

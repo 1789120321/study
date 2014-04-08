@@ -91,8 +91,7 @@ public class EPStatementStartMethodCreateVariable extends EPStatementStartMethod
         });
 
         // Create result set processor, use wildcard selection
-        statementSpec.getSelectClauseSpec().getSelectExprList().clear();
-        statementSpec.getSelectClauseSpec().add(new SelectClauseElementWildcard());
+        statementSpec.getSelectClauseSpec().setSelectExprList(new SelectClauseElementWildcard());
         statementSpec.setSelectStreamDirEnum(SelectClauseStreamSelectorEnum.RSTREAM_ISTREAM_BOTH);
         StreamTypeService typeService = new StreamTypeServiceImpl(new EventType[] {createView.getEventType()}, new String[] {"create_variable"}, new boolean[] {true}, services.getEngineURI(), false);
         AgentInstanceContext agentInstanceContext = getDefaultAgentInstanceContext(statementContext);

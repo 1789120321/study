@@ -29,7 +29,9 @@ import com.espertech.esper.epl.expression.ExprValidationException;
 import com.espertech.esper.epl.join.base.HistoricalViewableDesc;
 import com.espertech.esper.epl.join.base.JoinSetComposerPrototype;
 import com.espertech.esper.epl.join.base.JoinSetComposerPrototypeFactory;
-import com.espertech.esper.epl.named.*;
+import com.espertech.esper.epl.named.NamedWindowProcessor;
+import com.espertech.esper.epl.named.NamedWindowProcessorInstance;
+import com.espertech.esper.epl.named.NamedWindowService;
 import com.espertech.esper.epl.spec.*;
 import com.espertech.esper.epl.view.OutputProcessViewCallback;
 import com.espertech.esper.epl.view.OutputProcessViewFactory;
@@ -44,14 +46,11 @@ import com.espertech.esper.util.StopCallback;
 import com.espertech.esper.view.HistoricalEventViewable;
 import com.espertech.esper.view.ViewFactory;
 import com.espertech.esper.view.ViewFactoryChain;
-import com.espertech.esper.view.ViewServiceHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Starts and provides the stop method for EPL statements.
@@ -73,7 +72,6 @@ public class EPStatementStartMethodSelectUtil
 
         // define stop
         final List<StopCallback> stopCallbacks = new LinkedList<StopCallback>();
-        final EPStatementStopMethod stopMethod = new EPStatementStopMethodImpl(statementContext, stopCallbacks);
 
         // determine context
         final String contextName = statementSpec.getOptionalContextName();
@@ -82,7 +80,7 @@ public class EPStatementStartMethodSelectUtil
         // Determine stream names for each stream - some streams may not have a name given
         String[] streamNames = EPStatementStartMethodHelperUtil.determineStreamNames(statementSpec.getStreamSpecs());
         int numStreams = streamNames.length;
-        final boolean isJoin = statementSpec.getStreamSpecs().size() > 1;
+        final boolean isJoin = statementSpec.getStreamSpecs().length > 1;
         final boolean hasContext = statementSpec.getOptionalContextName() != null;
 
         // First we create streams for subselects, if there are any
@@ -99,9 +97,9 @@ public class EPStatementStartMethodSelectUtil
         StreamJoinAnalysisResult joinAnalysisResult = verifyJoinViews(statementSpec, statementContext.getNamedWindowService(), defaultAgentInstanceContext);
         final ExprEvaluatorContextStatement evaluatorContextStmt = new ExprEvaluatorContextStatement(statementContext);
 
-        for (int i = 0; i < statementSpec.getStreamSpecs().size(); i++)
+        for (int i = 0; i < statementSpec.getStreamSpecs().length; i++)
         {
-            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs().get(i);
+            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs()[i];
 
             // Create view factories and parent view based on a filter specification
             if (streamSpec instanceof FilterStreamSpecCompiled)
@@ -137,7 +135,7 @@ public class EPStatementStartMethodSelectUtil
             else if (streamSpec instanceof PatternStreamSpecCompiled)
             {
                 PatternStreamSpecCompiled patternStreamSpec = (PatternStreamSpecCompiled) streamSpec;
-                boolean usedByChildViews = !streamSpec.getViewSpecs().isEmpty() || (statementSpec.getInsertIntoDesc() != null);
+                boolean usedByChildViews = streamSpec.getViewSpecs().length > 0 || (statementSpec.getInsertIntoDesc() != null);
                 String patternTypeName = statementContext.getStatementId() + "_pattern_" + i;
                 final EventType eventType = services.getEventAdapterService().createSemiAnonymousMapType(patternTypeName, patternStreamSpec.getTaggedEventTypes(), patternStreamSpec.getArrayEventTypes(), usedByChildViews);
                 unmaterializedViewChain[i] = services.getViewService().createFactories(i, eventType, streamSpec.getViewSpecs(), streamSpec.getOptions(), statementContext);
@@ -154,10 +152,10 @@ public class EPStatementStartMethodSelectUtil
             // Create view factories and parent view based on a database SQL statement
             else if (streamSpec instanceof DBStatementStreamSpec)
             {
-                if (!streamSpec.getViewSpecs().isEmpty())
+                if (streamSpec.getViewSpecs().length > 0)
                 {
                     throw new ExprValidationException("Historical data joins do not allow views onto the data, view '"
-                            + streamSpec.getViewSpecs().get(0).getObjectNamespace() + ':' + streamSpec.getViewSpecs().get(0).getObjectName() + "' is not valid in this context");
+                            + streamSpec.getViewSpecs()[0].getObjectNamespace() + ':' + streamSpec.getViewSpecs()[0].getObjectName() + "' is not valid in this context");
                 }
 
                 DBStatementStreamSpec sqlStreamSpec = (DBStatementStreamSpec) streamSpec;
@@ -177,10 +175,10 @@ public class EPStatementStartMethodSelectUtil
             }
             else if (streamSpec instanceof MethodStreamSpec)
             {
-                if (!streamSpec.getViewSpecs().isEmpty())
+                if (streamSpec.getViewSpecs().length > 0)
                 {
                     throw new ExprValidationException("Method data joins do not allow views onto the data, view '"
-                            + streamSpec.getViewSpecs().get(0).getObjectNamespace() + ':' + streamSpec.getViewSpecs().get(0).getObjectName() + "' is not valid in this context");
+                            + streamSpec.getViewSpecs()[0].getObjectNamespace() + ':' + streamSpec.getViewSpecs()[0].getObjectName() + "' is not valid in this context");
                 }
 
                 MethodStreamSpec methodStreamSpec = (MethodStreamSpec) streamSpec;
@@ -226,7 +224,7 @@ public class EPStatementStartMethodSelectUtil
             {
                 throw new ExprValidationException("Joins are not allowed when using match recognize");
             }
-            boolean isUnbound = (unmaterializedViewChain[0].getViewFactoryChain().isEmpty()) && (!(statementSpec.getStreamSpecs().get(0) instanceof NamedWindowConsumerStreamSpec));
+            boolean isUnbound = (unmaterializedViewChain[0].getViewFactoryChain().isEmpty()) && (!(statementSpec.getStreamSpecs()[0] instanceof NamedWindowConsumerStreamSpec));
             AgentInstanceContext agentInstanceContext = defaultAgentInstanceContext;
             EventRowRegexNFAViewFactory factory = new EventRowRegexNFAViewFactory(unmaterializedViewChain[0], statementSpec.getMatchRecognizeSpec(), agentInstanceContext, isUnbound, statementSpec.getAnnotations());
             unmaterializedViewChain[0].getViewFactoryChain().add(factory);
@@ -235,7 +233,7 @@ public class EPStatementStartMethodSelectUtil
         }
 
         // Obtain event types from view factory chains
-        EventType[] streamEventTypes = new EventType[statementSpec.getStreamSpecs().size()];
+        EventType[] streamEventTypes = new EventType[statementSpec.getStreamSpecs().length];
         for (int i = 0; i < unmaterializedViewChain.length; i++)
         {
             streamEventTypes[i] = unmaterializedViewChain[i].getEventType();
@@ -309,15 +307,16 @@ public class EPStatementStartMethodSelectUtil
                 typeService, unmaterializedViewChain, resultSetProcessorPrototypeDesc, joinAnalysisResult, recoveringResilient,
                 joinSetComposerPrototype, subSelectStrategyCollection, viewResourceDelegateVerified, outputViewFactory);
 
+        final EPStatementStopMethod stopMethod = new EPStatementStopMethodImpl(statementContext, stopCallbacks);
         return new EPStatementStartMethodSelectDesc(factory, subSelectStrategyCollection, viewResourceDelegateUnverified, resultSetProcessorPrototypeDesc, stopMethod);
     }
 
     private static StreamJoinAnalysisResult verifyJoinViews(StatementSpecCompiled statementSpec, NamedWindowService namedWindowService, AgentInstanceContext defaultAgentInstanceContext)
             throws ExprValidationException
     {
-        List<StreamSpecCompiled> streamSpecs = statementSpec.getStreamSpecs();
-        StreamJoinAnalysisResult analysisResult = new StreamJoinAnalysisResult(streamSpecs.size());
-        if (streamSpecs.size() < 2)
+        StreamSpecCompiled[] streamSpecs = statementSpec.getStreamSpecs();
+        StreamJoinAnalysisResult analysisResult = new StreamJoinAnalysisResult(streamSpecs.length);
+        if (streamSpecs.length < 2)
         {
             return analysisResult;
         }
@@ -326,9 +325,9 @@ public class EPStatementStartMethodSelectUtil
 
         // inspect unidirectional indicator and named window flags
         int unidirectionalStreamNumber = -1;
-        for (int i = 0; i < statementSpec.getStreamSpecs().size(); i++)
+        for (int i = 0; i < statementSpec.getStreamSpecs().length; i++)
         {
-            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs().get(i);
+            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs()[i];
             if (streamSpec.getOptions().isUnidirectional())
             {
                 analysisResult.setUnidirectionalInd(i);
@@ -338,7 +337,7 @@ public class EPStatementStartMethodSelectUtil
                 }
                 unidirectionalStreamNumber = i;
             }
-            if (!streamSpec.getViewSpecs().isEmpty())
+            if (streamSpec.getViewSpecs().length > 0)
             {
                 analysisResult.setHasChildViews(i);
             }
@@ -366,9 +365,9 @@ public class EPStatementStartMethodSelectUtil
 
         // count streams that provide data, excluding streams that poll data (DB and method)
         int countProviderNonpolling = 0;
-        for (int i = 0; i < statementSpec.getStreamSpecs().size(); i++)
+        for (int i = 0; i < statementSpec.getStreamSpecs().length; i++)
         {
-            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs().get(i);
+            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs()[i];
             if ((streamSpec instanceof MethodStreamSpec) ||
                 (streamSpec instanceof DBStatementStreamSpec))
             {
@@ -402,7 +401,7 @@ public class EPStatementStartMethodSelectUtil
             {
                 pureSelfJoin = false;
             }
-            if (!streamSpec.getViewSpecs().isEmpty())
+            if (streamSpec.getViewSpecs().length > 0)
             {
                 pureSelfJoin = false;
             }
@@ -422,10 +421,10 @@ public class EPStatementStartMethodSelectUtil
         }
 
         // weed out filter and pattern streams that don't have a view in a join
-        for (int i = 0; i < statementSpec.getStreamSpecs().size(); i++)
+        for (int i = 0; i < statementSpec.getStreamSpecs().length; i++)
         {
-            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs().get(i);
-            if (!streamSpec.getViewSpecs().isEmpty())
+            StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs()[i];
+            if (streamSpec.getViewSpecs().length > 0)
             {
                 continue;
             }

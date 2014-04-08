@@ -54,6 +54,10 @@ public class EPStatementHandleCallback implements FilterHandle, ScheduleHandle
         return agentInstanceHandle.getStatementId();
     }
 
+    public int getAgentInstanceId() {
+        return agentInstanceHandle.getAgentInstanceId();
+    }
+
     /**
      * Returns the statement handle.
      * @return handle containing a statement resource lock

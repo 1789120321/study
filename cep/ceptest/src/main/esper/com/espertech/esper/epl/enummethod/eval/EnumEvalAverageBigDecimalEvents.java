@@ -16,17 +16,21 @@ import com.espertech.esper.epl.agg.aggregator.AggregatorAvgBigDecimal;
 import com.espertech.esper.epl.expression.ExprEvaluator;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 
+import java.math.MathContext;
 import java.util.Collection;
 
 public class EnumEvalAverageBigDecimalEvents extends EnumEvalBase implements EnumEval {
 
-    public EnumEvalAverageBigDecimalEvents(ExprEvaluator innerExpression, int streamCountIncoming) {
+    private final MathContext optionalMathContext;
+
+    public EnumEvalAverageBigDecimalEvents(ExprEvaluator innerExpression, int streamCountIncoming, MathContext optionalMathContext) {
         super(innerExpression, streamCountIncoming);
+        this.optionalMathContext = optionalMathContext;
     }
 
     public Object evaluateEnumMethod(EventBean[] eventsLambda, Collection target, boolean isNewData, ExprEvaluatorContext context) {
 
-        AggregatorAvgBigDecimal agg = new AggregatorAvgBigDecimal();
+        AggregatorAvgBigDecimal agg = new AggregatorAvgBigDecimal(optionalMathContext);
 
         Collection<EventBean> beans = (Collection<EventBean>) target;
         for (EventBean next : beans) {

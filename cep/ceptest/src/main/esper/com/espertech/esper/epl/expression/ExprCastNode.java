@@ -55,12 +55,12 @@ public class ExprCastNode extends ExprNodeBase implements ExprEvaluator
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() != 1)
+        if (this.getChildNodes().length != 1)
         {
             throw new ExprValidationException("Cast function node must have exactly 1 child node");
         }
 
-        evaluator = this.getChildNodes().get(0).getExprEvaluator();
+        evaluator = this.getChildNodes()[0].getExprEvaluator();
         Class fromType = evaluator.getType();
 
         // identify target type
@@ -154,7 +154,7 @@ public class ExprCastNode extends ExprNodeBase implements ExprEvaluator
     {
         StringBuilder buffer = new StringBuilder();
         buffer.append("cast(");
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
         buffer.append(", ");
         buffer.append(classIdentifier);
         buffer.append(')');

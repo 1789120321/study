@@ -8,6 +8,8 @@
  **************************************************************************************/
 package com.espertech.esper.util;
 
+import com.espertech.esper.client.EventBean;
+import com.espertech.esper.client.hook.EPLMethodInvocationContext;
 import com.espertech.esper.epl.core.EngineNoSuchCtorException;
 import com.espertech.esper.epl.core.EngineNoSuchMethodException;
 import org.apache.commons.logging.Log;
@@ -16,10 +18,8 @@ import org.apache.commons.logging.LogFactory;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Type;
+import java.util.*;
 
 /**
  * Used for retrieving static and instance method objects. It
@@ -135,7 +135,7 @@ public class MethodResolver
 	 * @return - the Method object for this method
 	 * @throws EngineNoSuchMethodException if the method could not be found
 	 */
-	public static Method resolveMethod(Class declaringClass, String methodName, Class[] paramTypes, boolean allowInstance)
+	public static Method resolveMethod(Class declaringClass, String methodName, Class[] paramTypes, boolean allowInstance, boolean[] allowEventBeanType, boolean[] allowEventBeanCollType)
 	throws EngineNoSuchMethodException
 	{
 		// Get all the methods for this class
@@ -161,7 +161,7 @@ public class MethodResolver
 			}
 
 			// Check the parameter list
-			int conversionCount = compareParameterTypes(method.getParameterTypes(), paramTypes);
+			int conversionCount = compareParameterTypesAllowContext(method.getParameterTypes(), paramTypes, allowEventBeanType, allowEventBeanCollType, method.getGenericParameterTypes());
 
 			// Parameters don't match
 			if(conversionCount == -1)
@@ -261,10 +261,32 @@ public class MethodResolver
         }
     }
 
-	// Returns -1 if the invocation parameters aren't applicable
+    private static int compareParameterTypesAllowContext(Class[] declarationParameters,
+                                             Class[] invocationParameters,
+                                             boolean[] optionalAllowEventBeanType,
+                                             boolean[] optionalAllowEventBeanCollType,
+                                             Type[] genericParameterTypes) {
+
+        // determine if the last parameter is EPLMethodInvocationContext
+        Class[] declaredNoContext = declarationParameters;
+        if (declarationParameters.length > 0 &&
+            declarationParameters[declarationParameters.length - 1] == EPLMethodInvocationContext.class) {
+            declaredNoContext = new Class[declarationParameters.length - 1];
+            System.arraycopy(declarationParameters, 0, declaredNoContext, 0, declaredNoContext.length);
+        }
+
+        return compareParameterTypesNoContext(declaredNoContext, invocationParameters,
+                optionalAllowEventBeanType, optionalAllowEventBeanCollType, genericParameterTypes);
+    }
+
+    // Returns -1 if the invocation parameters aren't applicable
 	// to the method. Otherwise returns the number of parameters
 	// that have to be converted
-	private static int compareParameterTypes(Class[] declarationParameters, Class[] invocationParameters)
+	private static int compareParameterTypesNoContext(Class[] declarationParameters,
+                                             Class[] invocationParameters,
+                                             boolean[] optionalAllowEventBeanType,
+                                             boolean[] optionalAllowEventBeanCollType,
+                                             Type[] genericParameterTypes)
 	{
 		if(invocationParameters == null)
 		{
@@ -281,6 +303,17 @@ public class MethodResolver
 		for(Class parameter : declarationParameters)
 		{
             if ((invocationParameters[count] == null) && !(parameter.isPrimitive())) {
+                count++;
+                continue;
+            }
+            if (optionalAllowEventBeanType != null && parameter == EventBean.class && optionalAllowEventBeanType[count]) {
+                count++;
+                continue;
+            }
+            if (optionalAllowEventBeanCollType != null &&
+                parameter == Collection.class &&
+                optionalAllowEventBeanCollType[count] &&
+                JavaClassHelper.getGenericType(genericParameterTypes[count], 0) == EventBean.class) {
                 count++;
                 continue;
             }
@@ -337,7 +370,7 @@ public class MethodResolver
             }
 
             // Check the parameter list
-            int conversionCount = compareParameterTypes(ctor.getParameterTypes(), paramTypes);
+            int conversionCount = compareParameterTypesNoContext(ctor.getParameterTypes(), paramTypes, null, null, ctor.getGenericParameterTypes());
 
             // Parameters don't match
             if(conversionCount == -1)

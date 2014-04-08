@@ -1,6 +1,6 @@
 package com.espertech.esper.epl.generated;
 public class EsperEPL2GrammarParser_DFAS {
-    static final String[] DFA258_transitionS = {
+    static final String[] DFA260_transitionS = {
             "\1\64\1\uffff\1\16\2\uffff\1\16\3\uffff\1\16\1\uffff\1\16\1"+
             "\uffff\1\24\1\25\2\16\1\30\1\31\1\32\1\33\1\21\10\uffff\1\16"+
             "\1\uffff\4\16\12\uffff\1\16\1\35\1\36\6\uffff\1\110\2\uffff"+
@@ -290,18 +290,18 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "\1\u04d5\1\uffff\1\u04e4\2\uffff\1\u04b3\2\uffff\1\u04ec\1"+
             "\u04b4\1\uffff\1\u04e1\1\uffff\1\u04b5\1\u04b6\1\u04b7\1\u04b8"+
-            "\1\u04b9\1\u04ba\1\u04bb\1\u04bc\1\u04b2\1\uffff\1\u04a3\6\uffff"+
-            "\1\u04d8\1\uffff\1\u04da\1\u04d6\1\u04d7\1\u04d9\5\uffff\1\u04a2"+
-            "\1\u04a1\3\uffff\1\u04bd\1\u04be\1\u04bf\6\uffff\1\u04e9\2\uffff"+
+            "\1\u04b9\1\u04ba\1\u04bb\1\u04bc\1\u04b2\1\uffff\1\u04a1\6\uffff"+
+            "\1\u04d8\1\uffff\1\u04da\1\u04d6\1\u04d7\1\u04d9\5\uffff\1\u04a0"+
+            "\1\u049f\3\uffff\1\u04bd\1\u04be\1\u04bf\6\uffff\1\u04e9\2\uffff"+
             "\1\u04c3\1\u04c4\1\u04c5\1\u04c7\1\u04c8\1\u04c9\1\u04ca\1\u04cb"+
             "\1\u04e5\1\u04e6\1\u04cc\1\u04e7\1\u04cd\1\u04ce\1\u04cf\1\u04d0"+
             "\1\u04d1\1\u04e8\1\uffff\1\u04d2\1\u04e2\1\u04d3\1\u04c6\1\u04b1"+
             "\1\u04d4\22\uffff\1\u04aa\1\u04ab\1\u04ac\5\uffff\1\u04db\1"+
             "\u04dc\1\u04dd\1\u04e3\1\u04df\1\u04c0\1\u04e0\1\u04c1\1\u04c2"+
-            "\1\uffff\1\u04eb\1\uffff\1\u04de\u00b4\uffff\1\u04a9\21\uffff"+
+            "\1\uffff\1\u04eb\1\uffff\1\u04de\u00b4\uffff\1\u04a7\21\uffff"+
             "\1\u04af\1\u04ae\2\uffff\1\u04ea\6\uffff\1\u04ed\3\uffff\1\u04ad"+
-            "\1\uffff\1\u04a5\1\u049f\1\u04a0\7\uffff\1\u04a4\2\uffff\1\u04a6"+
-            "\3\uffff\1\u04b0\1\u04a7\1\u04a8",
+            "\1\uffff\1\u04a3\1\u04a8\1\u04a9\7\uffff\1\u04a2\2\uffff\1\u04a4"+
+            "\3\uffff\1\u04b0\1\u04a5\1\u04a6",
             "",
             "",
             "",
@@ -364,18 +364,18 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "\1\u0524\1\uffff\1\u0533\2\uffff\1\u0502\2\uffff\1\u053b\1"+
             "\u0503\1\uffff\1\u0530\1\uffff\1\u0504\1\u0505\1\u0506\1\u0507"+
-            "\1\u0508\1\u0509\1\u050a\1\u050b\1\u0501\1\uffff\1\u04f2\6\uffff"+
-            "\1\u0527\1\uffff\1\u0529\1\u0525\1\u0526\1\u0528\5\uffff\1\u04f1"+
-            "\1\u04f0\3\uffff\1\u050c\1\u050d\1\u050e\6\uffff\1\u0538\2\uffff"+
+            "\1\u0508\1\u0509\1\u050a\1\u050b\1\u0501\1\uffff\1\u04f0\6\uffff"+
+            "\1\u0527\1\uffff\1\u0529\1\u0525\1\u0526\1\u0528\5\uffff\1\u04ef"+
+            "\1\u04ee\3\uffff\1\u050c\1\u050d\1\u050e\6\uffff\1\u0538\2\uffff"+
             "\1\u0512\1\u0513\1\u0514\1\u0516\1\u0517\1\u0518\1\u0519\1\u051a"+
             "\1\u0534\1\u0535\1\u051b\1\u0536\1\u051c\1\u051d\1\u051e\1\u051f"+
             "\1\u0520\1\u0537\1\uffff\1\u0521\1\u0531\1\u0522\1\u0515\1\u0500"+
             "\1\u0523\22\uffff\1\u04f9\1\u04fa\1\u04fb\5\uffff\1\u052a\1"+
             "\u052b\1\u052c\1\u0532\1\u052e\1\u050f\1\u052f\1\u0510\1\u0511"+
-            "\1\uffff\1\u053a\1\uffff\1\u052d\u00b4\uffff\1\u04f8\21\uffff"+
+            "\1\uffff\1\u053a\1\uffff\1\u052d\u00b4\uffff\1\u04f6\21\uffff"+
             "\1\u04fe\1\u04fd\2\uffff\1\u0539\12\uffff\1\u04fc\1\uffff\1"+
-            "\u04f4\1\u04ee\1\u04ef\7\uffff\1\u04f3\2\uffff\1\u04f5\3\uffff"+
-            "\1\u04ff\1\u04f6\1\u04f7",
+            "\u04f2\1\u04f7\1\u04f8\7\uffff\1\u04f1\2\uffff\1\u04f3\3\uffff"+
+            "\1\u04ff\1\u04f4\1\u04f5",
             "",
             "",
             "",
@@ -1468,16 +1468,6 @@ public class EsperEPL2GrammarParser_DFAS {
             "\1\uffff\1\u094e\1\u0941\1\u092c\1\u094f\32\uffff\1\u0956\1"+
             "\u0957\1\u0958\1\uffff\1\u095a\1\u093b\1\u095b\1\u093c\1\u093d"+
             "\3\uffff\1\u0959\u00c6\uffff\1\u092a\41\uffff\1\u092b",
-            "\1\u0972\1\u0973\1\u0974\1\u0975\1\uffff\1\u096f\1\u096e\1"+
-            "\u0971\34\uffff\1\u0968\u011c\uffff\1\u095c\5\uffff\1\u0970"+
-            "\1\u0967\1\uffff\1\u095d\1\uffff\1\u0963\1\u0964\1\uffff\1\u096c"+
-            "\1\u0960\2\uffff\1\u096b\1\u096d\1\u0969\1\u096a\1\u0965\1\u0966"+
-            "\1\u0962\1\u0961\1\u095e\1\u095f",
-            "\1\u098c\1\u098d\1\u098e\1\u098f\1\uffff\1\u0989\1\u0988\1"+
-            "\u098b\34\uffff\1\u0982\u011c\uffff\1\u0976\5\uffff\1\u098a"+
-            "\1\u0981\1\uffff\1\u0977\1\uffff\1\u097d\1\u097e\1\uffff\1\u0986"+
-            "\1\u097a\2\uffff\1\u0985\1\u0987\1\u0983\1\u0984\1\u097f\1\u0980"+
-            "\1\u097c\1\u097b\1\u0978\1\u0979",
             "",
             "",
             "",
@@ -1487,6 +1477,16 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "",
+            "\1\u0972\1\u0973\1\u0974\1\u0975\1\uffff\1\u096e\1\u096d\1"+
+            "\u0971\34\uffff\1\u0967\u011c\uffff\1\u0970\5\uffff\1\u096f"+
+            "\1\u0966\1\uffff\1\u095c\1\uffff\1\u0962\1\u0963\1\uffff\1\u096b"+
+            "\1\u095f\2\uffff\1\u096a\1\u096c\1\u0968\1\u0969\1\u0964\1\u0965"+
+            "\1\u0961\1\u0960\1\u095d\1\u095e",
+            "\1\u098c\1\u098d\1\u098e\1\u098f\1\uffff\1\u0988\1\u0987\1"+
+            "\u098b\34\uffff\1\u0981\u011c\uffff\1\u098a\5\uffff\1\u0989"+
+            "\1\u0980\1\uffff\1\u0976\1\uffff\1\u097c\1\u097d\1\uffff\1\u0985"+
+            "\1\u0979\2\uffff\1\u0984\1\u0986\1\u0982\1\u0983\1\u097e\1\u097f"+
+            "\1\u097b\1\u097a\1\u0977\1\u0978",
             "",
             "",
             "",
@@ -1555,25 +1555,25 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "",
-            "\1\u09a6\1\u09a7\1\u09a8\1\u09a9\1\uffff\1\u09a3\1\u09a2\1"+
-            "\u09a5\34\uffff\1\u099c\u011c\uffff\1\u0990\5\uffff\1\u09a4"+
-            "\1\u099b\1\uffff\1\u0991\1\uffff\1\u0997\1\u0998\1\uffff\1\u09a0"+
-            "\1\u0994\2\uffff\1\u099f\1\u09a1\1\u099d\1\u099e\1\u0999\1\u099a"+
-            "\1\u0996\1\u0995\1\u0992\1\u0993",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "\1\u09a6\1\u09a7\1\u09a8\1\u09a9\1\uffff\1\u09a2\1\u09a1\1"+
+            "\u09a5\34\uffff\1\u099b\u011c\uffff\1\u09a4\5\uffff\1\u09a3"+
+            "\1\u099a\1\uffff\1\u0990\1\uffff\1\u0996\1\u0997\1\uffff\1\u099f"+
+            "\1\u0993\2\uffff\1\u099e\1\u09a0\1\u099c\1\u099d\1\u0998\1\u0999"+
+            "\1\u0995\1\u0994\1\u0991\1\u0992",
             "\1\u09c0\1\u09c1\1\u09c2\1\u09c3\1\uffff\1\u09bd\1\u09bc\1"+
             "\u09bf\34\uffff\1\u09b6\u011c\uffff\1\u09aa\5\uffff\1\u09be"+
             "\1\u09b5\1\uffff\1\u09ab\1\uffff\1\u09b1\1\u09b2\1\uffff\1\u09ba"+
             "\1\u09ae\2\uffff\1\u09b9\1\u09bb\1\u09b7\1\u09b8\1\u09b3\1\u09b4"+
             "\1\u09b0\1\u09af\1\u09ac\1\u09ad",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
             "",
             "",
             "",
@@ -1727,11 +1727,11 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "",
-            "\1\u0a0d\1\u0a0e\1\u0a0f\1\u0a10\1\uffff\1\u0a0a\1\u0a09\1"+
-            "\u0a0c\34\uffff\1\u0a03\u011c\uffff\1\16\5\uffff\1\u0a0b\1\u0a02"+
-            "\1\uffff\1\u09f8\1\uffff\1\u09fe\1\u09ff\1\uffff\1\u0a07\1\u09fb"+
-            "\2\uffff\1\u0a06\1\u0a08\1\u0a04\1\u0a05\1\u0a00\1\u0a01\1\u09fd"+
-            "\1\u09fc\1\u09f9\1\u09fa",
+            "\1\u0a0e\1\u0a0f\1\u0a10\1\u0a11\1\uffff\1\u0a0b\1\u0a0a\1"+
+            "\u0a0d\34\uffff\1\u0a04\u011c\uffff\1\16\5\uffff\1\u0a0c\1\u0a03"+
+            "\1\uffff\1\u09f9\1\uffff\1\u09ff\1\u0a00\1\uffff\1\u0a08\1\u09fc"+
+            "\2\uffff\1\u0a07\1\u0a09\1\u0a05\1\u0a06\1\u0a01\1\u0a02\1\u09fe"+
+            "\1\u09fd\1\u09fa\1\u09fb",
             "\1\u0a27\1\u0a28\1\u0a29\1\u0a2a\1\uffff\1\u0a24\1\u0a23\1"+
             "\u0a26\34\uffff\1\u0a1d\u011c\uffff\1\16\5\uffff\1\u0a25\1\u0a1c"+
             "\1\uffff\1\u0a12\1\uffff\1\u0a18\1\u0a19\1\uffff\1\u0a21\1\u0a15"+
@@ -2074,11 +2074,11 @@ public class EsperEPL2GrammarParser_DFAS {
             "\1\u0ad3\1\uffff\1\u0ac9\1\uffff\1\u0acf\1\u0ad0\1\uffff\1\u0ad8"+
             "\1\u0acc\2\uffff\1\u0ad7\1\u0ad9\1\u0ad5\1\u0ad6\1\u0ad1\1\u0ad2"+
             "\1\u0ace\1\u0acd\1\u0aca\1\u0acb",
-            "\1\u0af8\1\u0af9\1\u0afa\1\u0afb\1\uffff\1\u0af5\1\u0af4\1"+
-            "\u0af7\34\uffff\1\u0aee\u011c\uffff\1\u0ae2\5\uffff\1\u0af6"+
-            "\1\u0aed\1\uffff\1\u0ae3\1\uffff\1\u0ae9\1\u0aea\1\uffff\1\u0af2"+
-            "\1\u0ae6\2\uffff\1\u0af1\1\u0af3\1\u0aef\1\u0af0\1\u0aeb\1\u0aec"+
-            "\1\u0ae8\1\u0ae7\1\u0ae4\1\u0ae5",
+            "\1\u0af8\1\u0af9\1\u0afa\1\u0afb\1\uffff\1\u0af4\1\u0af3\1"+
+            "\u0af7\34\uffff\1\u0aed\u011c\uffff\1\u0af6\5\uffff\1\u0af5"+
+            "\1\u0aec\1\uffff\1\u0ae2\1\uffff\1\u0ae8\1\u0ae9\1\uffff\1\u0af1"+
+            "\1\u0ae5\2\uffff\1\u0af0\1\u0af2\1\u0aee\1\u0aef\1\u0aea\1\u0aeb"+
+            "\1\u0ae7\1\u0ae6\1\u0ae3\1\u0ae4",
             "",
             "",
             "",
@@ -2160,11 +2160,11 @@ public class EsperEPL2GrammarParser_DFAS {
             "\1\u0b07\1\uffff\1\u0afd\1\uffff\1\u0b03\1\u0b04\1\uffff\1\u0b0c"+
             "\1\u0b00\2\uffff\1\u0b0b\1\u0b0d\1\u0b09\1\u0b0a\1\u0b05\1\u0b06"+
             "\1\u0b02\1\u0b01\1\u0afe\1\u0aff",
-            "\1\u0b2c\1\u0b2d\1\u0b2e\1\u0b2f\1\uffff\1\u0b28\1\u0b27\1"+
-            "\u0b2b\34\uffff\1\u0b21\u011c\uffff\1\u0b2a\5\uffff\1\u0b29"+
-            "\1\u0b20\1\uffff\1\u0b16\1\uffff\1\u0b1c\1\u0b1d\1\uffff\1\u0b25"+
-            "\1\u0b19\2\uffff\1\u0b24\1\u0b26\1\u0b22\1\u0b23\1\u0b1e\1\u0b1f"+
-            "\1\u0b1b\1\u0b1a\1\u0b17\1\u0b18",
+            "\1\u0b2c\1\u0b2d\1\u0b2e\1\u0b2f\1\uffff\1\u0b29\1\u0b28\1"+
+            "\u0b2b\34\uffff\1\u0b22\u011c\uffff\1\u0b16\5\uffff\1\u0b2a"+
+            "\1\u0b21\1\uffff\1\u0b17\1\uffff\1\u0b1d\1\u0b1e\1\uffff\1\u0b26"+
+            "\1\u0b1a\2\uffff\1\u0b25\1\u0b27\1\u0b23\1\u0b24\1\u0b1f\1\u0b20"+
+            "\1\u0b1c\1\u0b1b\1\u0b18\1\u0b19",
             "",
             "",
             "",
@@ -2496,11 +2496,11 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "",
-            "\1\u0be1\1\u0be2\1\u0be3\1\u0be4\1\uffff\1\u0bdf\1\u0bde\1"+
-            "\u0be0\34\uffff\1\u0bd8\u011c\uffff\1\u0bcc\6\uffff\1\u0bd7"+
-            "\1\uffff\1\u0bcd\1\uffff\1\u0bd3\1\u0bd4\1\uffff\1\u0bdc\1\u0bd0"+
-            "\2\uffff\1\u0bdb\1\u0bdd\1\u0bd9\1\u0bda\1\u0bd5\1\u0bd6\1\u0bd2"+
-            "\1\u0bd1\1\u0bce\1\u0bcf",
+            "\1\u0be1\1\u0be2\1\u0be3\1\u0be4\1\uffff\1\u0bde\1\u0bdd\1"+
+            "\u0be0\34\uffff\1\u0bd7\u011c\uffff\1\u0bdf\6\uffff\1\u0bd6"+
+            "\1\uffff\1\u0bcc\1\uffff\1\u0bd2\1\u0bd3\1\uffff\1\u0bdb\1\u0bcf"+
+            "\2\uffff\1\u0bda\1\u0bdc\1\u0bd8\1\u0bd9\1\u0bd4\1\u0bd5\1\u0bd1"+
+            "\1\u0bd0\1\u0bcd\1\u0bce",
             "\1\u0bfa\1\u0bfb\1\u0bfc\1\u0bfd\1\uffff\1\u0bf7\1\u0bf6\1"+
             "\u0bf9\34\uffff\1\u0bf0\u011c\uffff\1\u0bf8\6\uffff\1\u0bef"+
             "\1\uffff\1\u0be5\1\uffff\1\u0beb\1\u0bec\1\uffff\1\u0bf4\1\u0be8"+
@@ -2585,11 +2585,11 @@ public class EsperEPL2GrammarParser_DFAS {
             "\1\u0c12\1\u0c09\1\uffff\1\u0bff\1\uffff\1\u0c05\1\u0c06\1\uffff"+
             "\1\u0c0e\1\u0c02\2\uffff\1\u0c0d\1\u0c0f\1\u0c0b\1\u0c0c\1\u0c07"+
             "\1\u0c08\1\u0c04\1\u0c03\1\u0c00\1\u0c01",
-            "\1\u0c30\1\u0c31\1\u0c32\1\u0c33\1\uffff\1\u0c2c\1\u0c2b\1"+
-            "\u0c2f\3\uffff\1\u0c2e\30\uffff\1\u0c25\u011c\uffff\1\16\5\uffff"+
-            "\1\u0c2d\1\u0c24\1\uffff\1\u0c1a\1\uffff\1\u0c20\1\u0c21\1\uffff"+
-            "\1\u0c29\1\u0c1d\2\uffff\1\u0c28\1\u0c2a\1\u0c26\1\u0c27\1\u0c22"+
-            "\1\u0c23\1\u0c1f\1\u0c1e\1\u0c1b\1\u0c1c",
+            "\1\u0c2f\1\u0c30\1\u0c31\1\u0c32\1\uffff\1\u0c2b\1\u0c2a\1"+
+            "\u0c2e\3\uffff\1\u0c2d\30\uffff\1\u0c24\u011c\uffff\1\16\5\uffff"+
+            "\1\u0c2c\1\u0c23\1\uffff\1\u0c19\1\uffff\1\u0c1f\1\u0c20\1\uffff"+
+            "\1\u0c28\1\u0c1c\2\uffff\1\u0c27\1\u0c29\1\u0c25\1\u0c26\1\u0c21"+
+            "\1\u0c22\1\u0c1e\1\u0c1d\1\u0c1a\1\u0c1b",
             "",
             "",
             "",
@@ -2664,16 +2664,36 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "",
-            "\1\u0c49\1\u0c4a\1\u0c4b\1\u0c4c\1\uffff\1\u0c47\1\u0c46\1"+
-            "\u0c48\34\uffff\1\u0c40\u011c\uffff\1\u0c34\6\uffff\1\u0c3f"+
-            "\1\uffff\1\u0c35\1\uffff\1\u0c3b\1\u0c3c\1\uffff\1\u0c44\1\u0c38"+
-            "\2\uffff\1\u0c43\1\u0c45\1\u0c41\1\u0c42\1\u0c3d\1\u0c3e\1\u0c3a"+
-            "\1\u0c39\1\u0c36\1\u0c37",
-            "\1\u0c62\1\u0c63\1\u0c64\1\u0c65\1\uffff\1\u0c60\1\u0c5f\1"+
-            "\u0c61\34\uffff\1\u0c59\u011c\uffff\1\u0c4d\6\uffff\1\u0c58"+
-            "\1\uffff\1\u0c4e\1\uffff\1\u0c54\1\u0c55\1\uffff\1\u0c5d\1\u0c51"+
-            "\2\uffff\1\u0c5c\1\u0c5e\1\u0c5a\1\u0c5b\1\u0c56\1\u0c57\1\u0c53"+
-            "\1\u0c52\1\u0c4f\1\u0c50",
+            "\1\u0c49\1\u0c4a\1\u0c4b\1\u0c4c\1\uffff\1\u0c46\1\u0c45\1"+
+            "\u0c48\34\uffff\1\u0c3f\u011c\uffff\1\u0c47\6\uffff\1\u0c3e"+
+            "\1\uffff\1\u0c34\1\uffff\1\u0c3a\1\u0c3b\1\uffff\1\u0c43\1\u0c37"+
+            "\2\uffff\1\u0c42\1\u0c44\1\u0c40\1\u0c41\1\u0c3c\1\u0c3d\1\u0c39"+
+            "\1\u0c38\1\u0c35\1\u0c36",
+            "\1\u0c62\1\u0c63\1\u0c64\1\u0c65\1\uffff\1\u0c5f\1\u0c5e\1"+
+            "\u0c61\34\uffff\1\u0c58\u011c\uffff\1\u0c60\6\uffff\1\u0c57"+
+            "\1\uffff\1\u0c4d\1\uffff\1\u0c53\1\u0c54\1\uffff\1\u0c5c\1\u0c50"+
+            "\2\uffff\1\u0c5b\1\u0c5d\1\u0c59\1\u0c5a\1\u0c55\1\u0c56\1\u0c52"+
+            "\1\u0c51\1\u0c4e\1\u0c4f",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
             "",
             "",
             "",
@@ -2859,26 +2879,6 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
             "\1\uffff",
             "",
             "",
@@ -3108,58 +3108,6 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "\1\uffff",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "\1\uffff",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "\1\uffff",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
             "",
             "",
             "",
@@ -3373,33 +3321,7 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "\1\uffff",
             "",
             "",
             "",
@@ -3463,13 +3385,6 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "\1\uffff",
             "",
             "",
             "",
@@ -3574,6 +3489,91 @@ public class EsperEPL2GrammarParser_DFAS {
             "",
             "",
             "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "\1\uffff",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "\1\uffff",
             "",
             "",
             "",

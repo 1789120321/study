@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -30,9 +31,6 @@ public class EPStatementImpl implements EPStatementSPI
     private static Log log = LogFactory.getLog(EPStatementImpl.class);
 
     private final EPStatementListenerSet statementListenerSet;
-    private final String statementId;
-    private final String statementName;
-    private final String expressionText;
     private final String expressionNoAnnotations;
     private final boolean nameProvided;
     private boolean isPattern;
@@ -50,9 +48,6 @@ public class EPStatementImpl implements EPStatementSPI
 
     /**
      * Ctor.
-     * @param statementId is a unique ID assigned by the engine for the statement
-     * @param statementName is the statement name assigned during creation, or the statement id if none was assigned
-     * @param expressionText is the EPL and/or pattern expression
      * @param isPattern is true to indicate this is a pure pattern expression
      * @param dispatchService for dispatching events to listeners to the statement
      * @param statementLifecycleSvc handles lifecycle transitions for the statement
@@ -63,16 +58,12 @@ public class EPStatementImpl implements EPStatementSPI
      * @param timeSourceService time source provider
      * @param statementMetadata statement metadata
      * @param userObject the application define user object associated to each statement, if supplied
-     * @param annotations annotations associated to statement
      * @param statementContext the statement service context
      * @param expressionNoAnnotations expression text witout annotations
      * @param isFailed indicator to start in failed state
      * @param nameProvided true to indicate a statement name has been provided and is not a system-generated name
      */
-    public EPStatementImpl(String statementId,
-                              String statementName,
-                              String expressionText,
-                              String expressionNoAnnotations,
+    public EPStatementImpl(String expressionNoAnnotations,
                               boolean isPattern,
                               DispatchService dispatchService,
                               StatementLifecycleSvc statementLifecycleSvc,
@@ -83,15 +74,11 @@ public class EPStatementImpl implements EPStatementSPI
                               TimeSourceService timeSourceService,
                               StatementMetadata statementMetadata,
                               Object userObject,
-                              Annotation[] annotations,
                               StatementContext statementContext,
                               boolean isFailed,
                               boolean nameProvided)
     {
         this.isPattern = isPattern;
-        this.statementId = statementId;
-        this.statementName = statementName;
-        this.expressionText = expressionText;
         this.expressionNoAnnotations = expressionNoAnnotations;
         this.statementLifecycleSvc = statementLifecycleSvc;
         this.statementContext = statementContext;
@@ -126,7 +113,7 @@ public class EPStatementImpl implements EPStatementSPI
 
     public String getStatementId()
     {
-        return statementId;
+        return statementContext.getStatementId();
     }
 
     public void start()
@@ -135,7 +122,7 @@ public class EPStatementImpl implements EPStatementSPI
         {
             throw new IllegalStateException("Cannot start statement, statement is in destroyed state");
         }
-        statementLifecycleSvc.start(statementId);
+        statementLifecycleSvc.start(statementContext.getStatementId());
     }
 
     public void stop()
@@ -144,7 +131,7 @@ public class EPStatementImpl implements EPStatementSPI
         {
             throw new IllegalStateException("Cannot stop statement, statement is in destroyed state");
         }
-        statementLifecycleSvc.stop(statementId);
+        statementLifecycleSvc.stop(statementContext.getStatementId());
 
         // On stop, we give the dispatch view a chance to dispatch final results, if any
         statementContext.getStatementResultService().dispatchOnStop();
@@ -158,7 +145,7 @@ public class EPStatementImpl implements EPStatementSPI
         {
             throw new IllegalStateException("Statement already destroyed");
         }
-        statementLifecycleSvc.destroy(statementId);
+        statementLifecycleSvc.destroy(statementContext.getStatementId());
         parentView = null;
         eventType = null;
         dispatchChildView = null;
@@ -196,12 +183,12 @@ public class EPStatementImpl implements EPStatementSPI
 
     public String getText()
     {
-        return expressionText;
+        return statementContext.getExpression();
     }
 
     public String getName()
     {
-        return statementName;
+        return statementContext.getStatementName();
     }
 
     public Iterator<EventBean> iterator(ContextPartitionSelector selector) {
@@ -482,12 +469,12 @@ public class EPStatementImpl implements EPStatementSPI
 
     public Iterator<StatementAwareUpdateListener> getStatementAwareListeners()
     {
-        return statementListenerSet.getStmtAwareListeners().iterator();
+        return Arrays.asList(statementListenerSet.getStmtAwareListeners()).iterator();
     }
 
     public Iterator<UpdateListener> getUpdateListeners()
     {
-        return statementListenerSet.getListeners().iterator();
+        return Arrays.asList(statementListenerSet.getListeners()).iterator();
     }
 
     public long getTimeLastStateChange()

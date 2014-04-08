@@ -53,10 +53,10 @@ public class OutputProcessViewFactoryFactory
         }
 
         // Do we need to enforce an output policy?
-        int streamCount = statementSpec.getStreamSpecs().size();
+        int streamCount = statementSpec.getStreamSpecs().length;
         OutputLimitSpec outputLimitSpec = statementSpec.getOutputLimitSpec();
         boolean isDistinct = statementSpec.getSelectClauseSpec().isDistinct();
-        boolean isGrouped = statementSpec.getGroupByExpressions() != null && !statementSpec.getGroupByExpressions().isEmpty();
+        boolean isGrouped = statementSpec.getGroupByExpressions() != null && statementSpec.getGroupByExpressions().length > 0;
 
         if (outputLimitSpec != null) {
             ExprEvaluatorContextStatement evaluatorContextStmt = new ExprEvaluatorContextStatement(statementContext);
@@ -102,7 +102,7 @@ public class OutputProcessViewFactoryFactory
                 // For FIRST without groups we are using a special logic that integrates the first-flag, in order to still conveniently use all sorts of output conditions.
                 // FIRST with group-by is handled by setting the output condition to null (OutputConditionNull) and letting the ResultSetProcessor handle first-per-group.
                 // Without having-clause there is no required order of processing, thus also use regular policy.
-                else if (outputLimitSpec.getDisplayLimit() == OutputLimitLimitType.FIRST && statementSpec.getGroupByExpressions().isEmpty() && isWithHavingClause) {
+                else if (outputLimitSpec.getDisplayLimit() == OutputLimitLimitType.FIRST && statementSpec.getGroupByExpressions().length == 0 && isWithHavingClause) {
                     conditionType = OutputProcessViewConditionFactory.ConditionType.POLICY_FIRST;
                 }
                 else

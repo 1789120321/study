@@ -12,6 +12,9 @@
 package com.espertech.esper.core.context.mgr;
 
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.client.context.ContextPartitionIdentifier;
+import com.espertech.esper.client.context.ContextPartitionIdentifierPartitioned;
+import com.espertech.esper.collection.MultiKeyUntyped;
 import com.espertech.esper.core.context.stmt.AIRegistryAggregationMultiPerm;
 import com.espertech.esper.core.context.stmt.AIRegistryExprMultiPerm;
 import com.espertech.esper.core.context.stmt.StatementAIResourceRegistry;
@@ -68,7 +71,7 @@ public class ContextControllerPartitionedFactory extends ContextControllerFactor
         return new ContextControllerStatementCtxCacheFilters(streamAnalysis.getFilters());
     }
 
-    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> filterAddendum, ContextControllerStatementDesc statement, Object key, int contextId) {
+    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> filterAddendum, ContextControllerStatementDesc statement, Object key, int contextId) {
         ContextControllerStatementCtxCacheFilters statementInfo = (ContextControllerStatementCtxCacheFilters) statement.getCaches()[factoryContext.getNestingLevel() - 1];
         ContextControllerPartitionedUtil.populateAddendumFilters(key, statementInfo.getFilterSpecs(), segmentedSpec, statement.getStatement().getStatementSpec(), filterAddendum);
     }
@@ -114,6 +117,16 @@ public class ContextControllerPartitionedFactory extends ContextControllerFactor
 
     public ContextController createNoCallback(int pathId, ContextControllerLifecycleCallback callback) {
         return new ContextControllerPartitioned(pathId, callback, this);
+    }
+
+    public ContextPartitionIdentifier keyPayloadToIdentifier(Object payload) {
+        if (payload instanceof Object[]) {
+            return new ContextPartitionIdentifierPartitioned((Object[]) payload);
+        }
+        if (payload instanceof MultiKeyUntyped) {
+            return new ContextPartitionIdentifierPartitioned(((MultiKeyUntyped) payload).getKeys());
+        }
+        return new ContextPartitionIdentifierPartitioned(new Object[] {payload});
     }
 
     private Collection<EventType> getItemEventTypes(ContextDetailPartitioned segmentedSpec) {

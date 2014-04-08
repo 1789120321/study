@@ -108,7 +108,12 @@ public class ContextManagementServiceImpl implements ContextManagementService {
             log.warn("Stop statement for statement '" + statementName + "' failed to locate corresponding context manager '" + contextName + "'");
             return;
         }
-        entry.getContextManager().stopStatement(statementName, statementId);
+        try {
+            entry.getContextManager().stopStatement(statementName, statementId);
+        }
+        catch (RuntimeException ex) {
+            log.warn("Failed to stop statement '" + statementName + "' as related to context '" + contextName + "': " + ex.getMessage(), ex);
+        }
     }
 
     public void destroyedContext(String contextName) {

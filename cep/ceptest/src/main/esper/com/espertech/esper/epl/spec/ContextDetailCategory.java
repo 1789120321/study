@@ -14,7 +14,6 @@ package com.espertech.esper.epl.spec;
 import com.espertech.esper.filter.FilterSpecCompiled;
 import com.espertech.esper.filter.FilterValueSetParam;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +24,7 @@ public class ContextDetailCategory implements ContextDetail {
     private final FilterSpecRaw filterSpecRaw;
 
     private transient FilterSpecCompiled filterSpecCompiled;
-    private transient ArrayDeque<FilterValueSetParam> filterParamsCompiled;
+    private transient FilterValueSetParam[] filterParamsCompiled;
 
     public ContextDetailCategory(List<ContextDetailCategoryItem> items, FilterSpecRaw filterSpecRaw) {
         this.items = items;
@@ -55,7 +54,7 @@ public class ContextDetailCategory implements ContextDetail {
         return filterSpecCompiled;
     }
 
-    public ArrayDeque<FilterValueSetParam> getFilterParamsCompiled() {
+    public FilterValueSetParam[] getFilterParamsCompiled() {
         return filterParamsCompiled;
     }
 }

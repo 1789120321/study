@@ -197,7 +197,7 @@ public class EventRowRegexNFAViewFactory extends ViewFactorySupport
                 {
                     ExprNode validated = ExprNodeUtility.getValidatedSubtree(child, validationContext);
                     validated.accept(visitor);
-                    aggregateNode.getChildNodes().set(count++, new ExprNodeValidated(validated));
+                    aggregateNode.setChildNode(count++, new ExprNodeValidated(validated));
                 }
                 validationContext = new ExprValidationContext(typeServiceMeasure, statementContext.getMethodResolutionService(), null, statementContext.getSchedulingService(), statementContext.getVariableService(), exprEvaluatorContext, statementContext.getEventAdapterService(), statementContext.getStatementName(), statementContext.getStatementId(), statementContext.getAnnotations(), statementContext.getContextDescriptor());
                 aggregateNode.validate(validationContext);
@@ -339,15 +339,15 @@ public class EventRowRegexNFAViewFactory extends ViewFactorySupport
             ExprPreviousNode previousNode = previousNodePair.getSecond();
             ExprPreviousMatchRecognizeNode matchRecogPrevNode = new ExprPreviousMatchRecognizeNode();
 
-            if (previousNodePair.getSecond().getChildNodes().size() == 1)
+            if (previousNodePair.getSecond().getChildNodes().length == 1)
             {
-                matchRecogPrevNode.addChildNode(previousNode.getChildNodes().get(0));
+                matchRecogPrevNode.addChildNode(previousNode.getChildNodes()[0]);
                 matchRecogPrevNode.addChildNode(new ExprConstantNodeImpl(1));
             }
-            else if (previousNodePair.getSecond().getChildNodes().size() == 2)
+            else if (previousNodePair.getSecond().getChildNodes().length == 2)
             {
-                ExprNode first = previousNode.getChildNodes().get(0);
-                ExprNode second = previousNode.getChildNodes().get(1);
+                ExprNode first = previousNode.getChildNodes()[0];
+                ExprNode second = previousNode.getChildNodes()[1];
                 if ((first.isConstantResult()) && (!second.isConstantResult()))
                 {
                     matchRecogPrevNode.addChildNode(second);

@@ -12,10 +12,29 @@
 package com.espertech.esper.core.context.mgr;
 
 import com.espertech.esper.client.EventBean;
+import com.espertech.esper.client.context.ContextPartitionState;
 
 import java.util.Map;
 
 public interface ContextControllerLifecycleCallback {
-    public ContextControllerInstanceHandle contextPartitionInstantiate(Integer optionalContextPartitionId, int pathId, ContextController originator, EventBean optionalTriggeringEvent, Map<String, Object> optionalTriggeringPattern, Object partitionKey, Map<String, Object> contextProperties, ContextControllerState states, ContextInternalFilterAddendum filterAddendum, boolean isRecoveringResilient);
-    public void contextPartitionTerminate(ContextControllerInstanceHandle contextNestedHandle, Map<String, Object> terminationProperties);
+    public ContextControllerInstanceHandle contextPartitionInstantiate(Integer optionalContextPartitionId,
+                                                                       int subpath,
+                                                                       Integer importSubpathId, ContextController originator, EventBean optionalTriggeringEvent,
+                                                                       Map<String, Object> optionalTriggeringPattern,
+                                                                       Object partitionKey,
+                                                                       Map<String, Object> contextProperties,
+                                                                       ContextControllerState states,
+                                                                       ContextInternalFilterAddendum filterAddendum,
+                                                                       boolean isRecoveringResilient,
+                                                                       ContextPartitionState state);
+
+    public void contextPartitionNavigate(ContextControllerInstanceHandle existingHandle,
+                                         ContextController originator,
+                                         ContextControllerState controllerState,
+                                         int exportedCPOrPathId,
+                                         ContextInternalFilterAddendum filterAddendum,
+                                         AgentInstanceSelector agentInstanceSelector, byte[] payload);
+
+    public void contextPartitionTerminate(ContextControllerInstanceHandle contextNestedHandle,
+                                          Map<String, Object> terminationProperties);
 }

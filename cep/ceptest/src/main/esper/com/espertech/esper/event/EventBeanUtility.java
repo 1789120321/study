@@ -844,6 +844,45 @@ public class EventBeanUtility
         return events.toArray(new EventBean[events.size()]);
     }
 
+    /**
+     * Renders a map of elements, in which elements can be events or event arrays interspersed with other objects,
+     * @param map to render
+     * @return comma-separated list of map entry name-value pairs
+     */
+    public static String toString(Map<String, Object> map)
+    {
+        if (map == null)
+        {
+            return "null";
+        }
+        if (map.isEmpty())
+        {
+            return "";
+        }
+        StringBuilder buf = new StringBuilder();
+        String delimiter = "";
+        for (Map.Entry<String, Object> entry : map.entrySet())
+        {
+            buf.append(delimiter);
+            buf.append(entry.getKey());
+            buf.append("=");
+            if (entry.getValue() instanceof EventBean) {
+                buf.append(EventBeanUtility.summarize((EventBean) entry.getValue()));
+            }
+            else if (entry.getValue() instanceof EventBean[]) {
+                buf.append(EventBeanUtility.summarize((EventBean[]) entry.getValue()));
+            }
+            else if (entry.getValue() == null) {
+                buf.append("null");
+            }
+            else {
+                buf.append(entry.getValue().toString());
+            }
+            delimiter = ", ";
+        }
+        return buf.toString();
+    }
+
     private static boolean findEvent(EventBean theEvent, EventBean[][] eventsPerView) {
         for (int i = 0; i < eventsPerView.length; i++) {
             if (eventsPerView[i] == null) {

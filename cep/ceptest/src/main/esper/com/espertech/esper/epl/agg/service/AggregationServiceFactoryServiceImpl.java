@@ -29,35 +29,35 @@ public class AggregationServiceFactoryServiceImpl implements AggregationServiceF
         return new AggSvcGroupAllNoAccessFactory(evaluatorsArr, aggregatorsArr);
     }
 
-    public AggregationServiceFactory getNoGroupAccessOnly(AggregationAccessorSlotPair[] pairs, int[] accessedStreams, boolean join) {
-        return new AggSvcGroupAllAccessOnlyFactory(pairs, accessedStreams, join);
+    public AggregationServiceFactory getNoGroupAccessOnly(AggregationAccessorSlotPair[] pairs, AggregationStateFactory[] accessAggSpecs, boolean join) {
+        return new AggSvcGroupAllAccessOnlyFactory(pairs, accessAggSpecs, join);
     }
 
-    public AggregationServiceFactory getNoGroupAccessMixed(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, AggregationAccessorSlotPair[] pairs, int[] accessedStreams, boolean join) {
-        return new AggSvcGroupAllMixedAccessFactory(evaluatorsArr, aggregatorsArr, pairs, accessedStreams, join);
+    public AggregationServiceFactory getNoGroupAccessMixed(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, AggregationAccessorSlotPair[] pairs, AggregationStateFactory[] accessAggregations, boolean join) {
+        return new AggSvcGroupAllMixedAccessFactory(evaluatorsArr, aggregatorsArr, pairs, accessAggregations, join);
     }
 
     public AggregationServiceFactory getGroupedNoReclaimNoAccess(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr) {
         return new AggSvcGroupByNoAccessFactory(evaluatorsArr, aggregatorsArr);
     }
 
-    public AggregationServiceFactory getGroupNoReclaimAccessOnly(AggregationAccessorSlotPair[] pairs, int[] accessedStreams, boolean join) {
-        return new AggSvcGroupByAccessOnlyFactory(pairs, accessedStreams, join);
+    public AggregationServiceFactory getGroupNoReclaimAccessOnly(AggregationAccessorSlotPair[] pairs, AggregationStateFactory[] accessAggSpecs, boolean join) {
+        return new AggSvcGroupByAccessOnlyFactory(pairs, accessAggSpecs, join);
     }
 
-    public AggregationServiceFactory getGroupNoReclaimMixed(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, AggregationAccessorSlotPair[] pairs, int[] accessedStreams, boolean join) {
-        return new AggSvcGroupByMixedAccessFactory(evaluatorsArr, aggregatorsArr, pairs, accessedStreams, join);
+    public AggregationServiceFactory getGroupNoReclaimMixed(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, AggregationAccessorSlotPair[] pairs, AggregationStateFactory[] accessAggregations, boolean join) {
+        return new AggSvcGroupByMixedAccessFactory(evaluatorsArr, aggregatorsArr, pairs, accessAggregations, join);
     }
 
-    public AggregationServiceFactory getGroupReclaimAged(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, Hint reclaimGroupAged, Hint reclaimGroupFrequency, VariableService variableService, AggregationAccessorSlotPair[] pairs, int[] accessedStreams, boolean join) throws ExprValidationException{
-        return new AggSvcGroupByReclaimAgedFactory(evaluatorsArr, aggregatorsArr, reclaimGroupAged, reclaimGroupFrequency, variableService, pairs, accessedStreams, join);
+    public AggregationServiceFactory getGroupReclaimAged(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, Hint reclaimGroupAged, Hint reclaimGroupFrequency, VariableService variableService, AggregationAccessorSlotPair[] pairs, AggregationStateFactory[] accessAggregations, boolean join) throws ExprValidationException{
+        return new AggSvcGroupByReclaimAgedFactory(evaluatorsArr, aggregatorsArr, reclaimGroupAged, reclaimGroupFrequency, variableService, pairs, accessAggregations, join);
     }
 
-    public AggregationServiceFactory getGroupReclaimNoAccess(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, AggregationAccessorSlotPair[] pairs, int[] accessedStreams, boolean join) {
+    public AggregationServiceFactory getGroupReclaimNoAccess(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, AggregationAccessorSlotPair[] pairs, AggregationStateFactory[] accessAggregations, boolean join) {
         return new AggSvcGroupByRefcountedNoAccessFactory(evaluatorsArr, aggregatorsArr);
     }
 
-    public AggregationServiceFactory getGroupReclaimMixable(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, AggregationAccessorSlotPair[] pairs, int[] accessedStreams, boolean join) {
-        return new AggSvcGroupByRefcountedWAccessFactory(evaluatorsArr, aggregatorsArr, pairs, accessedStreams, join);
+    public AggregationServiceFactory getGroupReclaimMixable(ExprEvaluator[] evaluatorsArr, AggregationMethodFactory[] aggregatorsArr, AggregationAccessorSlotPair[] pairs, AggregationStateFactory[] accessAggregations, boolean join) {
+        return new AggSvcGroupByRefcountedWAccessFactory(evaluatorsArr, aggregatorsArr, pairs, accessAggregations, join);
     }
 }

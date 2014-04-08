@@ -16,15 +16,16 @@ import com.espertech.esper.util.StopCallback;
 
 public class NamedWindowSubqueryStopCallback implements StopCallback {
 
-	private final NamedWindowProcessorInstance processor;
-	private final SubordTableLookupStrategy namedWindowSubqueryLookup;
+    private final NamedWindowProcessorInstance processor;
+    private final SubordTableLookupStrategy namedWindowSubqueryLookup;
 
-	public NamedWindowSubqueryStopCallback(NamedWindowProcessorInstance processor, SubordTableLookupStrategy namedWindowSubqueryLookup) {
-		this.processor = processor;
-		this.namedWindowSubqueryLookup = namedWindowSubqueryLookup;
-	}
+    public NamedWindowSubqueryStopCallback(NamedWindowProcessorInstance processor, SubordTableLookupStrategy namedWindowSubqueryLookup) {
+        this.processor = processor;
+        this.namedWindowSubqueryLookup = namedWindowSubqueryLookup;
+    }
 
-	public void stop() {
-		processor.getRootViewInstance().removeSubqueryLookupStrategy(namedWindowSubqueryLookup);
-	}
+    @Override
+    public void stop() {
+        processor.getRootViewInstance().removeSubqueryLookupStrategy(namedWindowSubqueryLookup);
+    }
 }

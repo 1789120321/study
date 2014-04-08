@@ -10,11 +10,17 @@ package com.espertech.esper.epl.agg.aggregator;
 
 import com.espertech.esper.epl.agg.service.AggregatorUtil;
 
+import java.math.MathContext;
+
 /**
  * Average that generates a BigDecimal numbers.
  */
 public class AggregatorAvgBigDecimalFilter extends AggregatorAvgBigDecimal
 {
+    public AggregatorAvgBigDecimalFilter(MathContext optionalMathContext) {
+        super(optionalMathContext);
+    }
+
     public void enter(Object parameters)
     {
         Object[] paramArray = (Object[]) parameters;

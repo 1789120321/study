@@ -9,8 +9,6 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
-import com.espertech.esper.epl.core.MethodResolutionService;
-import com.espertech.esper.epl.core.StreamTypeService;
 import com.espertech.esper.type.MinMaxTypeEnum;
 
 /**
@@ -35,20 +33,20 @@ public class ExprMinMaxAggrNode extends ExprAggregateNodeBase
         this.hasFilter = hasFilter;
     }
 
-    public AggregationMethodFactory validateAggregationChild(StreamTypeService streamTypeService, MethodResolutionService methodResolutionService, ExprEvaluatorContext exprEvaluatorContext) throws ExprValidationException
+    public AggregationMethodFactory validateAggregationChild(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() == 0 || this.getChildNodes().size() > 2)
+        if (this.getChildNodes().length == 0 || this.getChildNodes().length > 2)
         {
             throw new ExprValidationException(minMaxTypeEnum.toString() + " node must have either 1 or 2 child nodes");
         }
 
-        ExprNode child = this.getChildNodes().get(0);
-        boolean hasDataWindows = ExprNodeUtility.hasRemoveStream(child, streamTypeService);
+        ExprNode child = this.getChildNodes()[0];
+        boolean hasDataWindows = ExprNodeUtility.hasRemoveStream(child, validationContext.getStreamTypeService());
         if (hasFilter) {
-            if (this.getChildNodes().size() < 2) {
+            if (this.getChildNodes().length < 2) {
                 throw new ExprValidationException(minMaxTypeEnum.toString() + "-filtered aggregation function must have a filter expression as a second parameter");
             }
-            super.validateFilter(this.getChildNodes().get(1).getExprEvaluator());
+            super.validateFilter(this.getChildNodes()[1].getExprEvaluator());
         }
         return new ExprMinMaxAggrNodeFactory(minMaxTypeEnum, child.getExprEvaluator().getType(), hasDataWindows, super.isDistinct(), hasFilter);
     }

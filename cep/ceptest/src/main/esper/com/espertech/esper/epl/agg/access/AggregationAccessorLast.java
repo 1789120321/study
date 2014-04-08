@@ -38,8 +38,8 @@ public class AggregationAccessorLast implements AggregationAccessor
         this.eventsPerStream = new EventBean[streamNum + 1];
     }
 
-    public Object getValue(AggregationAccess access) {
-        EventBean bean = access.getLastValue();
+    public Object getValue(AggregationState state) {
+        EventBean bean = ((AggregationStateLinear) state).getLastValue();
         if (bean == null) {
             return null;
         }
@@ -47,15 +47,15 @@ public class AggregationAccessorLast implements AggregationAccessor
         return childNode.evaluate(eventsPerStream, true, null);
     }
 
-    public Collection<EventBean> getCollectionReadOnly(AggregationAccess access) {
-        EventBean bean = access.getLastValue();
+    public Collection<EventBean> getEnumerableEvents(AggregationState state) {
+        EventBean bean = ((AggregationStateLinear) state).getLastValue();
         if (bean == null) {
             return null;
         }
         return Collections.singletonList(bean);
     }
 
-    public EventBean getEventBean(AggregationAccess currentAcces) {
-        return currentAcces.getLastValue();
+    public EventBean getEnumerableEvent(AggregationState state) {
+        return ((AggregationStateLinear) state).getLastValue();
     }
 }

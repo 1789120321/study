@@ -11,22 +11,48 @@
 
 package com.espertech.esper.core.context.mgr;
 
-import com.espertech.esper.filter.FilterHandle;
 import com.espertech.esper.filter.FilterSpecCompiled;
 import com.espertech.esper.filter.FilterValueSetParam;
 
 import java.util.IdentityHashMap;
-import java.util.List;
+import java.util.Map;
 
 public class AgentInstanceFilterProxyImpl implements AgentInstanceFilterProxy {
 
-    private final IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> addendums;
+    private final FilterSpecCompiled[] compiledArr;
+    private final FilterValueSetParam[][] addendumArr;
+    private final IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> addendumMap;
 
-    public AgentInstanceFilterProxyImpl(IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> addendums) {
-        this.addendums = addendums;
+    public AgentInstanceFilterProxyImpl(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> addendums) {
+        if (addendums.size() > 6) {
+            this.addendumMap = addendums;
+            compiledArr = null;
+            addendumArr = null;
+        }
+        else {
+            compiledArr = new FilterSpecCompiled[addendums.size()];
+            addendumArr = new FilterValueSetParam[addendums.size()][];
+            int count = 0;
+            for (Map.Entry<FilterSpecCompiled, FilterValueSetParam[]> entry : addendums.entrySet()) {
+                compiledArr[count] = entry.getKey();
+                addendumArr[count] = entry.getValue();
+                count++;
+            }
+            addendumMap = null;
+        }
     }
 
-    public List<FilterValueSetParam> getAddendumFilters(FilterSpecCompiled filterSpec) {
-        return addendums.get(filterSpec);
+    public FilterValueSetParam[] getAddendumFilters(FilterSpecCompiled filterSpec) {
+        if (addendumMap == null) {
+            for (int i = 0; i < compiledArr.length; i++) {
+                if (filterSpec == compiledArr[i]) {
+                    return addendumArr[i];
+                }
+            }
+            return null;
+        }
+        else {
+            return addendumMap.get(filterSpec);
+        }
     }
 }

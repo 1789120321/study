@@ -27,4 +27,8 @@ public class AIRegistryExprMultiPerm extends AIRegistryExprBase {
     public AIRegistryPrior allocateAIRegistryPrior() {
         return new AIRegistryPriorMultiPerm();
     }
+
+    public AIRegistryAggregation allocateAIRegistrySubselectAggregation() {
+        return new AIRegistryAggregationMultiPerm();
+    }
 }

@@ -11,11 +11,10 @@
 
 package com.espertech.esper.view;
 
-import com.espertech.esper.client.EventType;
 import com.espertech.esper.client.EventBean;
+import com.espertech.esper.client.EventType;
 import com.espertech.esper.collection.ArrayEventIterator;
 
-import java.util.List;
 import java.util.Iterator;
 
 public class ViewableDefaultImpl implements Viewable
@@ -32,9 +31,9 @@ public class ViewableDefaultImpl implements Viewable
         return null;
     }
 
-    public List<View> getViews()
+    public View[] getViews()
     {
-        return null;
+        return ViewSupport.EMPTY_VIEW_ARRAY;
     }
 
     public boolean removeView(View view)

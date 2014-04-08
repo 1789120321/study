@@ -49,7 +49,7 @@ public class ViewableActivatorStreamReuseView implements ViewableActivator, Stop
                 join,
                 false,
                 evaluatorContextStmt,
-                !statementSpec.getOrderByList().isEmpty(),
+                statementSpec.getOrderByList().length > 0,
                 filterSubselectSameStream,
                 statementContext.getAnnotations(),
                 statementContext.isStatelessSelect());
@@ -57,6 +57,6 @@ public class ViewableActivatorStreamReuseView implements ViewableActivator, Stop
     }
 
     public void stop() {
-        services.getStreamService().dropStream(filterStreamSpec.getFilterSpec(), statementContext.getFilterService(), join, false, !statementSpec.getOrderByList().isEmpty(), filterSubselectSameStream, statementContext.isStatelessSelect());
+        services.getStreamService().dropStream(filterStreamSpec.getFilterSpec(), statementContext.getFilterService(), join, false, statementSpec.getOrderByList().length > 0, filterSubselectSameStream, statementContext.isStatelessSelect());
     }
 }

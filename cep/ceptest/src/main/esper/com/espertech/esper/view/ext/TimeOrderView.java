@@ -90,7 +90,7 @@ public class TimeOrderView extends ViewSupport implements DataWindowView, Clonea
             }
         };
         handle = new EPStatementHandleCallback(agentInstanceContext.getEpStatementAgentInstanceHandle(), callback);
-        agentInstanceContext.getTerminationCallbacks().add(this);
+        agentInstanceContext.addTerminationCallback(this);
     }
 
     /**
@@ -355,7 +355,7 @@ public class TimeOrderView extends ViewSupport implements DataWindowView, Clonea
 
     public void stopView() {
         stopSchedule();
-        agentInstanceContext.getTerminationCallbacks().remove(this);
+        agentInstanceContext.removeTerminationCallback(this);
     }
 
     public void stop() {

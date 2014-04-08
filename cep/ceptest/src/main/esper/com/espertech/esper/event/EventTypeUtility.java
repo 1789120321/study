@@ -259,10 +259,8 @@ public class EventTypeUtility {
     {
         List<String> propertyNameList = new ArrayList<String>();
         List<EventPropertyDescriptor> propertyDescriptors = new ArrayList<EventPropertyDescriptor>();
-        Map<String, Class> simplePropertyTypes = new LinkedHashMap<String, Class>();
-        Map<String, EventPropertyGetter> propertyGetters = new LinkedHashMap<String, EventPropertyGetter>();
-        Map<String, FragmentEventType> eventTypeFragments = new LinkedHashMap<String, FragmentEventType>();
         Map<String, Object> nestableTypes = new LinkedHashMap<String, Object>();
+        Map<String, PropertySetDescriptorItem> propertyItems = new HashMap<String, PropertySetDescriptorItem>();
 
         // handle super-types first, such that the order of properties is well-defined from super-type to subtype
         if (optionalSuperTypes != null)
@@ -283,8 +281,7 @@ public class EventTypeUtility {
                     propertyDescriptors.add(descriptor);
                 }
 
-                simplePropertyTypes.putAll(superType.simplePropertyTypes);
-                propertyGetters.putAll(superType.propertyGetters);
+                propertyItems.putAll(superType.propertyItems);
                 nestableTypes.putAll(superType.nestableTypes);
             }
         }
@@ -315,8 +312,6 @@ public class EventTypeUtility {
             if (entry.getValue() instanceof Class)
             {
                 Class classType = (Class) entry.getValue();
-                simplePropertyTypes.put(name, classType);
-                propertyNameList.add(name);
 
                 boolean isArray = classType.isArray();
                 Class componentType = null;
@@ -330,64 +325,63 @@ public class EventTypeUtility {
                 }
                 boolean isFragment = JavaClassHelper.isFragmentableType(classType);
                 BeanEventType nativeFragmentType = null;
+                FragmentEventType fragmentType = null;
                 if (isFragment)
                 {
-                    FragmentEventType fragmentType = EventBeanUtility.createNativeFragmentType(classType, null, eventAdapterService);
+                    fragmentType = EventBeanUtility.createNativeFragmentType(classType, null, eventAdapterService);
                     if (fragmentType != null)
                     {
                         nativeFragmentType = (BeanEventType) fragmentType.getFragmentType();
-                        eventTypeFragments.put(name, fragmentType);
                     }
                     else
                     {
                         isFragment = false;
                     }
                 }
-                else
-                {
-                    eventTypeFragments.put(name, null);
-                }
-                propertyDescriptors.add(new EventPropertyDescriptor(name, classType, componentType, false, false, isArray, isMapped, isFragment));
-
                 EventPropertyGetter getter = factory.getGetterProperty(name, nativeFragmentType, eventAdapterService);
-                propertyGetters.put(name, getter);
+                EventPropertyDescriptor descriptor = new EventPropertyDescriptor(name, classType, componentType, false, false, isArray, isMapped, isFragment);
+                PropertySetDescriptorItem item = new PropertySetDescriptorItem(descriptor, classType, getter, fragmentType);
+                propertyNameList.add(name);
+                propertyDescriptors.add(descriptor);
+                propertyItems.put(name, item);
                 continue;
             }
 
             // A null-type is also allowed
             if (entry.getValue() == null)
             {
-                simplePropertyTypes.put(name, null);
-                propertyNameList.add(name);
                 EventPropertyGetter getter = factory.getGetterProperty(name, null, null);
-                propertyGetters.put(name, getter);
-                propertyDescriptors.add(new EventPropertyDescriptor(name, null, null, false, false, false, false, false));
-                eventTypeFragments.put(name, null);
+                EventPropertyDescriptor descriptor = new EventPropertyDescriptor(name, null, null, false, false, false, false, false);
+                PropertySetDescriptorItem item = new PropertySetDescriptorItem(descriptor, null, getter, null);
+                propertyNameList.add(name);
+                propertyDescriptors.add(descriptor);
+                propertyItems.put(name, item);
                 continue;
             }
 
+            // Add Map itself as a property
             if (entry.getValue() instanceof Map)
             {
-                // Add Map itself as a property
-                simplePropertyTypes.put(name, Map.class);
-                propertyNameList.add(name);
                 EventPropertyGetter getter = factory.getGetterProperty(name, null, null);
-                propertyGetters.put(name, getter);
-                propertyDescriptors.add(new EventPropertyDescriptor(name, Map.class, null, false, false, false, true, false));
-                eventTypeFragments.put(name, null);
+                EventPropertyDescriptor descriptor = new EventPropertyDescriptor(name, Map.class, null, false, false, false, true, false);
+                PropertySetDescriptorItem item = new PropertySetDescriptorItem(descriptor, Map.class, getter, null);
+                propertyNameList.add(name);
+                propertyDescriptors.add(descriptor);
+                propertyItems.put(name, item);
                 continue;
             }
 
             if (entry.getValue() instanceof EventType)
             {
                 // Add EventType itself as a property
-                EventType eventType = (EventType) entry.getValue();
-                simplePropertyTypes.put(name, eventType.getUnderlyingType());
-                propertyNameList.add(name);
                 EventPropertyGetter getter = factory.getGetterEventBean(name);
-                propertyGetters.put(name, getter);
-                propertyDescriptors.add(new EventPropertyDescriptor(name, eventType.getUnderlyingType(), null, false, false, false, false, true));
-                eventTypeFragments.put(name, new FragmentEventType(eventType, false, false));
+                EventType eventType = (EventType) entry.getValue();
+                EventPropertyDescriptor descriptor = new EventPropertyDescriptor(name, eventType.getUnderlyingType(), null, false, false, false, false, true);
+                FragmentEventType fragmentEventType = new FragmentEventType(eventType, false, false);
+                PropertySetDescriptorItem item = new PropertySetDescriptorItem(descriptor, eventType.getUnderlyingType(), getter, fragmentEventType);
+                propertyNameList.add(name);
+                propertyDescriptors.add(descriptor);
+                propertyItems.put(name, item);
                 continue;
             }
 
@@ -396,12 +390,13 @@ public class EventTypeUtility {
                 // Add EventType array itself as a property, type is expected to be first array element
                 EventType eventType = ((EventType[]) entry.getValue())[0];
                 Object prototypeArray = Array.newInstance(eventType.getUnderlyingType(), 0);
-                simplePropertyTypes.put(name, prototypeArray.getClass());
-                propertyNameList.add(name);
                 EventPropertyGetter getter = factory.getGetterEventBeanArray(name, eventType);
-                propertyGetters.put(name, getter);
-                propertyDescriptors.add(new EventPropertyDescriptor(name, prototypeArray.getClass(), eventType.getUnderlyingType(), false, false, true, false, true));
-                eventTypeFragments.put(name, new FragmentEventType(eventType, true, false));
+                EventPropertyDescriptor descriptor = new EventPropertyDescriptor(name, prototypeArray.getClass(), eventType.getUnderlyingType(), false, false, true, false, true);
+                FragmentEventType fragmentEventType = new FragmentEventType(eventType, true, false);
+                PropertySetDescriptorItem item = new PropertySetDescriptorItem(descriptor, prototypeArray.getClass(), getter, fragmentEventType);
+                propertyNameList.add(name);
+                propertyDescriptors.add(descriptor);
+                propertyItems.put(name, item);
                 continue;
             }
 
@@ -426,8 +421,6 @@ public class EventTypeUtility {
                 {
                     underlyingType = Array.newInstance(underlyingType, 0).getClass();
                 }
-                simplePropertyTypes.put(name, underlyingType);
-                propertyNameList.add(name);
                 EventPropertyGetter getter;
                 if (!isArray)
                 {
@@ -437,16 +430,19 @@ public class EventTypeUtility {
                 {
                     getter = factory.getGetterBeanNestedArray(name, eventType, eventAdapterService);
                 }
-                propertyGetters.put(name, getter);
-                propertyDescriptors.add(new EventPropertyDescriptor(name, underlyingType, null, false, false, isArray, false, true));
-                eventTypeFragments.put(name, new FragmentEventType(eventType, isArray, false));
+                EventPropertyDescriptor descriptor = new EventPropertyDescriptor(name, underlyingType, null, false, false, isArray, false, true);
+                FragmentEventType fragmentEventType = new FragmentEventType(eventType, isArray, false);
+                PropertySetDescriptorItem item = new PropertySetDescriptorItem(descriptor, underlyingType, getter, fragmentEventType);
+                propertyNameList.add(name);
+                propertyDescriptors.add(descriptor);
+                propertyItems.put(name, item);
                 continue;
             }
 
             generateExceptionNestedProp(name, entry.getValue());
         }
 
-        return new PropertySetDescriptor(propertyNameList, propertyDescriptors, simplePropertyTypes, propertyGetters, eventTypeFragments, nestableTypes);
+        return new PropertySetDescriptor(propertyNameList, propertyDescriptors, propertyItems, nestableTypes);
     }
 
     private static void generateExceptionNestedProp(String name, Object value) throws EPException
@@ -456,11 +452,13 @@ public class EventTypeUtility {
             + clazzName + "' for property '" + name + "', expected java.lang.Class or java.util.Map or the name of a previously-declared Map or ObjectArray type");
     }
 
-    public static Class getNestablePropertyType(String propertyName, Map<String, Class> simplePropertyTypes, Map<String, Object> nestableTypes, EventAdapterService eventAdapterService) {
-        Class result = simplePropertyTypes.get(ASTFilterSpecHelper.unescapeDot(propertyName));
-        if (result != null)
-        {
-            return result;
+    public static Class getNestablePropertyType(String propertyName,
+                                                Map<String, PropertySetDescriptorItem> simplePropertyTypes,
+                                                Map<String, Object> nestableTypes,
+                                                EventAdapterService eventAdapterService) {
+        PropertySetDescriptorItem item = simplePropertyTypes.get(ASTFilterSpecHelper.unescapeDot(propertyName));
+        if (item != null) {
+            return item.getSimplePropertyType();
         }
 
         // see if this is a nested property
@@ -480,7 +478,11 @@ public class EventTypeUtility {
             }
             catch (Exception ex) {
                 // cannot parse property, return type
-                return simplePropertyTypes.get(propertyName);
+                PropertySetDescriptorItem propitem = simplePropertyTypes.get(propertyName);
+                if (propitem != null) {
+                    return propitem.getSimplePropertyType();
+                }
+                return null;
             }
 
             if (property instanceof IndexedProperty)
@@ -667,7 +669,10 @@ public class EventTypeUtility {
         }
     }
 
-    public static EventPropertyGetter getNestableGetter(String propertyName, Map<String, EventPropertyGetter> propertyGetters, Map<String, EventPropertyGetter> propertyGetterCache, Map<String, Object> nestableTypes, EventAdapterService eventAdapterService, EventTypeNestableGetterFactory factory) {
+    public static EventPropertyGetter getNestableGetter(String propertyName,
+                                                        Map<String, PropertySetDescriptorItem> propertyGetters,
+                                                        Map<String, EventPropertyGetter> propertyGetterCache,
+                                                        Map<String, Object> nestableTypes, EventAdapterService eventAdapterService, EventTypeNestableGetterFactory factory) {
         EventPropertyGetter cachedGetter = propertyGetterCache.get(propertyName);
         if (cachedGetter != null)
         {
@@ -675,9 +680,9 @@ public class EventTypeUtility {
         }
 
         String unescapePropName = ASTFilterSpecHelper.unescapeDot(propertyName);
-        EventPropertyGetter getter = propertyGetters.get(unescapePropName);
-        if (getter != null)
-        {
+        PropertySetDescriptorItem item = propertyGetters.get(unescapePropName);
+        if (item != null) {
+            EventPropertyGetter getter = item.getPropertyGetter();
             propertyGetterCache.put(propertyName, getter);
             return getter;
         }
@@ -905,7 +910,7 @@ public class EventTypeUtility {
             Class nestedReturnType = nestedEventType.getPropertyType(propertyNested);
 
             // construct getter for nested property
-            getter = factory.getGetterNestedPOJOProp(propertyMap, nestedGetter, eventAdapterService, nestedReturnType);
+            EventPropertyGetter getter = factory.getGetterNestedPOJOProp(propertyMap, nestedGetter, eventAdapterService, nestedReturnType);
             propertyGetterCache.put(propertyName, getter);
             return getter;
         }
@@ -920,7 +925,7 @@ public class EventTypeUtility {
             }
 
             // construct getter for nested property
-            getter = factory.getGetterNestedEventBean(propertyMap, nestedGetter);
+            EventPropertyGetter getter = factory.getGetterNestedEventBean(propertyMap, nestedGetter);
             propertyGetterCache.put(propertyName, getter);
             return getter;
         }

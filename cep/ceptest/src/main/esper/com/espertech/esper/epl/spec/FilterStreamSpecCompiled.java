@@ -10,8 +10,6 @@ package com.espertech.esper.epl.spec;
 
 import com.espertech.esper.filter.FilterSpecCompiled;
 
-import java.util.List;
-
 /**
  * Specification for building an event stream out of a filter for events (supplying type and basic filter criteria)
  * and views onto these events which are staggered onto each other to supply a final stream of events.
@@ -28,7 +26,7 @@ public class FilterStreamSpecCompiled extends StreamSpecBase implements StreamSp
      * @param optionalStreamName - stream name, or null if none supplied
      * @param streamSpecOptions - additional options such as unidirectional stream in a join
      */
-    public FilterStreamSpecCompiled(FilterSpecCompiled filterSpec, List<ViewSpec> viewSpecs, String optionalStreamName, StreamSpecOptions streamSpecOptions)
+    public FilterStreamSpecCompiled(FilterSpecCompiled filterSpec, ViewSpec[] viewSpecs, String optionalStreamName, StreamSpecOptions streamSpecOptions)
     {
         super(optionalStreamName, viewSpecs, streamSpecOptions);
         this.filterSpec = filterSpec;

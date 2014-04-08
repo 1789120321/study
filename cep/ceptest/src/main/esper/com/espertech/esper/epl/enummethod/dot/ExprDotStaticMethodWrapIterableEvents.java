@@ -12,6 +12,7 @@
 package com.espertech.esper.epl.enummethod.dot;
 
 import com.espertech.esper.client.EventBean;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.event.EventAdapterService;
 import com.espertech.esper.event.bean.BeanEventType;
 
@@ -29,8 +30,8 @@ public class ExprDotStaticMethodWrapIterableEvents implements ExprDotStaticMetho
         this.type = type;
     }
 
-    public ExprDotEvalTypeInfo getTypeInfo() {
-        return ExprDotEvalTypeInfo.eventColl(type);
+    public ExpressionReturnType getTypeInfo() {
+        return ExpressionReturnType.collectionOfEvents(type);
     }
 
     public Collection convert(Object result) {

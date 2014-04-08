@@ -8,74 +8,86 @@
  **************************************************************************************/
 package com.espertech.esper.pattern;
 
+import com.espertech.esper.pattern.observer.EventObserver;
+import com.espertech.esper.pattern.observer.ObserverEventEvaluator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.espertech.esper.pattern.observer.EventObserver;
-import com.espertech.esper.pattern.observer.ObserverEventEvaluator;
 
 /**
  * This class represents the state of an eventObserver sub-expression in the evaluation state tree.
  */
-public class EvalObserverStateNode extends EvalStateNode implements ObserverEventEvaluator {
-	protected final EvalObserverNode evalObserverNode;
-	protected EventObserver eventObserver;
+public class EvalObserverStateNode extends EvalStateNode implements ObserverEventEvaluator
+{
+    protected final EvalObserverNode evalObserverNode;
+    protected EventObserver eventObserver;
 
-	/**
-	 * Constructor.
-	 * @param parentNode is the parent evaluator to call to indicate truth value
-	 * @param evalObserverNode is the factory node associated to the state
-	 */
-	public EvalObserverStateNode(Evaluator parentNode, EvalObserverNode evalObserverNode) {
-		super(parentNode);
+    /**
+     * Constructor.
+     * @param parentNode is the parent evaluator to call to indicate truth value
+     * @param evalObserverNode is the factory node associated to the state
+     */
+    public EvalObserverStateNode(Evaluator parentNode,
+                             EvalObserverNode evalObserverNode)
+    {
+        super(parentNode);
 
-		this.evalObserverNode = evalObserverNode;
-	}
+        this.evalObserverNode = evalObserverNode;
+    }
 
-	public EvalNode getFactoryNode() {
-		return evalObserverNode;
-	}
+    @Override
+    public EvalNode getFactoryNode() {
+        return evalObserverNode;
+    }
 
-	public PatternAgentInstanceContext getContext() {
-		return evalObserverNode.getContext();
-	}
+    @Override
+    public PatternAgentInstanceContext getContext() {
+        return evalObserverNode.getContext();
+    }
 
-	public void observerEvaluateTrue(MatchedEventMap matchEvent) {
-		this.getParentEvaluator().evaluateTrue(matchEvent, this, true);
-	}
+    public void observerEvaluateTrue(MatchedEventMap matchEvent)
+    {
+        this.getParentEvaluator().evaluateTrue(matchEvent, this, true);
+    }
 
-	public void observerEvaluateFalse() {
-		this.getParentEvaluator().evaluateFalse(this);
-	}
+    public void observerEvaluateFalse()
+    {
+        this.getParentEvaluator().evaluateFalse(this);
+    }
 
-	public void start(MatchedEventMap beginState) {
-		eventObserver = evalObserverNode.getFactoryNode().getObserverFactory().makeObserver(evalObserverNode.getContext(), beginState, this, null, null);
-		eventObserver.startObserve();
-	}
+    public void start(MatchedEventMap beginState)
+    {
+        eventObserver = evalObserverNode.getFactoryNode().getObserverFactory().makeObserver(evalObserverNode.getContext(), beginState, this, null, null);
+        eventObserver.startObserve();
+    }
 
-	public final void quit() {
-		eventObserver.stopObserve();
-	}
+    public final void quit()
+    {
+        eventObserver.stopObserve();
+    }
 
-	public final Object accept(EvalStateNodeVisitor visitor, Object data) {
-		return visitor.visit(this, data);
-	}
+    public final Object accept(EvalStateNodeVisitor visitor, Object data)
+    {
+        return visitor.visit(this, data);
+    }
 
-	public final Object childrenAccept(EvalStateNodeVisitor visitor, Object data) {
-		return data;
-	}
+    public final Object childrenAccept(EvalStateNodeVisitor visitor, Object data)
+    {
+        return data;
+    }
 
-	public boolean isNotOperator() {
-		return false;
-	}
+    public boolean isNotOperator() {
+        return false;
+    }
 
-	public boolean isFilterStateNode() {
-		return false;
-	}
+    public boolean isFilterStateNode() {
+        return false;
+    }
 
-	public final String toString() {
-		return "EvalObserverStateNode eventObserver=" + eventObserver;
-	}
+    public final String toString()
+    {
+        return "EvalObserverStateNode eventObserver=" + eventObserver;
+    }
 
-	private static final Log log = LogFactory.getLog(EvalObserverStateNode.class);
+    private static final Log log = LogFactory.getLog(EvalObserverStateNode.class);
 }

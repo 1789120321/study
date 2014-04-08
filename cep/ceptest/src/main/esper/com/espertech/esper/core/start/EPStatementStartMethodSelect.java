@@ -11,10 +11,7 @@ package com.espertech.esper.core.start;
 import com.espertech.esper.core.context.factory.StatementAgentInstanceFactorySelectResult;
 import com.espertech.esper.core.context.factory.StatementAgentInstancePreload;
 import com.espertech.esper.core.context.mgr.ContextManagedStatementSelectDesc;
-import com.espertech.esper.core.context.stmt.AIRegistryExpr;
-import com.espertech.esper.core.context.stmt.AIRegistryPrevious;
-import com.espertech.esper.core.context.stmt.AIRegistryPrior;
-import com.espertech.esper.core.context.stmt.AIRegistrySubselect;
+import com.espertech.esper.core.context.stmt.*;
 import com.espertech.esper.core.context.subselect.SubSelectStrategyFactoryDesc;
 import com.espertech.esper.core.context.subselect.SubSelectStrategyHolder;
 import com.espertech.esper.core.context.util.AgentInstanceContext;
@@ -89,7 +86,9 @@ public class EPStatementStartMethodSelect extends EPStatementStartMethodBase
                     subselectPreviousStrategies.put(subselectPrevious, specificSubselectPreviousService);
                 }
 
-                subselectStrategyInstances.put(entry.getKey(), new SubSelectStrategyHolder(specificService, aggregationService, subselectPriorStrategies, subselectPreviousStrategies, null, null));
+                AIRegistryAggregation subselectAggregation = aiRegistryExpr.allocateSubselectAggregation(entry.getKey());
+                SubSelectStrategyHolder strategyHolder = new SubSelectStrategyHolder(specificService, subselectAggregation, subselectPriorStrategies, subselectPreviousStrategies, null, null);
+                subselectStrategyInstances.put(entry.getKey(), strategyHolder);
             }
 
             // use statement-wide agent-instance-specific "prior"

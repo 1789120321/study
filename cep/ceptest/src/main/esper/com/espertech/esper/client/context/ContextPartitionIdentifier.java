@@ -11,11 +11,21 @@
 
 package com.espertech.esper.client.context;
 
+import java.io.Serializable;
+
 /**
  * Context partition identifiers are provided by the API when interrogating context partitions for a given statement.
  */
-public abstract class ContextPartitionIdentifier {
+public abstract class ContextPartitionIdentifier implements Serializable {
+    private static final long serialVersionUID = -3830160350591466831L;
     private Integer contextPartitionId;
+
+    /**
+     * Compare identifiers returning a boolean indicator whether identifier information matches.
+     * @param identifier to compare to
+     * @return true for objects identifying the same context partition (could be different context)
+     */
+    public abstract boolean compareTo(ContextPartitionIdentifier identifier);
 
     /**
      * Ctor.

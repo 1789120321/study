@@ -14,10 +14,13 @@ import com.espertech.esper.core.context.util.AgentInstanceContext;
 import com.espertech.esper.core.service.EPServicesContext;
 import com.espertech.esper.core.service.StatementContext;
 import com.espertech.esper.epl.core.StreamTypeServiceImpl;
-import com.espertech.esper.epl.expression.*;
+import com.espertech.esper.epl.expression.ExprNodeUtility;
+import com.espertech.esper.epl.expression.ExprValidationContext;
+import com.espertech.esper.epl.expression.ExprValidationException;
 import com.espertech.esper.epl.spec.*;
 import com.espertech.esper.pattern.EvalFactoryNode;
 import com.espertech.esper.schedule.ScheduleSpec;
+import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.view.ViewProcessingException;
 import com.espertech.esper.view.ZeroDepthStream;
 import org.apache.commons.logging.Log;
@@ -46,7 +49,7 @@ public class EPStatementStartMethodCreateContext extends EPStatementStartMethodB
         // compile filter specs, if any
         Set<String> eventTypesReferenced = new HashSet<String>();
         validateContextDetail(services, statementContext, eventTypesReferenced, context.getContextDetail());
-        services.getStatementEventTypeRefService().addReferences(statementContext.getStatementName(), eventTypesReferenced);
+        services.getStatementEventTypeRefService().addReferences(statementContext.getStatementName(), CollectionUtil.toArray(eventTypesReferenced));
 
         // add context - does not activate that context
         services.getContextManagementService().addContextSpec(services, agentInstanceContext, context, isRecoveringResilient);
@@ -73,7 +76,7 @@ public class EPStatementStartMethodCreateContext extends EPStatementStartMethodB
         if (contextDetail instanceof ContextDetailPartitioned) {
             ContextDetailPartitioned segmented = (ContextDetailPartitioned) contextDetail;
             for (ContextDetailPartitionItem partition : segmented.getItems()) {
-                FilterStreamSpecRaw raw = new FilterStreamSpecRaw(partition.getFilterSpecRaw(), Collections.<ViewSpec>emptyList(), null, new StreamSpecOptions());
+                FilterStreamSpecRaw raw = new FilterStreamSpecRaw(partition.getFilterSpecRaw(), ViewSpec.EMPTY_VIEWSPEC_ARRAY, null, new StreamSpecOptions());
                 FilterStreamSpecCompiled result = (FilterStreamSpecCompiled) raw.compile(statementContext, eventTypesReferenced, false, Collections.<Integer>emptyList());
                 partition.setFilterSpecCompiled(result.getFilterSpec());
             }
@@ -82,15 +85,15 @@ public class EPStatementStartMethodCreateContext extends EPStatementStartMethodB
 
             // compile filter
             ContextDetailCategory category = (ContextDetailCategory) contextDetail;
-            FilterStreamSpecRaw raw = new FilterStreamSpecRaw(category.getFilterSpecRaw(), Collections.<ViewSpec>emptyList(), null, new StreamSpecOptions());
+            FilterStreamSpecRaw raw = new FilterStreamSpecRaw(category.getFilterSpecRaw(), ViewSpec.EMPTY_VIEWSPEC_ARRAY, null, new StreamSpecOptions());
             FilterStreamSpecCompiled result = (FilterStreamSpecCompiled) raw.compile(statementContext, eventTypesReferenced, false, Collections.<Integer>emptyList());
             category.setFilterSpecCompiled(result.getFilterSpec());
-            servicesContext.getStatementEventTypeRefService().addReferences(statementContext.getStatementName(), eventTypesReferenced);
+            servicesContext.getStatementEventTypeRefService().addReferences(statementContext.getStatementName(), CollectionUtil.toArray(eventTypesReferenced));
 
             // compile expressions
             for (ContextDetailCategoryItem item : category.getItems()) {
                 FilterSpecRaw filterSpecRaw = new FilterSpecRaw(category.getFilterSpecRaw().getEventTypeName(), Collections.singletonList(item.getExpression()), null);
-                FilterStreamSpecRaw rawExpr = new FilterStreamSpecRaw(filterSpecRaw, Collections.<ViewSpec>emptyList(), null, new StreamSpecOptions());
+                FilterStreamSpecRaw rawExpr = new FilterStreamSpecRaw(filterSpecRaw, ViewSpec.EMPTY_VIEWSPEC_ARRAY, null, new StreamSpecOptions());
                 FilterStreamSpecCompiled compiled = (FilterStreamSpecCompiled) rawExpr.compile(statementContext, eventTypesReferenced, false, Collections.<Integer>emptyList());
                 item.setCompiledFilter(compiled.getFilterSpec());
             }
@@ -98,7 +101,7 @@ public class EPStatementStartMethodCreateContext extends EPStatementStartMethodB
         else if (contextDetail instanceof ContextDetailHash) {
             ContextDetailHash hashed = (ContextDetailHash) contextDetail;
             for (ContextDetailHashItem hashItem : hashed.getItems()) {
-                FilterStreamSpecRaw raw = new FilterStreamSpecRaw(hashItem.getFilterSpecRaw(), Collections.<ViewSpec>emptyList(), null, new StreamSpecOptions());
+                FilterStreamSpecRaw raw = new FilterStreamSpecRaw(hashItem.getFilterSpecRaw(), ViewSpec.EMPTY_VIEWSPEC_ARRAY, null, new StreamSpecOptions());
                 FilterStreamSpecCompiled result = (FilterStreamSpecCompiled) raw.compile(statementContext, eventTypesReferenced, false, Collections.<Integer>emptyList());
                 hashItem.setFilterSpecCompiled(result.getFilterSpec());
 
@@ -159,7 +162,7 @@ public class EPStatementStartMethodCreateContext extends EPStatementStartMethodB
 
             // compile as filter if there are no prior match to consider
             if (priorMatches == null || (priorMatches.getArrayEventTypes().isEmpty() && priorMatches.getTaggedEventTypes().isEmpty())) {
-                FilterStreamSpecRaw rawExpr = new FilterStreamSpecRaw(filter.getFilterSpecRaw(), Collections.<ViewSpec>emptyList(), null, new StreamSpecOptions());
+                FilterStreamSpecRaw rawExpr = new FilterStreamSpecRaw(filter.getFilterSpecRaw(), ViewSpec.EMPTY_VIEWSPEC_ARRAY, null, new StreamSpecOptions());
                 FilterStreamSpecCompiled compiled = (FilterStreamSpecCompiled) rawExpr.compile(statementContext, eventTypesReferenced, false, Collections.<Integer>emptyList());
                 filter.setFilterSpecCompiled(compiled.getFilterSpec());
                 MatchEventSpec matchEventSpec = new MatchEventSpec();
@@ -185,7 +188,7 @@ public class EPStatementStartMethodCreateContext extends EPStatementStartMethodB
 
     private Pair<MatchEventSpec, Set<String>> validatePatternContextConditionPattern(StatementContext statementContext, ContextDetailConditionPattern pattern, Set<String> eventTypesReferenced, MatchEventSpec priorMatches, Set<String> priorAllTags)
         throws ExprValidationException {
-        PatternStreamSpecRaw raw = new PatternStreamSpecRaw(pattern.getPatternRaw(), Collections.<EvalFactoryNode, String>emptyMap(), Collections.<ViewSpec>emptyList(), null, new StreamSpecOptions());
+        PatternStreamSpecRaw raw = new PatternStreamSpecRaw(pattern.getPatternRaw(), Collections.<EvalFactoryNode, String>emptyMap(), ViewSpec.EMPTY_VIEWSPEC_ARRAY, null, new StreamSpecOptions());
         PatternStreamSpecCompiled compiled = raw.compile(statementContext, eventTypesReferenced, false, Collections.<Integer>emptyList(), priorMatches, priorAllTags);
         pattern.setPatternCompiled(compiled);
         return new Pair<MatchEventSpec, Set<String>>(new MatchEventSpec(compiled.getTaggedEventTypes(), compiled.getArrayEventTypes()), compiled.getAllTags());

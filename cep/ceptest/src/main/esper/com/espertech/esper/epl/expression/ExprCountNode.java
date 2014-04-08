@@ -9,8 +9,6 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
-import com.espertech.esper.epl.core.MethodResolutionService;
-import com.espertech.esper.epl.core.StreamTypeService;
 
 /**
  * Represents the count(...) and count(*) and count(distinct ...) aggregate function is an expression tree.
@@ -31,9 +29,9 @@ public class ExprCountNode extends ExprAggregateNodeBase
         this.hasFilter = hasFilter;
     }
 
-    public AggregationMethodFactory validateAggregationChild(StreamTypeService streamTypeService, MethodResolutionService methodResolutionService, ExprEvaluatorContext exprEvaluatorContext) throws ExprValidationException
+    public AggregationMethodFactory validateAggregationChild(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() > 2)
+        if (this.getChildNodes().length > 2)
         {
             throw new ExprValidationException("Count node must have less then 2 child nodes");
         }
@@ -41,20 +39,20 @@ public class ExprCountNode extends ExprAggregateNodeBase
         Class childType = null;
         boolean ignoreNulls = false;
 
-        if (this.getChildNodes().isEmpty()) {
+        if (this.getChildNodes().length == 0) {
             // defaults
         }
-        else if (this.getChildNodes().size() == 1) {
+        else if (this.getChildNodes().length == 1) {
             if (!hasFilter) {
-                childType = this.getChildNodes().get(0).getExprEvaluator().getType();
+                childType = this.getChildNodes()[0].getExprEvaluator().getType();
                 ignoreNulls = true;
             }
             else {
-                super.validateFilter(this.getChildNodes().get(0).getExprEvaluator());
+                super.validateFilter(this.getChildNodes()[0].getExprEvaluator());
             }
         }
-        else if (this.getChildNodes().size() == 2) {
-            childType = this.getChildNodes().get(0).getExprEvaluator().getType();
+        else if (this.getChildNodes().length == 2) {
+            childType = this.getChildNodes()[0].getExprEvaluator().getType();
             ignoreNulls = true;
         }
         return new ExprCountNodeFactory(ignoreNulls, super.isDistinct, childType, hasFilter);

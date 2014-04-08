@@ -16,6 +16,7 @@ import com.espertech.esper.util.SimpleNumberCoercerFactory;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -91,7 +92,7 @@ public class ExprBetweenNodeImpl extends ExprNodeBase implements ExprEvaluator, 
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() != 3)
+        if (this.getChildNodes().length != 3)
         {
             throw new ExprValidationException("The Between operator requires exactly 3 child expressions");
         }
@@ -187,7 +188,7 @@ public class ExprBetweenNodeImpl extends ExprNodeBase implements ExprEvaluator, 
     {
         StringBuilder buffer = new StringBuilder();
 
-        Iterator<ExprNode> it = this.getChildNodes().iterator();
+        Iterator<ExprNode> it = Arrays.asList(this.getChildNodes()).iterator();
         buffer.append(it.next().toExpressionString());
         if (isNotBetween)
         {

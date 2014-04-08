@@ -8,11 +8,12 @@
  **************************************************************************************/
 package com.espertech.esper.epl.agg.aggregator;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
 
 /**
  * Average that generates a BigDecimal numbers.
@@ -22,13 +23,15 @@ public class AggregatorAvgBigDecimal implements AggregationMethod
     private static final Log log = LogFactory.getLog(AggregatorAvgBigDecimal.class);
     protected BigDecimal sum;
     protected long numDataPoints;
+    protected MathContext optionalMathContext;
 
     /**
      * Ctor.
      */
-    public AggregatorAvgBigDecimal()
+    public AggregatorAvgBigDecimal(MathContext optionalMathContext)
     {
         sum = new BigDecimal(0.0);
+        this.optionalMathContext = optionalMathContext;
     }
 
     public void clear()
@@ -75,7 +78,10 @@ public class AggregatorAvgBigDecimal implements AggregationMethod
         }
         try
         {
-            return sum.divide(new BigDecimal(numDataPoints));
+            if (optionalMathContext == null) {
+                return sum.divide(new BigDecimal(numDataPoints));
+            }
+            return sum.divide(new BigDecimal(numDataPoints), optionalMathContext);
         }
         catch (ArithmeticException ex)
         {

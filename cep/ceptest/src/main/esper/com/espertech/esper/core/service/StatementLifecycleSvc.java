@@ -121,7 +121,9 @@ public interface StatementLifecycleSvc
      */
     public void destroy();
 
-    public String getStatementNameById(String key);
+    public String getStatementNameById(String id);
+
+    public EPStatementSPI getStatementById(String id);
 
     public Map<String, EPStatement> getStmtNameToStmt();
 }

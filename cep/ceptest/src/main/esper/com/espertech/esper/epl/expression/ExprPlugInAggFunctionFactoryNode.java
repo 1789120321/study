@@ -11,8 +11,6 @@ package com.espertech.esper.epl.expression;
 import com.espertech.esper.client.hook.AggregationFunctionFactory;
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
 import com.espertech.esper.epl.agg.service.AggregationValidationContext;
-import com.espertech.esper.epl.core.MethodResolutionService;
-import com.espertech.esper.epl.core.StreamTypeService;
 
 /**
  * Represents a custom aggregation function in an expresson tree.
@@ -37,12 +35,12 @@ public class ExprPlugInAggFunctionFactoryNode extends ExprAggregateNodeBase
         aggregationFunctionFactory.setFunctionName(functionName);
     }
 
-    public AggregationMethodFactory validateAggregationChild(StreamTypeService streamTypeService, MethodResolutionService methodResolutionService, ExprEvaluatorContext exprEvaluatorContext) throws ExprValidationException
+    public AggregationMethodFactory validateAggregationChild(ExprValidationContext validationContext) throws ExprValidationException
     {
-        Class[] parameterTypes = new Class[this.getChildNodes().size()];
-        Object[] constant = new Object[this.getChildNodes().size()];
-        boolean[] isConstant = new boolean[this.getChildNodes().size()];
-        ExprNode[] expressions = new ExprNode[this.getChildNodes().size()];
+        Class[] parameterTypes = new Class[this.getChildNodes().length];
+        Object[] constant = new Object[this.getChildNodes().length];
+        boolean[] isConstant = new boolean[this.getChildNodes().length];
+        ExprNode[] expressions = new ExprNode[this.getChildNodes().length];
 
         int count = 0;
         boolean hasDataWindows = true;
@@ -51,14 +49,14 @@ public class ExprPlugInAggFunctionFactoryNode extends ExprAggregateNodeBase
             if (child.isConstantResult())
             {
                 isConstant[count] = true;
-                constant[count] = child.getExprEvaluator().evaluate(null, true, exprEvaluatorContext);
+                constant[count] = child.getExprEvaluator().evaluate(null, true, validationContext.getExprEvaluatorContext());
             }
             parameterTypes[count] = child.getExprEvaluator().getType();
             expressions[count] = child;
 
             count++;
 
-            if (!ExprNodeUtility.hasRemoveStream(child, streamTypeService)) {
+            if (!ExprNodeUtility.hasRemoveStream(child, validationContext.getStreamTypeService())) {
                 hasDataWindows = false;
             }
         }
@@ -74,9 +72,9 @@ public class ExprPlugInAggFunctionFactoryNode extends ExprAggregateNodeBase
         }
 
         Class childType = null;
-        if (this.getChildNodes().size() > 0)
+        if (this.getChildNodes().length > 0)
         {
-            childType = this.getChildNodes().get(0).getExprEvaluator().getType();
+            childType = this.getChildNodes()[0].getExprEvaluator().getType();
         }
 
         return new ExprPlugInAggFunctionFactory(aggregationFunctionFactory, super.isDistinct(), childType);

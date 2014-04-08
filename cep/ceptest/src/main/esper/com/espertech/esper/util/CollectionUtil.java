@@ -11,6 +11,7 @@ package com.espertech.esper.util;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.collection.MultiKey;
 import com.espertech.esper.collection.NullIterator;
+import com.espertech.esper.epl.expression.ExprEvaluator;
 
 import java.io.StringWriter;
 import java.lang.reflect.Array;
@@ -26,6 +27,8 @@ public class CollectionUtil
     public final static Set<MultiKey<EventBean>> EMPTY_ROW_SET = new HashSet<MultiKey<EventBean>>();
     public final static EventBean[] EVENT_PER_STREAM_EMPTY = new EventBean[0];
     public final static Set<EventBean> SINGLE_NULL_ROW_EVENT_SET = new HashSet<EventBean>();
+    public final static String[] EMPTY_STRING_ARRAY = new String[0];
+
     static
     {
         SINGLE_NULL_ROW_EVENT_SET.add(null);
@@ -40,6 +43,41 @@ public class CollectionUtil
         };
     }
 
+    public static Comparator<Object> getComparator(ExprEvaluator[] sortCriteriaEvaluators, boolean isSortUsingCollator, boolean[] isDescendingValues) {
+        // determine string-type sorting
+        boolean hasStringTypes = false;
+        boolean stringTypes[] = new boolean[sortCriteriaEvaluators.length];
+
+        int count = 0;
+        for(ExprEvaluator node : sortCriteriaEvaluators)
+        {
+            if (node.getType() == String.class)
+            {
+                hasStringTypes = true;
+                stringTypes[count] = true;
+            }
+            count++;
+        }
+
+        if (sortCriteriaEvaluators.length > 1) {
+            if ((!hasStringTypes) || (!isSortUsingCollator)) {
+                MultiKeyComparator comparatorMK = new MultiKeyComparator(isDescendingValues);
+                return new MultiKeyCastingComparator(comparatorMK);
+            }
+            else {
+                MultiKeyCollatingComparator comparatorMk = new MultiKeyCollatingComparator(isDescendingValues, stringTypes);
+                return new MultiKeyCastingComparator(comparatorMk);
+            }
+        }
+        else {
+            if ((!hasStringTypes) || (!isSortUsingCollator)) {
+                return new ObjectComparator(isDescendingValues[0]);
+            }
+            else {
+                return new ObjectCollatingComparator(isDescendingValues[0]);
+            }
+        }
+    }
 
     public static String toString(Collection<Integer> stack, String delimiterChars) {
         if (stack.isEmpty()) {
@@ -58,7 +96,7 @@ public class CollectionUtil
         return writer.toString();
     }
 
-    public static Object expandAddElement(Object array, Object[] elementsToAdd) {
+    public static Object arrayExpandAddElements(Object array, Object[] elementsToAdd) {
         Class cl = array.getClass();
         if (!cl.isArray()) return null;
         int length = Array.getLength(array);
@@ -69,6 +107,50 @@ public class CollectionUtil
         for (int i = 0; i < elementsToAdd.length; i++) {
             Array.set(newArray, length + i, elementsToAdd[i]);
         }
+        return newArray;
+    }
+
+    public static Object arrayShrinkRemoveSingle(Object array, int index) {
+        Class cl = array.getClass();
+        if (!cl.isArray()) return null;
+        int length = Array.getLength(array);
+        int newLength = length - 1;
+        Class componentType = array.getClass().getComponentType();
+        Object newArray = Array.newInstance(componentType, newLength);
+        if (index > 0) {
+            System.arraycopy(array, 0, newArray, 0, index);
+        }
+        if (index < newLength) {
+            System.arraycopy(array, index+1, newArray, index, newLength - index);
+        }
+        return newArray;
+    }
+
+    public static Object arrayExpandAddElements(Object array, Collection elementsToAdd) {
+        Class cl = array.getClass();
+        if (!cl.isArray()) return null;
+        int length = Array.getLength(array);
+        int newLength = length + elementsToAdd.size();
+        Class componentType = array.getClass().getComponentType();
+        Object newArray = Array.newInstance(componentType, newLength);
+        System.arraycopy(array, 0, newArray, 0, length);
+        int count = 0;
+        for (Object element : elementsToAdd) {
+            Array.set(newArray, length + count, element);
+            count++;
+        }
+        return newArray;
+    }
+
+    public static Object arrayExpandAddSingle(Object array, Object elementsToAdd) {
+        Class cl = array.getClass();
+        if (!cl.isArray()) return null;
+        int length = Array.getLength(array);
+        int newLength = length + 1;
+        Class componentType = array.getClass().getComponentType();
+        Object newArray = Array.newInstance(componentType, newLength);
+        System.arraycopy(array, 0, newArray, 0, length);
+        Array.set(newArray, length, elementsToAdd);
         return newArray;
     }
 
@@ -283,6 +365,13 @@ public class CollectionUtil
         return set.toArray(new EventBean[set.size()]);
     }
 
+    public static String[] toArray(Collection<String> strings) {
+        if (strings.isEmpty()) {
+            return EMPTY_STRING_ARRAY;
+        }
+        return strings.toArray(new String[strings.size()]);
+    }
+
     public static <T> int searchArray(T[] array, T item) {
         for (int i = 0; i < array.length; i++) {
             if (array[i].equals(item)) {
@@ -355,5 +444,14 @@ public class CollectionUtil
         else {
             eventMap.put(key, bean);
         }
+    }
+
+    public static boolean isAnySet(boolean[] array) {
+        for (int i = 0; i < array.length; i++) {
+            if (array[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 }

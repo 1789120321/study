@@ -19,7 +19,7 @@ import com.espertech.esper.epl.expression.ExprEvaluator;
 public class AggSvcGroupByMixedAccessFactory extends AggregationServiceFactoryBase
 {
     protected final AggregationAccessorSlotPair[] accessors;
-    protected final int[] streams;
+    protected final AggregationStateFactory[] accessAggregations;
     protected final boolean isJoin;
 
     /**
@@ -28,22 +28,22 @@ public class AggSvcGroupByMixedAccessFactory extends AggregationServiceFactoryBa
      * @param prototypes - collect the aggregation state that evaluators evaluate to, act as prototypes for new aggregations
      * aggregation states for each group
      * @param accessors accessor definitions
-     * @param streams streams in join
+     * @param accessAggregations access aggs
      * @param isJoin true for join, false for single-stream
      */
     public AggSvcGroupByMixedAccessFactory(ExprEvaluator evaluators[],
                                            AggregationMethodFactory prototypes[],
                                            AggregationAccessorSlotPair[] accessors,
-                                           int[] streams,
+                                           AggregationStateFactory[] accessAggregations,
                                            boolean isJoin)
     {
         super(evaluators, prototypes);
         this.accessors = accessors;
-        this.streams = streams;
+        this.accessAggregations = accessAggregations;
         this.isJoin = isJoin;
     }
 
     public AggregationService makeService(AgentInstanceContext agentInstanceContext, MethodResolutionService methodResolutionService) {
-        return new AggSvcGroupByMixedAccessImpl(evaluators, aggregators, methodResolutionService, accessors, streams, isJoin);
+        return new AggSvcGroupByMixedAccessImpl(evaluators, aggregators, methodResolutionService, accessors, accessAggregations, isJoin);
     }
 }

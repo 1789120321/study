@@ -24,4 +24,8 @@ public class AIRegistryExprSingle extends AIRegistryExprBase {
     public AIRegistryPrior allocateAIRegistryPrior() {
         return new AIRegistryPriorSingle();
     }
+
+    public AIRegistryAggregation allocateAIRegistrySubselectAggregation() {
+        return new AIRegistryAggregationSingle();
+    }
 }

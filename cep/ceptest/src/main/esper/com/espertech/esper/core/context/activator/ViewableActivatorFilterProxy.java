@@ -26,7 +26,6 @@ import com.espertech.esper.view.stream.EventStreamProxy;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
-import java.util.List;
 
 public class ViewableActivatorFilterProxy implements ViewableActivator {
 
@@ -101,7 +100,7 @@ public class ViewableActivatorFilterProxy implements ViewableActivator {
         }
         EPStatementHandleCallback filterHandle = new EPStatementHandleCallback(agentInstanceContext.getEpStatementAgentInstanceHandle(), filterCallback);
 
-        List<FilterValueSetParam> addendum = null;
+        FilterValueSetParam[] addendum = null;
         if (agentInstanceContext.getAgentInstanceFilterProxy() != null) {
             addendum = agentInstanceContext.getAgentInstanceFilterProxy().getAddendumFilters(filterSpec);
         }

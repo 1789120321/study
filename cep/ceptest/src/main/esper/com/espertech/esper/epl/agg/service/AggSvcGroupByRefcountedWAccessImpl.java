@@ -9,8 +9,7 @@
 package com.espertech.esper.epl.agg.service;
 
 import com.espertech.esper.client.EventBean;
-import com.espertech.esper.epl.agg.access.AggregationAccess;
-import com.espertech.esper.epl.agg.access.AggregationAccessUtil;
+import com.espertech.esper.epl.agg.access.AggregationState;
 import com.espertech.esper.epl.agg.access.AggregationAccessorSlotPair;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
 import com.espertech.esper.epl.core.MethodResolutionService;
@@ -25,7 +24,7 @@ import java.util.*;
 public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGrouped
 {
     protected final AggregationAccessorSlotPair[] accessors;
-    protected final int[] streams;
+    protected final AggregationStateFactory[] accessAggregations;
     protected final boolean isJoin;
 
     // maintain for each group a row of aggregator states that the expression node canb pull the data from via index
@@ -34,7 +33,7 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
     // maintain a current row for random access into the aggregator state table
     // (row=groups, columns=expression nodes that have aggregation functions)
     private AggregationMethod[] currentAggregatorMethods;
-    private AggregationAccess[] currentAggregatorAccesses;
+    private AggregationState[] currentAggregatorStates;
 
     private MethodResolutionService methodResolutionService;
 
@@ -47,21 +46,21 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
      * aggregation states for each group
      * @param methodResolutionService - factory for creating additional aggregation method instances per group key
      * @param accessors accessor definitions
-     * @param streams streams in join
+     * @param accessAggregations access aggs
      * @param isJoin true for join, false for single-stream
      */
     public AggSvcGroupByRefcountedWAccessImpl(ExprEvaluator evaluators[],
                                        AggregationMethodFactory prototypes[],
                                        MethodResolutionService methodResolutionService,
                                        AggregationAccessorSlotPair[] accessors,
-                                       int[] streams,
+                                       AggregationStateFactory[] accessAggregations,
                                        boolean isJoin)
     {
         super(evaluators, prototypes);
         this.methodResolutionService = methodResolutionService;
         this.aggregatorsPerGroup = new HashMap<Object, AggregationMethodPairRow>();
         this.accessors = accessors;
-        this.streams = streams;
+        this.accessAggregations = accessAggregations;
         this.isJoin = isJoin;
         removedKeys = new ArrayList<Object>();
     }
@@ -79,23 +78,23 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
 
         // The aggregators for this group do not exist, need to create them from the prototypes
         AggregationMethod[] groupAggregators;
-        AggregationAccess[] groupAccesses;
+        AggregationState[] groupStates;
         if (row == null)
         {
             groupAggregators = methodResolutionService.newAggregators(aggregators, exprEvaluatorContext.getAgentInstanceId(), groupByKey);
-            groupAccesses = AggregationAccessUtil.getNewAccesses(exprEvaluatorContext.getAgentInstanceId(), isJoin, streams, methodResolutionService, groupByKey);
-            row = new AggregationMethodPairRow(methodResolutionService.getCurrentRowCount(groupAggregators, groupAccesses) + 1, groupAggregators, groupAccesses);
+            groupStates = methodResolutionService.newAccesses(exprEvaluatorContext.getAgentInstanceId(), isJoin, accessAggregations, groupByKey);
+            row = new AggregationMethodPairRow(methodResolutionService.getCurrentRowCount(groupAggregators, groupStates) + 1, groupAggregators, groupStates);
             aggregatorsPerGroup.put(groupByKey, row);
         }
         else
         {
             groupAggregators = row.getMethods();
-            groupAccesses = row.getAccesses();
+            groupStates = row.getStates();
             row.increaseRefcount();
         }
 
         currentAggregatorMethods = groupAggregators;
-        currentAggregatorAccesses = groupAccesses;
+        currentAggregatorStates = groupStates;
 
         // For this row, evaluate sub-expressions, enter result
         for (int j = 0; j < evaluators.length; j++)
@@ -103,8 +102,8 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
             Object columnResult = evaluators[j].evaluate(eventsPerStream, true, exprEvaluatorContext);
             groupAggregators[j].enter(columnResult);
         }
-        for (AggregationAccess access : currentAggregatorAccesses) {
-            access.applyEnter(eventsPerStream);
+        for (AggregationState state : currentAggregatorStates) {
+            state.applyEnter(eventsPerStream, exprEvaluatorContext);
         }
 
         internalHandleGroupUpdate(groupByKey, row);
@@ -116,22 +115,22 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
 
         // The aggregators for this group do not exist, need to create them from the prototypes
         AggregationMethod[] groupAggregators;
-        AggregationAccess[] groupAccesses;
+        AggregationState[] groupStates;
         if (row != null)
         {
             groupAggregators = row.getMethods();
-            groupAccesses = row.getAccesses();
+            groupStates = row.getStates();
         }
         else
         {
             groupAggregators = methodResolutionService.newAggregators(aggregators, exprEvaluatorContext.getAgentInstanceId(), groupByKey);
-            groupAccesses = AggregationAccessUtil.getNewAccesses(exprEvaluatorContext.getAgentInstanceId(), isJoin,  streams, methodResolutionService, groupByKey);
-            row = new AggregationMethodPairRow(methodResolutionService.getCurrentRowCount(groupAggregators, groupAccesses) + 1, groupAggregators, groupAccesses);
+            groupStates = methodResolutionService.newAccesses(exprEvaluatorContext.getAgentInstanceId(), isJoin, accessAggregations, groupByKey);
+            row = new AggregationMethodPairRow(methodResolutionService.getCurrentRowCount(groupAggregators, groupStates) + 1, groupAggregators, groupStates);
             aggregatorsPerGroup.put(groupByKey, row);
         }
 
         currentAggregatorMethods = groupAggregators;
-        currentAggregatorAccesses = groupAccesses;
+        currentAggregatorStates = groupStates;
 
         // For this row, evaluate sub-expressions, enter result
         for (int j = 0; j < evaluators.length; j++)
@@ -139,8 +138,8 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
             Object columnResult = evaluators[j].evaluate(eventsPerStream, false, exprEvaluatorContext);
             groupAggregators[j].leave(columnResult);
         }
-        for (AggregationAccess access : currentAggregatorAccesses) {
-            access.applyLeave(eventsPerStream);
+        for (AggregationState state : currentAggregatorStates) {
+            state.applyLeave(eventsPerStream, exprEvaluatorContext);
         }
 
         row.decreaseRefcount();
@@ -160,7 +159,7 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
         if (row != null)
         {
             currentAggregatorMethods = row.getMethods();
-            currentAggregatorAccesses = row.getAccesses();
+            currentAggregatorStates = row.getStates();
         }
         else
         {
@@ -170,7 +169,7 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
         if (currentAggregatorMethods == null)
         {
             currentAggregatorMethods = methodResolutionService.newAggregators(aggregators, agentInstanceId, groupByKey);
-            currentAggregatorAccesses = AggregationAccessUtil.getNewAccesses(agentInstanceId, isJoin, streams, methodResolutionService, groupByKey);
+            currentAggregatorStates = methodResolutionService.newAccesses(agentInstanceId, isJoin, accessAggregations, groupByKey);
         }
     }
 
@@ -181,7 +180,7 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
         }
         else {
             AggregationAccessorSlotPair pair = accessors[column - aggregators.length];
-            return pair.getAccessor().getValue(currentAggregatorAccesses[pair.getSlot()]);
+            return pair.getAccessor().getValue(currentAggregatorStates[pair.getSlot()]);
         }
     }
 
@@ -191,7 +190,7 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
         }
         else {
             AggregationAccessorSlotPair pair = accessors[column - aggregators.length];
-            return pair.getAccessor().getCollectionReadOnly(currentAggregatorAccesses[pair.getSlot()]);
+            return pair.getAccessor().getEnumerableEvents(currentAggregatorStates[pair.getSlot()]);
         }
     }
 
@@ -201,7 +200,7 @@ public class AggSvcGroupByRefcountedWAccessImpl extends AggregationServiceBaseGr
         }
         else {
             AggregationAccessorSlotPair pair = accessors[column - aggregators.length];
-            return pair.getAccessor().getEventBean(currentAggregatorAccesses[pair.getSlot()]);
+            return pair.getAccessor().getEnumerableEvent(currentAggregatorStates[pair.getSlot()]);
         }
     }
 

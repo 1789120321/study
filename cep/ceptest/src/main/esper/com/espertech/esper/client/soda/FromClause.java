@@ -149,7 +149,7 @@ public class FromClause implements Serializable
      * @param includeFrom flag whether to add the "from" literal
      * @param formatter for newline-whitespace formatting
      */
-    protected void toEPLOptions(StringWriter writer, EPStatementFormatter formatter, boolean includeFrom)
+    public void toEPLOptions(StringWriter writer, EPStatementFormatter formatter, boolean includeFrom)
     {
         String delimiter = "";
         if (includeFrom)

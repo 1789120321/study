@@ -24,12 +24,12 @@ public class ExprNotNode extends ExprNodeBase implements ExprEvaluator
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
         // Must have a single child node
-        if (this.getChildNodes().size() != 1)
+        if (this.getChildNodes().length != 1)
         {
             throw new ExprValidationException("The NOT node requires exactly 1 child node");
         }
 
-        evaluator = this.getChildNodes().get(0).getExprEvaluator();
+        evaluator = this.getChildNodes()[0].getExprEvaluator();
         Class childType = evaluator.getType();
         if (!JavaClassHelper.isBoolean(childType))
         {
@@ -70,7 +70,7 @@ public class ExprNotNode extends ExprNodeBase implements ExprEvaluator
     {
         StringBuilder buffer = new StringBuilder();
         buffer.append("NOT(");
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
         buffer.append(')');
         return buffer.toString();
     }

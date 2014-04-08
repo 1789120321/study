@@ -602,17 +602,8 @@ public class OutputLimitClause implements Serializable
     }
 
     private void writeThenAssignments(StringWriter writer, List<AssignmentPair> thenAssignments) {
-        writer.write(" then set ");
-
-        String delimiter = "";
-        for (AssignmentPair pair : thenAssignments)
-        {
-            writer.write(delimiter);
-            writer.write(pair.getName());
-            writer.write(" = ");
-            pair.getValue().toEPL(writer, ExpressionPrecedenceEnum.MINIMUM);
-            delimiter = ", ";
-        }
+        writer.write(" then ");
+        UpdateClause.renderEPLAssignments(writer, thenAssignments);
     }
 
     private void outputAndAfter(StringWriter writer) {

@@ -9,8 +9,6 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
-import com.espertech.esper.epl.core.MethodResolutionService;
-import com.espertech.esper.epl.core.StreamTypeService;
 
 /**
  * Represents the "firstever" aggregate function is an expression tree.
@@ -28,16 +26,16 @@ public class ExprFirstEverNode extends ExprAggregateNodeBase
         super(distinct);
     }
 
-    public AggregationMethodFactory validateAggregationChild(StreamTypeService streamTypeService, MethodResolutionService methodResolutionService, ExprEvaluatorContext exprEvaluatorContext) throws ExprValidationException
+    public AggregationMethodFactory validateAggregationChild(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() > 2)
+        if (this.getChildNodes().length > 2)
         {
             throw new ExprValidationException("First aggregation node must have less then 2 child nodes");
         }
-        if (this.getChildNodes().size() == 2) {
-            super.validateFilter(this.getChildNodes().get(1).getExprEvaluator());
+        if (this.getChildNodes().length == 2) {
+            super.validateFilter(this.getChildNodes()[1].getExprEvaluator());
         }
-        return new ExprFirstEverNodeFactory(this.getChildNodes().get(0).getExprEvaluator().getType(), this.getChildNodes().size() == 2);
+        return new ExprFirstEverNodeFactory(this.getChildNodes()[0].getExprEvaluator().getType(), this.getChildNodes().length == 2);
     }
 
     protected String getAggregationFunctionName()

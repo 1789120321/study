@@ -21,12 +21,12 @@ public class ContextControllerStateUtil {
         if (state == null || state.isEmpty()) {
             return null;
         }
-        return new ContextControllerState(state);
+        return new ContextControllerState(state, false, null);
     }
 
     public static NavigableMap<ContextStatePathKey, ContextStatePathValue> getChildContexts(ContextControllerFactoryContext factoryContext, int pathId, TreeMap<ContextStatePathKey, ContextStatePathValue> states) {
-        ContextStatePathKey start = new ContextStatePathKey(factoryContext.getOutermostContextName(), factoryContext.getNestingLevel(), pathId, Integer.MIN_VALUE);
-        ContextStatePathKey end = new ContextStatePathKey(factoryContext.getOutermostContextName(), factoryContext.getNestingLevel(), pathId, Integer.MAX_VALUE);
+        ContextStatePathKey start = new ContextStatePathKey(factoryContext.getNestingLevel(), pathId, Integer.MIN_VALUE);
+        ContextStatePathKey end = new ContextStatePathKey(factoryContext.getNestingLevel(), pathId, Integer.MAX_VALUE);
         return states.subMap(start, true, end, true);
     }
 }

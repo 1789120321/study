@@ -40,7 +40,7 @@ public class ExprConcatNode extends ExprNodeBase implements ExprEvaluator
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() < 2)
+        if (this.getChildNodes().length < 2)
         {
             throw new ExprValidationException("Concat node must have at least 2 child nodes");
         }

@@ -9,8 +9,6 @@
 package com.espertech.esper.core.service;
 
 import com.espertech.esper.util.ThreadLogUtil;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -20,19 +18,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class StatementAgentInstanceRWLockImpl implements StatementAgentInstanceLock
 {
-    private static final Log log = LogFactory.getLog(StatementAgentInstanceRWLockImpl.class);
-
     private final ReentrantReadWriteLock lock;
-    private final String name;
 
     /**
      * Ctor.
-     * @param name of lock
      * @param isFair true if a fair lock, false if not
      */
-    public StatementAgentInstanceRWLockImpl(String name, boolean isFair)
+    public StatementAgentInstanceRWLockImpl(boolean isFair)
     {
-        this.name = name;
         lock = new ReentrantReadWriteLock(isFair);
     }
 
@@ -43,12 +36,12 @@ public class StatementAgentInstanceRWLockImpl implements StatementAgentInstanceL
     {
         if (ThreadLogUtil.ENABLED_TRACE)
         {
-            ThreadLogUtil.traceLock(ACQUIRE_TEXT + " write " + name, lock);
+            ThreadLogUtil.traceLock(ACQUIRE_TEXT + " write ", lock);
         }
         lock.writeLock().lock();
         if (ThreadLogUtil.ENABLED_TRACE)
         {
-            ThreadLogUtil.traceLock(ACQUIRED_TEXT + " write " + name, lock);
+            ThreadLogUtil.traceLock(ACQUIRED_TEXT + " write ", lock);
         }
     }
 
@@ -59,12 +52,12 @@ public class StatementAgentInstanceRWLockImpl implements StatementAgentInstanceL
     {
         if (ThreadLogUtil.ENABLED_TRACE)
         {
-            ThreadLogUtil.traceLock(RELEASE_TEXT + " write " + name, lock);
+            ThreadLogUtil.traceLock(RELEASE_TEXT + " write ", lock);
         }
         lock.writeLock().unlock();
         if (ThreadLogUtil.ENABLED_TRACE)
         {
-            ThreadLogUtil.traceLock(RELEASED_TEXT + " write " + name, lock);
+            ThreadLogUtil.traceLock(RELEASED_TEXT + " write ", lock);
         }
     }
 
@@ -75,12 +68,12 @@ public class StatementAgentInstanceRWLockImpl implements StatementAgentInstanceL
     {
         if (ThreadLogUtil.ENABLED_TRACE)
         {
-            ThreadLogUtil.traceLock(ACQUIRE_TEXT + " read " + name, lock);
+            ThreadLogUtil.traceLock(ACQUIRE_TEXT + " read ", lock);
         }
         lock.readLock().lock();
         if (ThreadLogUtil.ENABLED_TRACE)
         {
-            ThreadLogUtil.traceLock(ACQUIRED_TEXT + " read " + name, lock);
+            ThreadLogUtil.traceLock(ACQUIRED_TEXT + " read ", lock);
         }
     }
 
@@ -91,18 +84,18 @@ public class StatementAgentInstanceRWLockImpl implements StatementAgentInstanceL
     {
         if (ThreadLogUtil.ENABLED_TRACE)
         {
-            ThreadLogUtil.traceLock(RELEASE_TEXT + " read " + name, lock);
+            ThreadLogUtil.traceLock(RELEASE_TEXT + " read ", lock);
         }
         lock.readLock().unlock();
         if (ThreadLogUtil.ENABLED_TRACE)
         {
-            ThreadLogUtil.traceLock(RELEASED_TEXT + " read " + name, lock);
+            ThreadLogUtil.traceLock(RELEASED_TEXT + " read ", lock);
         }
     }
 
     public String toString()
     {
-        return this.getClass().getSimpleName() + " name=" + name;
+        return this.getClass().getSimpleName();
     }
 
 }

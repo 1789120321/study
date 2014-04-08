@@ -20,8 +20,6 @@ import com.espertech.esper.filter.FilterSpecParam;
 import com.espertech.esper.util.AuditPath;
 import com.espertech.esper.util.JavaClassHelper;
 import com.espertech.esper.view.EventStream;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
@@ -42,7 +40,7 @@ public class EventStreamProxy implements java.lang.reflect.InvocationHandler {
 
         StringWriter filterAndParams = new StringWriter();
         filterAndParams.write(filterSpec.getFilterForEventType().getName());
-        if (filterSpec.getParameters() != null && !filterSpec.getParameters().isEmpty()) {
+        if (filterSpec.getParameters() != null && filterSpec.getParameters().length > 0) {
             filterAndParams.write('(');
             String delimiter = "";
             for (FilterSpecParam param : filterSpec.getParameters()) {

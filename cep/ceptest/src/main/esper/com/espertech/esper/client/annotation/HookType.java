@@ -29,5 +29,10 @@ public enum HookType
     /**
      * For internal use, query planning reporting.
      */
-    INTERNAL_QUERY_PLAN
+    INTERNAL_QUERY_PLAN,
+
+    /**
+     * For internal use, context state cache.
+     */
+    CONTEXT_STATE_CACHE
 }

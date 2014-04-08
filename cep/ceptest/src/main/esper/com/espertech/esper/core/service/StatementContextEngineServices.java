@@ -32,8 +32,9 @@ public final class StatementContextEngineServices
     private final ViewService viewService;
     private final ExceptionHandlingService exceptionHandlingService;
     private final ExpressionResultCacheService expressionResultCacheService;
+    private final StatementEventTypeRef statementEventTypeRef;
 
-    public StatementContextEngineServices(String engineURI, EventAdapterService eventAdapterService, NamedWindowService namedWindowService, VariableService variableService, EngineSettingsService engineSettingsService, ValueAddEventService valueAddEventService, ConfigurationInformation configSnapshot, MetricReportingServiceSPI metricReportingService, ViewService viewService, ExceptionHandlingService exceptionHandlingService, ExpressionResultCacheService expressionResultCacheService) {
+    public StatementContextEngineServices(String engineURI, EventAdapterService eventAdapterService, NamedWindowService namedWindowService, VariableService variableService, EngineSettingsService engineSettingsService, ValueAddEventService valueAddEventService, ConfigurationInformation configSnapshot, MetricReportingServiceSPI metricReportingService, ViewService viewService, ExceptionHandlingService exceptionHandlingService, ExpressionResultCacheService expressionResultCacheService, StatementEventTypeRef statementEventTypeRef) {
         this.engineURI = engineURI;
         this.eventAdapterService = eventAdapterService;
         this.namedWindowService = namedWindowService;
@@ -45,6 +46,7 @@ public final class StatementContextEngineServices
         this.viewService = viewService;
         this.exceptionHandlingService = exceptionHandlingService;
         this.expressionResultCacheService = expressionResultCacheService;
+        this.statementEventTypeRef = statementEventTypeRef;
     }
 
     public String getEngineURI() {
@@ -89,5 +91,9 @@ public final class StatementContextEngineServices
 
     public ExpressionResultCacheService getExpressionResultCacheService() {
         return expressionResultCacheService;
+    }
+
+    public StatementEventTypeRef getStatementEventTypeRef() {
+        return statementEventTypeRef;
     }
 }

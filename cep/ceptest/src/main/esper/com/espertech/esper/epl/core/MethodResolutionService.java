@@ -10,10 +10,15 @@ package com.espertech.esper.epl.core;
 
 import com.espertech.esper.client.hook.AggregationFunctionFactory;
 import com.espertech.esper.collection.Pair;
-import com.espertech.esper.epl.agg.access.AggregationAccess;
+import com.espertech.esper.epl.agg.access.AggregationState;
+import com.espertech.esper.epl.agg.access.AggregationStateMinMaxByEverSpec;
+import com.espertech.esper.epl.agg.access.AggregationStateSortedSpec;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
+import com.espertech.esper.epl.agg.service.AggregationStateFactory;
 import com.espertech.esper.epl.agg.service.AggregationSupport;
+import com.espertech.esper.epl.expression.ExprEvaluator;
+import com.espertech.esper.plugin.PlugInAggregationMultiFunctionStateFactory;
 import com.espertech.esper.type.MinMaxTypeEnum;
 
 import java.lang.reflect.Constructor;
@@ -32,6 +37,8 @@ public interface MethodResolutionService
 
     public boolean isDuckType();
 
+    public boolean isSortUsingCollator();
+
     /**
      * Resolves a given method name and list of parameter types to an instance or static method exposed by the given class.
      *
@@ -41,7 +48,7 @@ public interface MethodResolutionService
      * @return method this resolves to
      * @throws EngineImportException if the method cannot be resolved to a visible static or instance method
      */
-    public Method resolveMethod(Class clazz, String methodName, Class[] paramTypes) throws EngineImportException;
+    public Method resolveMethod(Class clazz, String methodName, Class[] paramTypes, boolean[] allowEventBeanType, boolean[] allowEventBeanCollType) throws EngineImportException;
 
     /**
      * Resolves matching available constructors to a list of parameter types to an instance or static method exposed by the given class.
@@ -54,13 +61,15 @@ public interface MethodResolutionService
 
     /**
      * Resolves a given class, method and list of parameter types to a static method.
+     *
      * @param className is the class name to use
      * @param methodName is the method name
      * @param paramTypes is parameter types match expression sub-nodes
+     * @param allowEventBeanType allow event bean type footprint
      * @return method this resolves to
      * @throws EngineImportException if the method cannot be resolved to a visible static method
      */
-    public Method resolveMethod(String className, String methodName, Class[] paramTypes) throws EngineImportException;
+    public Method resolveMethod(String className, String methodName, Class[] paramTypes, boolean[] allowEventBeanType, boolean[] allowEventBeanCollType) throws EngineImportException;
 
     /**
      * Resolves a given class and method name to a static method, not allowing overloaded methods
@@ -286,11 +295,27 @@ public interface MethodResolutionService
      * @param aggregators aggregators
      * @return row count
      */
-    public long getCurrentRowCount(AggregationMethod[] aggregators, AggregationAccess[] accesses);
-
-    public AggregationAccess makeAccessStreamId(int agentInstanceId, boolean isJoin, int streamId, Object mk);
+    public long getCurrentRowCount(AggregationMethod[] aggregators, AggregationState[] states);
 
     public void destroyedAgentInstance(int agentInstanceId);
 
     public EngineImportService getEngineImportService();
+
+    public AggregationState[] newAccesses(int agentInstanceId, boolean isJoin, AggregationStateFactory[] accessAggSpecs);
+
+    public AggregationState[] newAccesses(int agentInstanceId, boolean isJoin, AggregationStateFactory[] accessAggSpecs, Object groupKey);
+
+    public AggregationState makeAccessAggLinearNonJoin(int agentInstanceId, int groupId, int aggregationId, int streamNum);
+
+    public AggregationState makeAccessAggLinearJoin(int agentInstanceId, int groupId, int aggregationId, int streamNum);
+
+    public AggregationState makeAccessAggSortedNonJoin(int agentInstanceId, int groupId, int aggregationId, AggregationStateSortedSpec spec);
+
+    public AggregationState makeAccessAggSortedJoin(int agentInstanceId, int groupId, int aggregationId, AggregationStateSortedSpec spec);
+
+    public AggregationState makeAccessAggMinMaxEver(int agentInstanceId, int groupId, int aggregationId, AggregationStateMinMaxByEverSpec spec);
+
+    public AggregationState makeAccessAggPlugin(int agentInstanceId, int groupId, int aggregationId, boolean join, PlugInAggregationMultiFunctionStateFactory providerFactory, Object groupKey);
+
+    public Object getCriteriaKeyBinding(ExprEvaluator[] evaluators);
 }

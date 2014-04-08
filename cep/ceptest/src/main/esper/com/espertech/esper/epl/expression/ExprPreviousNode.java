@@ -69,36 +69,34 @@ public class ExprPreviousNode extends ExprNodeBase implements ExprEvaluator, Exp
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if ((this.getChildNodes().size() > 2) || (this.getChildNodes().isEmpty()))
+        if ((this.getChildNodes().length > 2) || (this.getChildNodes().length == 0))
         {
             throw new ExprValidationException("Previous node must have 1 or 2 child nodes");
         }
 
         // add constant of 1 for previous index
-        if (this.getChildNodes().size() == 1)
+        if (this.getChildNodes().length == 1)
         {
             if (previousType == PreviousType.PREV) {
-                this.getChildNodes().add(0, new ExprConstantNodeImpl(1));
+                this.addChildNodeToFront(new ExprConstantNodeImpl(1));
             }
             else {
-                this.getChildNodes().add(0, new ExprConstantNodeImpl(0));
+                this.addChildNodeToFront(new ExprConstantNodeImpl(0));
             }
         }
 
         // the row recognition patterns allows "prev(prop, index)", we switch index the first position
-        if (ExprNodeUtility.isConstantValueExpr(this.getChildNodes().get(1)))
+        if (ExprNodeUtility.isConstantValueExpr(this.getChildNodes()[1]))
         {
-            ExprNode first = this.getChildNodes().get(0);
-            ExprNode second = this.getChildNodes().get(1);
-            this.getChildNodes().clear();
-            this.getChildNodes().add(second);
-            this.getChildNodes().add(first);
+            ExprNode first = this.getChildNodes()[0];
+            ExprNode second = this.getChildNodes()[1];
+            this.setChildNodes(second, first);
         }
 
         // Determine if the index is a constant value or an expression to evaluate
-        if (this.getChildNodes().get(0).isConstantResult())
+        if (this.getChildNodes()[0].isConstantResult())
         {
-            ExprNode constantNode = this.getChildNodes().get(0);
+            ExprNode constantNode = this.getChildNodes()[0];
             Object value = constantNode.getExprEvaluator().evaluate(null, false, validationContext.getExprEvaluatorContext());
             if (!(value instanceof Number))
             {
@@ -116,15 +114,15 @@ public class ExprPreviousNode extends ExprNodeBase implements ExprEvaluator, Exp
         }
 
         // Determine stream number
-        if (this.getChildNodes().get(1) instanceof ExprIdentNode) {
-            ExprIdentNode identNode = (ExprIdentNode) this.getChildNodes().get(1);
+        if (this.getChildNodes()[1] instanceof ExprIdentNode) {
+            ExprIdentNode identNode = (ExprIdentNode) this.getChildNodes()[1];
             streamNumber = identNode.getStreamId();
-            resultType = JavaClassHelper.getBoxedType(this.getChildNodes().get(1).getExprEvaluator().getType());
+            resultType = JavaClassHelper.getBoxedType(this.getChildNodes()[1].getExprEvaluator().getType());
         }
-        else if (this.getChildNodes().get(1) instanceof ExprStreamUnderlyingNode) {
-            ExprStreamUnderlyingNode streamNode = (ExprStreamUnderlyingNode) this.getChildNodes().get(1);
+        else if (this.getChildNodes()[1] instanceof ExprStreamUnderlyingNode) {
+            ExprStreamUnderlyingNode streamNode = (ExprStreamUnderlyingNode) this.getChildNodes()[1];
             streamNumber = streamNode.getStreamId();
-            resultType = JavaClassHelper.getBoxedType(this.getChildNodes().get(1).getExprEvaluator().getType());
+            resultType = JavaClassHelper.getBoxedType(this.getChildNodes()[1].getExprEvaluator().getType());
             enumerationMethodType = validationContext.getStreamTypeService().getEventTypes()[streamNode.getStreamId()];
         }
         else
@@ -218,12 +216,12 @@ public class ExprPreviousNode extends ExprNodeBase implements ExprEvaluator, Exp
         buffer.append(previousType.toString().toLowerCase());
         buffer.append("(");
         if ((previousType == PreviousType.PREVCOUNT || previousType == PreviousType.PREVWINDOW)) {
-            buffer.append(this.getChildNodes().get(1).toExpressionString());
+            buffer.append(this.getChildNodes()[1].toExpressionString());
         }
         else {
-            buffer.append(this.getChildNodes().get(0).toExpressionString());
+            buffer.append(this.getChildNodes()[0].toExpressionString());
             buffer.append(", ");
-            buffer.append(this.getChildNodes().get(1).toExpressionString());
+            buffer.append(this.getChildNodes()[1].toExpressionString());
         }
         buffer.append(')');
         return buffer.toString();

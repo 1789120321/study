@@ -9,6 +9,7 @@
 package com.espertech.esper.epl.agg.service;
 
 import com.espertech.esper.epl.agg.access.AggregationAccessor;
+import com.espertech.esper.epl.agg.access.AggregationStateKey;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
 import com.espertech.esper.epl.core.MethodResolutionService;
 
@@ -17,11 +18,15 @@ import com.espertech.esper.epl.core.MethodResolutionService;
  */
 public interface AggregationMethodFactory
 {
+    public boolean isAccessAggregation();
+
     public AggregationMethod make(MethodResolutionService methodResolutionService, int agentInstanceId, int groupId, int aggregationId);
 
     public Class getResultType();
 
-    public AggregationSpec getSpec(boolean isMatchRecognize);
+    public AggregationStateKey getAggregationStateKey(boolean isMatchRecognize);
+
+    public AggregationStateFactory getAggregationStateFactory(boolean isMatchRecognize);
 
     public AggregationAccessor getAccessor();
 }

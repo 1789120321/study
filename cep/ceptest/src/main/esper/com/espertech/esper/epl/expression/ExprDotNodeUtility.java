@@ -10,6 +10,7 @@ package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.client.EventPropertyGetter;
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.epl.datetime.eval.DatetimeMethodEnum;
 import com.espertech.esper.epl.datetime.eval.ExprDotEvalDTFactory;
 import com.espertech.esper.epl.datetime.eval.ExprDotEvalDTMethodDesc;
@@ -17,12 +18,9 @@ import com.espertech.esper.epl.datetime.eval.ExprDotNodeFilterAnalyzerDesc;
 import com.espertech.esper.epl.enummethod.dot.*;
 import com.espertech.esper.event.EventTypeMetadata;
 import com.espertech.esper.event.arr.ObjectArrayEventType;
-import com.espertech.esper.event.map.MapEventType;
 import com.espertech.esper.util.JavaClassHelper;
-import net.sf.cglib.reflect.FastClass;
 import net.sf.cglib.reflect.FastMethod;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class ExprDotNodeUtility
@@ -31,7 +29,7 @@ public class ExprDotNodeUtility
         return EnumMethodEnum.isEnumerationMethod(name) || DatetimeMethodEnum.isDateTimeMethod(name);
     }
 
-    public static ExprDotNodeRealizedChain getChainEvaluators(ExprDotEvalTypeInfo inputType,
+    public static ExprDotNodeRealizedChain getChainEvaluators(ExpressionReturnType inputType,
                                                    List<ExprChainedSpec> chainSpec,
                                                    ExprValidationContext validationContext,
                                                    boolean isDuckTyping,
@@ -39,7 +37,7 @@ public class ExprDotNodeUtility
             throws ExprValidationException
     {
         List<ExprDotEval> methodEvals = new ArrayList<ExprDotEval>();
-        ExprDotEvalTypeInfo currentInputType = inputType;
+        ExpressionReturnType currentInputType = inputType;
         EnumMethodEnum lastLambdaFunc = null;
         ExprChainedSpec lastElement = chainSpec.isEmpty() ? null : chainSpec.get(chainSpec.size() - 1);
         ExprDotNodeFilterAnalyzerDesc filterAnalyzerDesc = null;
@@ -58,8 +56,8 @@ public class ExprDotNodeUtility
             }
 
             // check if special 'size' method
-            if ( (currentInputType.isScalar() && currentInputType.getScalar().isArray()) ||
-                 (currentInputType.getComponent() != null)) {
+            if ( (currentInputType.isSingleValueNonNull() && currentInputType.getSingleValueType().isArray()) ||
+                 (currentInputType.getComponentType() != null)) {
                 if (chainElement.getName().toLowerCase().equals("size") && paramTypes.length == 0 && lastElement == chainElement) {
                     ExprDotEvalArraySize sizeExpr = new ExprDotEvalArraySize();
                     methodEvals.add(sizeExpr);
@@ -67,7 +65,7 @@ public class ExprDotNodeUtility
                     continue;
                 }
                 if (chainElement.getName().toLowerCase().equals("get") && paramTypes.length == 1 && JavaClassHelper.getBoxedType(paramTypes[0]) == Integer.class) {
-                    Class componentType = currentInputType.getComponent() != null ? currentInputType.getComponent() : currentInputType.getScalar().getComponentType();
+                    Class componentType = currentInputType.getComponentType() != null ? currentInputType.getComponentType() : currentInputType.getSingleValueType().getComponentType();
                     ExprDotEvalArrayGet get = new ExprDotEvalArrayGet(paramEvals[0], componentType);
                     methodEvals.add(get);
                     currentInputType = get.getTypeInfo();
@@ -103,44 +101,58 @@ public class ExprDotNodeUtility
             }
 
             // try to resolve as property if the last method returned a type
-            if (currentInputType.getEventType() != null) {
-                Class type = currentInputType.getEventType().getPropertyType(chainElement.getName());
-                EventPropertyGetter getter = currentInputType.getEventType().getGetter(chainElement.getName());
+            if (currentInputType.getSingleEventEventType() != null) {
+                Class type = currentInputType.getSingleEventEventType().getPropertyType(chainElement.getName());
+                EventPropertyGetter getter = currentInputType.getSingleEventEventType().getGetter(chainElement.getName());
                 if (type != null && getter != null) {
-                    ExprDotEvalProperty noduck = new ExprDotEvalProperty(getter, ExprDotEvalTypeInfo.scalarOrUnderlying(JavaClassHelper.getBoxedType(type)));
+                    ExprDotEvalProperty noduck = new ExprDotEvalProperty(getter, ExpressionReturnType.singleValue(JavaClassHelper.getBoxedType(type)));
                     methodEvals.add(noduck);
-                    currentInputType = ExprDotEvalTypeInfo.scalarOrUnderlying(noduck.getTypeInfo().getScalar());
+                    currentInputType = ExpressionReturnType.singleValue(noduck.getTypeInfo().getSingleValueType());
                     continue;
                 }
 
                 // preresolve as method
                 try {
-                    if (currentInputType.isScalar()) {
-                        validationContext.getMethodResolutionService().resolveMethod(currentInputType.getScalar(), chainElement.getName(), paramTypes);
+                    if (currentInputType.isSingleValueNonNull()) {
+                        ExprNodeUtilResolveExceptionHandler exceptionHandler = new ExprNodeUtilResolveExceptionHandler() {
+                            public ExprValidationException handle(Exception e) {
+                                return new ExprValidationException("Failed to resolve");
+                            }
+                        };
+                        EventType wildcardType = validationContext.getStreamTypeService().getEventTypes().length != 1 ? null : validationContext.getStreamTypeService().getEventTypes()[0];
+                        ExprNodeUtility.resolveMethodAllowWildcardAndStream(currentInputType.getSingleValueType().getName(), currentInputType.getSingleValueType(), chainElement.getName(), chainElement.getParameters(), validationContext.getMethodResolutionService(), validationContext.getEventAdapterService(), validationContext.getStatementId(), wildcardType != null, wildcardType, exceptionHandler, chainElement.getName());
                     }
                 }
                 catch (Exception ex) {
-                    throw new ExprValidationException("Could not resolve '" + chainElement.getName() + "' to a property of event type '" + currentInputType.getEventType().getName() + "' or method on type '" + currentInputType + "'");
+                    throw new ExprValidationException("Could not resolve '" + chainElement.getName() + "' to a property of event type '" + currentInputType.getSingleEventEventType().getName() + "' or method on type '" + currentInputType + "'");
                 }
             }
 
             // Try to resolve the method
-            if (currentInputType.isScalar() || currentInputType.getEventType() != null) {
+            if (currentInputType.isSingleValueNonNull() || currentInputType.getSingleEventEventType() != null) {
                 try
                 {
                     Class target;
-                    if (currentInputType.isScalar()) {
-                        target = currentInputType.getScalar();
+                    if (currentInputType.isSingleValueNonNull()) {
+                        target = currentInputType.getSingleValueType();
                     }
                     else {
-                        target = currentInputType.getEventType().getUnderlyingType();
+                        target = currentInputType.getSingleEventEventType().getUnderlyingType();
                     }
-                    Method method = validationContext.getMethodResolutionService().resolveMethod(target, chainElement.getName(), paramTypes);
-                    FastClass declaringClass = FastClass.create(Thread.currentThread().getContextClassLoader(), method.getDeclaringClass());
-                    FastMethod fastMethod = declaringClass.getMethod(method);
+
+                    final String methodName = chainElement.getName();
+                    ExprNodeUtilResolveExceptionHandler exceptionHandler = new ExprNodeUtilResolveExceptionHandler() {
+                        public ExprValidationException handle(Exception e) {
+                            return new ExprValidationException("Failed to resolve method '" + methodName + "': " + e.getMessage(), e);
+                        }
+                    };
+                    EventType wildcardType = validationContext.getStreamTypeService().getEventTypes().length != 1 ? null : validationContext.getStreamTypeService().getEventTypes()[0];
+                    ExprNodeUtilMethodDesc desc = ExprNodeUtility.resolveMethodAllowWildcardAndStream(target.getName(), target, methodName, chainElement.getParameters(), validationContext.getMethodResolutionService(), validationContext.getEventAdapterService(), validationContext.getStatementId(), wildcardType != null, wildcardType, exceptionHandler, methodName);
+                    FastMethod fastMethod = desc.getFastMethod();
+                    paramEvals = desc.getChildEvals();
 
                     ExprDotEval eval;
-                    if (currentInputType.isScalar()) {
+                    if (currentInputType.isSingleValueNonNull()) {
                         // if followed by an enumeration method, convert array to collection
                         if (fastMethod.getReturnType().isArray() && !chainSpecStack.isEmpty() && EnumMethodEnum.isEnumerationMethod(chainSpecStack.getFirst().getName())) {
                             eval = new ExprDotMethodEvalNoDuckWrapArray(validationContext.getStatementName(), fastMethod, paramEvals);
@@ -170,18 +182,18 @@ public class ExprDotNodeUtility
             }
 
             String message = "Could not find event property, enumeration method or instance method named '" +
-                    chainElement.getName() + "' in " + currentInputType.toTypeName();
+                    chainElement.getName() + "' in " + currentInputType.toTypeDescriptive();
             throw new ExprValidationException(message);
         }
 
         ExprDotEval[] intermediateEvals = methodEvals.toArray(new ExprDotEval[methodEvals.size()]);
 
         if (lastLambdaFunc != null) {
-            if (currentInputType.getEventTypeColl() != null) {
-                methodEvals.add(new ExprDotEvalUnpackCollEventBean(currentInputType.getEventTypeColl()));
+            if (currentInputType.getCollOfEventEventType() != null) {
+                methodEvals.add(new ExprDotEvalUnpackCollEventBean(currentInputType.getCollOfEventEventType()));
             }
-            else if (currentInputType.getEventType() != null) {
-                methodEvals.add(new ExprDotEvalUnpackBean(currentInputType.getEventType()));
+            else if (currentInputType.getSingleEventEventType() != null) {
+                methodEvals.add(new ExprDotEvalUnpackBean(currentInputType.getSingleEventEventType()));
             }
         }
 

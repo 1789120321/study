@@ -10,6 +10,7 @@ package com.espertech.esper.epl.core;
 
 import com.espertech.esper.client.ConfigurationMethodRef;
 import com.espertech.esper.client.ConfigurationPlugInAggregationFunction;
+import com.espertech.esper.client.ConfigurationPlugInAggregationMultiFunction;
 import com.espertech.esper.client.ConfigurationPlugInSingleRowFunction;
 import com.espertech.esper.client.hook.AggregationFunctionFactory;
 import com.espertech.esper.collection.Pair;
@@ -23,10 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.MathContext;
+import java.util.*;
 
 /**
  * Implementation for engine-level imports.
@@ -37,25 +36,31 @@ public class EngineImportServiceImpl implements EngineImportService
 
 	private final List<String> imports;
     private final Map<String, ConfigurationPlugInAggregationFunction> aggregationFunctions;
+    private final List<Pair<Set<String>, ConfigurationPlugInAggregationMultiFunction>> aggregationAccess;
     private final Map<String, EngineImportSingleRowDesc> singleRowFunctions;
     private final Map<String, ConfigurationMethodRef> methodInvocationRef;
     private final boolean allowExtendedAggregationFunc;
     private final boolean isUdfCache;
     private final boolean isDuckType;
+    private final boolean sortUsingCollator;
+    private final MathContext optionalDefaultMathContext;
 
     /**
 	 * Ctor
      * @param allowExtendedAggregationFunc true to allow non-SQL standard builtin agg functions.
 	 */
-	public EngineImportServiceImpl(boolean allowExtendedAggregationFunc, boolean isUdfCache, boolean isDuckType)
+	public EngineImportServiceImpl(boolean allowExtendedAggregationFunc, boolean isUdfCache, boolean isDuckType, boolean sortUsingCollator, MathContext optionalDefaultMathContext)
     {
         imports = new ArrayList<String>();
         aggregationFunctions = new HashMap<String, ConfigurationPlugInAggregationFunction>();
+        aggregationAccess = new ArrayList<Pair<Set<String>, ConfigurationPlugInAggregationMultiFunction>>();
         singleRowFunctions = new HashMap<String, EngineImportSingleRowDesc>();
         methodInvocationRef = new HashMap<String, ConfigurationMethodRef>();
         this.allowExtendedAggregationFunc = allowExtendedAggregationFunc;
         this.isUdfCache = isUdfCache;
         this.isDuckType = isDuckType;
+        this.sortUsingCollator = sortUsingCollator;
+        this.optionalDefaultMathContext = optionalDefaultMathContext;
     }
 
     public boolean isUdfCache() {
@@ -95,19 +100,8 @@ public class EngineImportServiceImpl implements EngineImportService
 
     public void addAggregation(String functionName, ConfigurationPlugInAggregationFunction aggregationDesc) throws EngineImportException
     {
-        ConfigurationPlugInAggregationFunction existing = aggregationFunctions.get(functionName);
-        if (existing != null)
-        {
-            throw new EngineImportException("Aggregation function by name '" + functionName + "' is already defined");
-        }
-        if (singleRowFunctions.containsKey(functionName))
-        {
-            throw new EngineImportException("Single-row function by name '" + functionName + "' is already defined");
-        }
-        if(!isFunctionName(functionName))
-        {
-            throw new EngineImportException("Invalid aggregation function name '" + functionName + "'");
-        }
+        validateFunctionName("aggregation function", functionName);
+
         if (aggregationDesc.getFactoryClassName() != null) {
             if(!isClassName(aggregationDesc.getFactoryClassName()))
             {
@@ -124,19 +118,8 @@ public class EngineImportServiceImpl implements EngineImportService
     }
 
     public void addSingleRow(String functionName, String singleRowFuncClass, String methodName, ConfigurationPlugInSingleRowFunction.ValueCache valueCache, ConfigurationPlugInSingleRowFunction.FilterOptimizable filterOptimizable, boolean rethrowExceptions) throws EngineImportException {
-        EngineImportSingleRowDesc existing = singleRowFunctions.get(functionName);
-        if (existing != null)
-        {
-            throw new EngineImportException("Single-Row function by name '" + functionName + "' is already defined");
-        }
-        if (aggregationFunctions.containsKey(functionName))
-        {
-            throw new EngineImportException("Aggregation function by name '" + functionName + "' is already defined");
-        }
-        if(!isFunctionName(functionName))
-        {
-            throw new EngineImportException("Invalid single-row function name '" + functionName + "'");
-        }
+        validateFunctionName("single-row", functionName);
+
         if(!isClassName(singleRowFuncClass))
         {
             throw new EngineImportException("Invalid class name for aggregation '" + singleRowFuncClass + "'");
@@ -233,6 +216,28 @@ public class EngineImportServiceImpl implements EngineImportService
         return (AggregationFunctionFactory) object;
     }
 
+    public void addAggregationMultiFunction(ConfigurationPlugInAggregationMultiFunction desc) throws EngineImportException {
+        LinkedHashSet<String> orderedImmutableFunctionNames = new LinkedHashSet<String>();
+        for (String functionName : desc.getFunctionNames()) {
+            orderedImmutableFunctionNames.add(functionName.toLowerCase());
+            validateFunctionName("aggregation multi-function", functionName.toLowerCase());
+        }
+        if(!isClassName(desc.getMultiFunctionFactoryClassName()))
+        {
+            throw new EngineImportException("Invalid class name for aggregation multi-function factory '" + desc.getMultiFunctionFactoryClassName() + "'");
+        }
+        aggregationAccess.add(new Pair<Set<String>, ConfigurationPlugInAggregationMultiFunction>(orderedImmutableFunctionNames, desc));
+    }
+
+    public ConfigurationPlugInAggregationMultiFunction resolveAggregationMultiFunction(String name) {
+        for (Pair<Set<String>, ConfigurationPlugInAggregationMultiFunction> config : aggregationAccess) {
+            if (config.getFirst().contains(name.toLowerCase())) {
+                return config.getSecond();
+            }
+        }
+        return null;
+    }
+
     public Pair<Class, EngineImportSingleRowDesc> resolveSingleRow(String name) throws EngineImportException, EngineImportUndefinedException
     {
         EngineImportSingleRowDesc pair = singleRowFunctions.get(name);
@@ -258,8 +263,8 @@ public class EngineImportServiceImpl implements EngineImportService
         return new Pair<Class, EngineImportSingleRowDesc>(clazz, pair);
     }
 
-    public Method resolveMethod(String className, String methodName, Class[] paramTypes)
-			throws EngineImportException
+    public Method resolveMethod(String className, String methodName, Class[] paramTypes, boolean[] allowEventBeanType, boolean[] allowEventBeanCollType)
+            throws EngineImportException
     {
         Class clazz;
         try
@@ -273,7 +278,7 @@ public class EngineImportServiceImpl implements EngineImportService
 
         try
         {
-            return MethodResolver.resolveMethod(clazz, methodName, paramTypes, false);
+            return MethodResolver.resolveMethod(clazz, methodName, paramTypes, false, allowEventBeanType, allowEventBeanCollType);
         }
         catch (EngineNoSuchMethodException e)
         {
@@ -462,12 +467,12 @@ public class EngineImportServiceImpl implements EngineImportService
 		throw new ClassNotFoundException("Unknown class " + className);
 	}
 
-    public Method resolveMethod(Class clazz, String methodName, Class[] paramTypes)
+    public Method resolveMethod(Class clazz, String methodName, Class[] paramTypes, boolean[] allowEventBeanType, boolean[] allowEventBeanCollType)
 			throws EngineImportException
     {
         try
         {
-            return MethodResolver.resolveMethod(clazz, methodName, paramTypes, true);
+            return MethodResolver.resolveMethod(clazz, methodName, paramTypes, true, allowEventBeanType, allowEventBeanType);
         }
         catch (EngineNoSuchMethodException e)
         {
@@ -560,7 +565,35 @@ public class EngineImportServiceImpl implements EngineImportService
         {
             return new ExprLeavingAggNode(isDistinct);
         }
+        if (name.toLowerCase().equals("maxby"))
+        {
+            return new ExprAggMultiFunctionSortedMinMaxByNode(true, false, false);
+        }
+        if (name.toLowerCase().equals("maxbyever"))
+        {
+            return new ExprAggMultiFunctionSortedMinMaxByNode(true, true, false);
+        }
+        if (name.toLowerCase().equals("minby"))
+        {
+            return new ExprAggMultiFunctionSortedMinMaxByNode(false, false, false);
+        }
+        if (name.toLowerCase().equals("minbyever"))
+        {
+            return new ExprAggMultiFunctionSortedMinMaxByNode(false, true, false);
+        }
+        if (name.toLowerCase().equals("sorted"))
+        {
+            return new ExprAggMultiFunctionSortedMinMaxByNode(false, false, true);
+        }
         return null;
+    }
+
+    public MathContext getDefaultMathContext() {
+        return optionalDefaultMathContext;
+    }
+
+    public boolean isSortUsingCollator() {
+        return sortUsingCollator;
     }
 
     /**
@@ -595,4 +628,25 @@ public class EngineImportServiceImpl implements EngineImportService
 	{
 		return importName.substring(0, importName.length() - 2);
 	}
+
+    private void validateFunctionName(String functionType, String functionName) throws EngineImportException {
+        String functionNameLower = functionName.toLowerCase();
+        if (aggregationFunctions.containsKey(functionNameLower))
+        {
+            throw new EngineImportException("Aggregation function by name '" + functionName + "' is already defined");
+        }
+        if (singleRowFunctions.containsKey(functionNameLower))
+        {
+            throw new EngineImportException("Single-row function by name '" + functionName + "' is already defined");
+        }
+        for (Pair<Set<String>, ConfigurationPlugInAggregationMultiFunction> pairs : aggregationAccess) {
+            if (pairs.getFirst().contains(functionNameLower)) {
+                throw new EngineImportException("Aggregation multi-function by name '" + functionName + "' is already defined");
+            }
+        }
+        if(!isFunctionName(functionName))
+        {
+            throw new EngineImportException("Invalid " + functionType + " name '" + functionName + "'");
+        }
+    }
 }

@@ -40,7 +40,7 @@ public class ExprOrderedExpr extends ExprNodeBase implements ExprEvaluator
 
     public String toExpressionString()
     {
-        String inner = this.getChildNodes().get(0).toExpressionString();
+        String inner = this.getChildNodes()[0].toExpressionString();
         if (isDescending)
         {
             return inner + " desc";
@@ -55,7 +55,7 @@ public class ExprOrderedExpr extends ExprNodeBase implements ExprEvaluator
 
     public boolean isConstantResult()
     {
-        return getChildNodes().get(0).isConstantResult();
+        return getChildNodes()[0].isConstantResult();
     }
 
     public boolean equalsNode(ExprNode node)
@@ -70,13 +70,13 @@ public class ExprOrderedExpr extends ExprNodeBase implements ExprEvaluator
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        evaluator = getChildNodes().get(0).getExprEvaluator();
+        evaluator = getChildNodes()[0].getExprEvaluator();
         // always valid
     }
 
     public Class getType()
     {
-        return getChildNodes().get(0).getExprEvaluator().getType();
+        return getChildNodes()[0].getExprEvaluator().getType();
     }
 
     public Object evaluate(EventBean[] eventsPerStream, boolean isNewData, ExprEvaluatorContext exprEvaluatorContext)

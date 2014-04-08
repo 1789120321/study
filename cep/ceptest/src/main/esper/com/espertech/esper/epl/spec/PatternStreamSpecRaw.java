@@ -55,7 +55,7 @@ public class PatternStreamSpecRaw extends StreamSpecBase implements StreamSpecRa
      * @param optionalStreamName - stream name, or null if none supplied
      * @param streamSpecOptions - additional options, such as unidirectional stream in a join
      */
-    public PatternStreamSpecRaw(EvalFactoryNode evalFactoryNode, Map<EvalFactoryNode, String> evalNodeExpressions, List<ViewSpec> viewSpecs, String optionalStreamName, StreamSpecOptions streamSpecOptions)
+    public PatternStreamSpecRaw(EvalFactoryNode evalFactoryNode, Map<EvalFactoryNode, String> evalNodeExpressions, ViewSpec[] viewSpecs, String optionalStreamName, StreamSpecOptions streamSpecOptions)
     {
         super(optionalStreamName, viewSpecs, streamSpecOptions);
         this.evalFactoryNode = evalFactoryNode;

@@ -16,14 +16,13 @@ import com.espertech.esper.filter.FilterSpecCompiled;
 import com.espertech.esper.filter.FilterValueSetParam;
 
 import java.io.Serializable;
-import java.util.ArrayDeque;
 
 public class ContextDetailCategoryItem implements Serializable {
 
     private static final long serialVersionUID = -2022340210686656104L;
     private final ExprNode expression;
     private final String name;
-    private ArrayDeque<FilterValueSetParam> compiledFilterParam;
+    private FilterValueSetParam[] compiledFilterParam;
 
     public ContextDetailCategoryItem(ExprNode expression, String name) {
         this.expression = expression;
@@ -38,7 +37,7 @@ public class ContextDetailCategoryItem implements Serializable {
         return name;
     }
 
-    public ArrayDeque<FilterValueSetParam> getCompiledFilterParam() {
+    public FilterValueSetParam[] getCompiledFilterParam() {
         return compiledFilterParam;
     }
 

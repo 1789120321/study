@@ -12,12 +12,15 @@ import com.espertech.esper.epl.expression.ExprNode;
 import com.espertech.esper.util.MetaDefItem;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * Specification object to an element in the order-by expression.
  */
 public class OrderByItem implements MetaDefItem, Serializable
 {
+    public static final OrderByItem[] EMPTY_ORDERBY_ARRAY = new OrderByItem[0];
+
     private ExprNode exprNode;
     private boolean isDescending;
     private static final long serialVersionUID = 4147598689501964350L;
@@ -53,5 +56,12 @@ public class OrderByItem implements MetaDefItem, Serializable
 
     public OrderByItem copy() {
         return new OrderByItem(exprNode, isDescending());
+    }
+
+    public static OrderByItem[] toArray(Collection<OrderByItem> expressions) {
+        if (expressions.isEmpty()) {
+            return EMPTY_ORDERBY_ARRAY;
+        }
+        return expressions.toArray(new OrderByItem[expressions.size()]);
     }
 }

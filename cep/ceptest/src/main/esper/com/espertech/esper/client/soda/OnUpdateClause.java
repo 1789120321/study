@@ -66,16 +66,8 @@ public class OnUpdateClause extends OnClause
             writer.write(optionalAsName);
         }
 
-        writer.write(" set ");
-        String delimiter = "";
-        for (AssignmentPair pair : assignments)
-        {
-            writer.write(delimiter);
-            writer.write(pair.getName());
-            writer.write(" = ");
-            pair.getValue().toEPL(writer, ExpressionPrecedenceEnum.MINIMUM);
-            delimiter = ", ";
-        }        
+        writer.write(" ");
+        UpdateClause.renderEPLAssignments(writer, assignments);
     }
 
     /**

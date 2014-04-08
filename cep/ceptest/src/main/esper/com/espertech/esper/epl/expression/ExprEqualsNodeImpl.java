@@ -55,7 +55,7 @@ public class ExprEqualsNodeImpl extends ExprNodeBase implements ExprEqualsNode
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
         // Must have 2 child nodes
-        if (this.getChildNodes().size() != 2)
+        if (this.getChildNodes().length != 2)
         {
             throw new IllegalStateException("Equals node does not have exactly 2 child nodes");
         }
@@ -124,9 +124,22 @@ public class ExprEqualsNodeImpl extends ExprNodeBase implements ExprEqualsNode
     {
         StringBuilder buffer = new StringBuilder();
 
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
-        buffer.append(" = ");
-        buffer.append(this.getChildNodes().get(1).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
+        if (isIs) {
+            buffer.append(" is ");
+            if (isNotEquals) {
+                buffer.append("not ");
+            }
+        }
+        else {
+            if (!isNotEquals) {
+                buffer.append(" = ");
+            }
+            else {
+                buffer.append(" != ");
+            }
+        }
+        buffer.append(this.getChildNodes()[1].toExpressionString());
 
         return buffer.toString();
     }

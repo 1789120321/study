@@ -99,12 +99,7 @@ public class StatementAgentInstanceFactorySelect implements StatementAgentInstan
             services.getSchedulableAgentInstanceDirectory().add(agentInstanceContext.getEpStatementAgentInstanceHandle());
         }
 
-        final List<StopCallback> stopCallbacks = new ArrayList<StopCallback>();
-        StopCallback stopCallback = new StopCallback() {
-            public void stop() {
-                StatementAgentInstanceUtil.stopSafe(agentInstanceContext.getTerminationCallbacks(), stopCallbacks, statementContext);
-            }
-        };
+        final List<StopCallback> stopCallbacks = new ArrayList<StopCallback>(2);
 
         Viewable finalView;
         ViewableActivationResult[] viewableActivationResult = new ViewableActivationResult[eventStreamParentViewableActivators.length];
@@ -203,14 +198,14 @@ public class StatementAgentInstanceFactorySelect implements StatementAgentInstan
 
             // Replay any named window data, for later consumers of named data windows
             boolean hasNamedWindow = false;
-            FilterSpecCompiled[] namedWindowPostloadFilters = new FilterSpecCompiled[statementSpec.getStreamSpecs().size()];
-            NamedWindowTailViewInstance[] namedWindowTailViews = new NamedWindowTailViewInstance[statementSpec.getStreamSpecs().size()];
-            List<ExprNode>[] namedWindowFilters = new List[statementSpec.getStreamSpecs().size()];
+            FilterSpecCompiled[] namedWindowPostloadFilters = new FilterSpecCompiled[statementSpec.getStreamSpecs().length];
+            NamedWindowTailViewInstance[] namedWindowTailViews = new NamedWindowTailViewInstance[statementSpec.getStreamSpecs().length];
+            List<ExprNode>[] namedWindowFilters = new List[statementSpec.getStreamSpecs().length];
 
-            for (int i = 0; i < statementSpec.getStreamSpecs().size(); i++)
+            for (int i = 0; i < statementSpec.getStreamSpecs().length; i++)
             {
                 final int streamNum = i;
-                StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs().get(i);
+                StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs()[i];
 
                 if (streamSpec instanceof NamedWindowConsumerStreamSpec)
                 {
@@ -299,10 +294,12 @@ public class StatementAgentInstanceFactorySelect implements StatementAgentInstan
             }
         }
         catch (RuntimeException ex) {
+            StopCallback stopCallback = StatementAgentInstanceUtil.getStopCallback(stopCallbacks, agentInstanceContext);
             StatementAgentInstanceUtil.stopSafe(stopCallback, statementContext);
             throw ex;
         }
 
+        StopCallback stopCallback = StatementAgentInstanceUtil.getStopCallback(stopCallbacks, agentInstanceContext);
         return new StatementAgentInstanceFactorySelectResult(finalView, stopCallback, agentInstanceContext, aggregationService, subselectStrategies, priorNodeStrategies, previousNodeStrategies, preloadList, patternRoots, postLoadJoin, topViews, eventStreamParentViewable);
     }
 
@@ -321,7 +318,7 @@ public class StatementAgentInstanceFactorySelect implements StatementAgentInstan
         }
 
         // for ordered deliver without output limit/buffer
-        if (!statementSpec.getOrderByList().isEmpty() && (statementSpec.getOutputLimitSpec() == null)) {
+        if (statementSpec.getOrderByList().length > 0 && (statementSpec.getOutputLimitSpec() == null)) {
             SingleStreamDispatchView bf = new SingleStreamDispatchView();
             agentInstanceContext.getEpStatementAgentInstanceHandle().setOptionalDispatchable(bf);
             finalView.addView(bf);
@@ -362,7 +359,7 @@ public class StatementAgentInstanceFactorySelect implements StatementAgentInstan
         indicatorView.setJoinExecutionStrategy(execution);
 
         // Hook up dispatchable with buffer and execution strategy
-        JoinExecStrategyDispatchable joinStatementDispatch = new JoinExecStrategyDispatchable(execution, statementSpec.getStreamSpecs().size());
+        JoinExecStrategyDispatchable joinStatementDispatch = new JoinExecStrategyDispatchable(execution, statementSpec.getStreamSpecs().length);
         agentInstanceContext.getEpStatementAgentInstanceHandle().setOptionalDispatchable(joinStatementDispatch);
 
         JoinPreloadMethod preloadMethod;
@@ -376,7 +373,7 @@ public class StatementAgentInstanceFactorySelect implements StatementAgentInstan
         }
 
         // Create buffer for each view. Point buffer to dispatchable for join.
-        for (int i = 0; i < statementSpec.getStreamSpecs().size(); i++)
+        for (int i = 0; i < statementSpec.getStreamSpecs().length; i++)
         {
             BufferView buffer = new BufferView(i);
             streamViews[i].addView(buffer);

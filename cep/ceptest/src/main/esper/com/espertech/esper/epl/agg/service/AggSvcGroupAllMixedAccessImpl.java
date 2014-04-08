@@ -9,7 +9,7 @@
 package com.espertech.esper.epl.agg.service;
 
 import com.espertech.esper.client.EventBean;
-import com.espertech.esper.epl.agg.access.AggregationAccess;
+import com.espertech.esper.epl.agg.access.AggregationState;
 import com.espertech.esper.epl.agg.access.AggregationAccessorSlotPair;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
 import com.espertech.esper.epl.expression.ExprEvaluator;
@@ -23,12 +23,12 @@ import java.util.Collection;
 public class AggSvcGroupAllMixedAccessImpl extends AggregationServiceBaseUngrouped
 {
     private final AggregationAccessorSlotPair[] accessors;
-    protected AggregationAccess[] accesses;
+    protected AggregationState[] states;
 
-    public AggSvcGroupAllMixedAccessImpl(ExprEvaluator evaluators[], AggregationMethod aggregators[], AggregationAccessorSlotPair[] accessors, AggregationAccess[] accesses) {
+    public AggSvcGroupAllMixedAccessImpl(ExprEvaluator evaluators[], AggregationMethod aggregators[], AggregationAccessorSlotPair[] accessors, AggregationState[] states) {
         super(evaluators, aggregators);
         this.accessors = accessors;
-        this.accesses = accesses;
+        this.states = states;
     }
 
     public void applyEnter(EventBean[] eventsPerStream, Object optionalGroupKeyPerRow, ExprEvaluatorContext exprEvaluatorContext)
@@ -39,8 +39,8 @@ public class AggSvcGroupAllMixedAccessImpl extends AggregationServiceBaseUngroup
             aggregators[j].enter(columnResult);
         }
 
-        for (AggregationAccess access : accesses) {
-            access.applyEnter(eventsPerStream);
+        for (AggregationState state : states) {
+            state.applyEnter(eventsPerStream, exprEvaluatorContext);
         }
     }
 
@@ -52,8 +52,8 @@ public class AggSvcGroupAllMixedAccessImpl extends AggregationServiceBaseUngroup
             aggregators[j].leave(columnResult);
         }
 
-        for (AggregationAccess access : accesses) {
-            access.applyLeave(eventsPerStream);
+        for (AggregationState state : states) {
+            state.applyLeave(eventsPerStream, exprEvaluatorContext);
         }        
     }
 
@@ -69,7 +69,7 @@ public class AggSvcGroupAllMixedAccessImpl extends AggregationServiceBaseUngroup
         }
         else {
             AggregationAccessorSlotPair pair = accessors[column - aggregators.length];
-            return pair.getAccessor().getValue(accesses[pair.getSlot()]);
+            return pair.getAccessor().getValue(states[pair.getSlot()]);
         }
     }
 
@@ -79,7 +79,7 @@ public class AggSvcGroupAllMixedAccessImpl extends AggregationServiceBaseUngroup
         }
         else {
             AggregationAccessorSlotPair pair = accessors[column - aggregators.length];
-            return pair.getAccessor().getCollectionReadOnly(accesses[pair.getSlot()]);
+            return pair.getAccessor().getEnumerableEvents(states[pair.getSlot()]);
         }
     }
 
@@ -89,14 +89,14 @@ public class AggSvcGroupAllMixedAccessImpl extends AggregationServiceBaseUngroup
         }
         else {
             AggregationAccessorSlotPair pair = accessors[column - aggregators.length];
-            return pair.getAccessor().getEventBean(accesses[pair.getSlot()]);
+            return pair.getAccessor().getEnumerableEvent(states[pair.getSlot()]);
         }
     }
 
     public void clearResults(ExprEvaluatorContext exprEvaluatorContext)
     {
-        for (AggregationAccess access : accesses) {
-            access.clear();
+        for (AggregationState state : states) {
+            state.clear();
         }
         for (AggregationMethod aggregator : aggregators)
         {

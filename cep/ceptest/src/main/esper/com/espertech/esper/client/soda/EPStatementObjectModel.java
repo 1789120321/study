@@ -67,6 +67,7 @@ public class EPStatementObjectModel implements Serializable
     private MatchRecognizeClause matchRecognizeClause;
     private ForClause forClause;
     private String treeObjectName;
+    private FireAndForgetClause fireAndForgetClause;
 
     /**
      * Ctor.
@@ -489,12 +490,22 @@ public class EPStatementObjectModel implements Serializable
                 throw new IllegalStateException("From-clause has not been defined");
             }
 
-            if (insertInto != null)
-            {
-                insertInto.toEPL(writer, formatter, true);
+            if (fireAndForgetClause != null) {
+                fireAndForgetClause.toEPLBeforeFrom(writer);
             }
-            selectClause.toEPL(writer, formatter, true, false);
-            fromClause.toEPL(writer, formatter);
+            else {
+                if (insertInto != null) {
+                    insertInto.toEPL(writer, formatter, true);
+                }
+                selectClause.toEPL(writer, formatter, true, false);
+            }
+
+            boolean includeFrom = fireAndForgetClause == null || (!(fireAndForgetClause instanceof FireAndForgetUpdate));
+            fromClause.toEPLOptions(writer, formatter, includeFrom);
+
+            if (fireAndForgetClause != null) {
+                fireAndForgetClause.toEPLAfterFrom(writer);
+            }
         }
 
         if (matchRecognizeClause != null)
@@ -831,5 +842,21 @@ public class EPStatementObjectModel implements Serializable
      */
     public void setCreateExpression(CreateExpressionClause createExpression) {
         this.createExpression = createExpression;
+    }
+
+    /**
+     * Returns fire-and-forget (on-demand) query information for FAF select, insert, update and delete.
+     * @return fire and forget query information
+     */
+    public FireAndForgetClause getFireAndForgetClause() {
+        return fireAndForgetClause;
+    }
+
+    /**
+     * Sets fire-and-forget (on-demand) query information for FAF select, insert, update and delete.
+     * @param fireAndForgetClause fire and forget query information
+     */
+    public void setFireAndForgetClause(FireAndForgetClause fireAndForgetClause) {
+        this.fireAndForgetClause = fireAndForgetClause;
     }
 }

@@ -59,7 +59,7 @@ public class ExprMinMaxRowNode extends ExprNodeBase implements ExprEvaluator
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() < 2)
+        if (this.getChildNodes().length < 2)
         {
             throw new ExprValidationException("MinMax node must have at least 2 child nodes");
         }
@@ -81,12 +81,12 @@ public class ExprMinMaxRowNode extends ExprNodeBase implements ExprEvaluator
         Class childTypeTwo = evaluators[1].getType();
         resultType = JavaClassHelper.getArithmaticCoercionType(childTypeOne, childTypeTwo);
 
-        for (int i = 2; i < this.getChildNodes().size(); i++)
+        for (int i = 2; i < this.getChildNodes().length; i++)
         {
             resultType = JavaClassHelper.getArithmaticCoercionType(resultType, evaluators[i].getType());
         }
 
-        ExprNode[] childNodes = this.getChildNodes().toArray(new ExprNode[this.getChildNodes().size()]);
+        ExprNode[] childNodes = this.getChildNodes();
         if (resultType == BigInteger.class)
         {
             SimpleNumberBigIntegerCoercer[] convertors = new SimpleNumberBigIntegerCoercer[childNodes.length];
@@ -143,14 +143,14 @@ public class ExprMinMaxRowNode extends ExprNodeBase implements ExprEvaluator
         buffer.append(minMaxTypeEnum.getExpressionText());
         buffer.append('(');
 
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
         buffer.append(',');
-        buffer.append(this.getChildNodes().get(1).toExpressionString());
+        buffer.append(this.getChildNodes()[1].toExpressionString());
 
-        for (int i = 2; i < this.getChildNodes().size(); i++)
+        for (int i = 2; i < this.getChildNodes().length; i++)
         {
             buffer.append(',');
-            buffer.append(this.getChildNodes().get(i).toExpressionString());
+            buffer.append(this.getChildNodes()[i].toExpressionString());
         }
 
         buffer.append(')');

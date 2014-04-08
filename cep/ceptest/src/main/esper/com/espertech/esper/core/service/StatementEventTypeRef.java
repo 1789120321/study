@@ -30,7 +30,7 @@ public interface StatementEventTypeRef
      * @param statementName name
      * @return set of event types or empty set if none found
      */
-    public Set<String> getTypesForStatementName(String statementName);
+    public String[] getTypesForStatementName(String statementName);
 
     /**
      * Returns the set of statement names that use a given event type name.
@@ -44,7 +44,7 @@ public interface StatementEventTypeRef
      * @param statementName name of statement
      * @param eventTypesReferenced types
      */
-    public void addReferences(String statementName, Set<String> eventTypesReferenced);
+    public void addReferences(String statementName, String[] eventTypesReferenced);
 
     /**
      * Remove all references for a given statement.

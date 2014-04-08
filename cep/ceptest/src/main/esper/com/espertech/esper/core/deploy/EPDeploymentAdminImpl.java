@@ -192,9 +192,9 @@ public class EPDeploymentAdminImpl implements EPDeploymentAdminSPI
                 statementNames.add(new DeploymentInformationItem(stmt.getName(), stmt.getText()));
                 statements.add(stmt);
 
-                Set<String> types = statementEventTypeRef.getTypesForStatementName(stmt.getName());
+                String[] types = statementEventTypeRef.getTypesForStatementName(stmt.getName());
                 if (types != null) {
-                    eventTypesReferenced.addAll(types);
+                    eventTypesReferenced.addAll(Arrays.asList(types));
                 }
             }
             catch (EPException ex) {
@@ -285,69 +285,19 @@ public class EPDeploymentAdminImpl implements EPDeploymentAdminSPI
     }
 
     public synchronized UndeploymentResult undeployRemove(String deploymentId) throws DeploymentNotFoundException {
-        DeploymentInformation info = deploymentStateService.getDeployment(deploymentId);
-        if (info == null) {
-            throw new DeploymentNotFoundException("Deployment by id '" + deploymentId + "' could not be found");
-        }
-
-        UndeploymentResult result;
-        if (info.getState() == DeploymentState.DEPLOYED) {
-            result = undeployRemoveInternal(info);
-        }
-        else {
-            result = new UndeploymentResult(deploymentId, Collections.<DeploymentInformationItem>emptyList());
-        }
-        deploymentStateService.remove(deploymentId);
-        return result;
+        return undeployRemoveInternal(deploymentId, new UndeploymentOptions());
     }
 
-    public synchronized UndeploymentResult undeploy(String deploymentId) throws DeploymentStateException, DeploymentNotFoundException
-    {
-        DeploymentInformation info = deploymentStateService.getDeployment(deploymentId);
-        if (info == null) {
-            throw new DeploymentNotFoundException("Deployment by id '" + deploymentId + "' could not be found");
-        }
-        if (info.getState() == DeploymentState.UNDEPLOYED) {
-            throw new DeploymentStateException("Deployment by id '" + deploymentId + "' is already in undeployed state");
-        }
-
-        UndeploymentResult result = undeployRemoveInternal(info);
-        DeploymentInformation updated = new DeploymentInformation(deploymentId, info.getModule(), info.getAddedDate(), Calendar.getInstance(), new DeploymentInformationItem[0], DeploymentState.UNDEPLOYED);
-        deploymentStateService.addUpdateDeployment(updated);
-        return result;
+    public synchronized UndeploymentResult undeployRemove(String deploymentId, UndeploymentOptions undeploymentOptions) throws DeploymentNotFoundException {
+        return undeployRemoveInternal(deploymentId, undeploymentOptions == null ? new UndeploymentOptions() : undeploymentOptions);
     }
 
-    private UndeploymentResult undeployRemoveInternal(DeploymentInformation info)
-    {
-        DeploymentInformationItem[] reverted = new DeploymentInformationItem[info.getItems().length];
-        for (int i = 0; i < info.getItems().length; i++) {
-            reverted[i] = info.getItems()[info.getItems().length - 1 - i];
-        }
+    public synchronized UndeploymentResult undeploy(String deploymentId) throws DeploymentStateException, DeploymentNotFoundException {
+        return undeployInternal(deploymentId, new UndeploymentOptions());
+    }
 
-        List<DeploymentInformationItem> revertedStatements = new ArrayList<DeploymentInformationItem>();
-        Set<String> referencedTypes = new HashSet<String>();
-        for (DeploymentInformationItem item : reverted) {
-            EPStatement statement = epService.getStatement(item.getStatementName());
-            if (statement == null) {
-                log.debug("Deployment id '" + info.getDeploymentId() + "' statement name '" + item + "' not found");
-                continue;
-            }
-            referencedTypes.addAll(statementEventTypeRef.getTypesForStatementName(statement.getName()));
-            if (statement.isDestroyed()) {
-                continue;
-            }
-            try {
-                statement.destroy();
-            }
-            catch (RuntimeException ex) {
-                log.warn("Unexpected exception destroying statement: " + ex.getMessage(), ex);
-            }
-            revertedStatements.add(item);
-        }
-        EPLModuleUtil.undeployTypes(referencedTypes, statementEventTypeRef, eventAdapterService, filterService);
-
-        Collections.reverse(revertedStatements);
-        return new UndeploymentResult(info.getDeploymentId(), revertedStatements);
+    public synchronized UndeploymentResult undeploy(String deploymentId, UndeploymentOptions undeploymentOptions) throws DeploymentException {
+        return undeployInternal(deploymentId, undeploymentOptions == null ? new UndeploymentOptions() : undeploymentOptions);
     }
 
     public synchronized String[] getDeployments()
@@ -591,6 +541,74 @@ public class EPDeploymentAdminImpl implements EPDeploymentAdminSPI
             throw new DeploymentStateException("Deployment by id '" + deploymentId + "' is in deployed state, please undeploy first");
         }
         deploymentStateService.remove(deploymentId);
+    }
+
+    private synchronized UndeploymentResult undeployRemoveInternal(String deploymentId, UndeploymentOptions options) throws DeploymentNotFoundException {
+        DeploymentInformation info = deploymentStateService.getDeployment(deploymentId);
+        if (info == null) {
+            throw new DeploymentNotFoundException("Deployment by id '" + deploymentId + "' could not be found");
+        }
+
+        UndeploymentResult result;
+        if (info.getState() == DeploymentState.DEPLOYED) {
+            result = undeployRemoveInternal(info, options);
+        }
+        else {
+            result = new UndeploymentResult(deploymentId, Collections.<DeploymentInformationItem>emptyList());
+        }
+        deploymentStateService.remove(deploymentId);
+        return result;
+    }
+
+    private UndeploymentResult undeployInternal(String deploymentId, UndeploymentOptions undeploymentOptions) throws DeploymentStateException, DeploymentNotFoundException
+    {
+        DeploymentInformation info = deploymentStateService.getDeployment(deploymentId);
+        if (info == null) {
+            throw new DeploymentNotFoundException("Deployment by id '" + deploymentId + "' could not be found");
+        }
+        if (info.getState() == DeploymentState.UNDEPLOYED) {
+            throw new DeploymentStateException("Deployment by id '" + deploymentId + "' is already in undeployed state");
+        }
+
+        UndeploymentResult result = undeployRemoveInternal(info, undeploymentOptions);
+        DeploymentInformation updated = new DeploymentInformation(deploymentId, info.getModule(), info.getAddedDate(), Calendar.getInstance(), new DeploymentInformationItem[0], DeploymentState.UNDEPLOYED);
+        deploymentStateService.addUpdateDeployment(updated);
+        return result;
+    }
+
+    private UndeploymentResult undeployRemoveInternal(DeploymentInformation info, UndeploymentOptions undeploymentOptions)
+    {
+        DeploymentInformationItem[] reverted = new DeploymentInformationItem[info.getItems().length];
+        for (int i = 0; i < info.getItems().length; i++) {
+            reverted[i] = info.getItems()[info.getItems().length - 1 - i];
+        }
+
+        List<DeploymentInformationItem> revertedStatements = new ArrayList<DeploymentInformationItem>();
+        if (undeploymentOptions.isDestroyStatements()) {
+            Set<String> referencedTypes = new HashSet<String>();
+            for (DeploymentInformationItem item : reverted) {
+                EPStatement statement = epService.getStatement(item.getStatementName());
+                if (statement == null) {
+                    log.debug("Deployment id '" + info.getDeploymentId() + "' statement name '" + item + "' not found");
+                    continue;
+                }
+                referencedTypes.addAll(Arrays.asList(statementEventTypeRef.getTypesForStatementName(statement.getName())));
+                if (statement.isDestroyed()) {
+                    continue;
+                }
+                try {
+                    statement.destroy();
+                }
+                catch (RuntimeException ex) {
+                    log.warn("Unexpected exception destroying statement: " + ex.getMessage(), ex);
+                }
+                revertedStatements.add(item);
+            }
+            EPLModuleUtil.undeployTypes(referencedTypes, statementEventTypeRef, eventAdapterService, filterService);
+            Collections.reverse(revertedStatements);
+        }
+
+        return new UndeploymentResult(info.getDeploymentId(), revertedStatements);
     }
 
     private DeploymentResult deployQuick(Module module, String moduleURI, String moduleArchive, Object userObject) throws IOException, ParseException, DeploymentOrderException, DeploymentActionException

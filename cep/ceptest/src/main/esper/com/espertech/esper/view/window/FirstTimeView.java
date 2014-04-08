@@ -55,7 +55,7 @@ public class FirstTimeView extends ViewSupport implements CloneableView, Stoppab
 
         scheduleCallback();
 
-        agentInstanceContext.getTerminationCallbacks().add(this);
+        agentInstanceContext.addTerminationCallback(this);
     }
 
     public View cloneView()
@@ -171,7 +171,7 @@ public class FirstTimeView extends ViewSupport implements CloneableView, Stoppab
 
     public void stopView() {
         stopSchedule();
-        agentInstanceContext.getTerminationCallbacks().remove(this);
+        agentInstanceContext.removeTerminationCallback(this);
     }
 
     public void stop() {

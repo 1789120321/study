@@ -26,7 +26,7 @@ public final class FilterSpecCompiled
 
     private final EventType filterForEventType;
     private final String filterForEventTypeName;
-    private final ArrayDeque<FilterSpecParam> parameters;
+    private final FilterSpecParam[] parameters;
     private final PropertyEvaluator optionalPropertyEvaluator;
 
     /**
@@ -60,7 +60,7 @@ public final class FilterSpecCompiled
      * Returns list of filter parameters.
      * @return list of filter params
      */
-    public final ArrayDeque<FilterSpecParam> getParameters()
+    public final FilterSpecParam[] getParameters()
     {
         return parameters;
     }
@@ -105,28 +105,33 @@ public final class FilterSpecCompiled
      * @param matchedEvents contains the result events to use for determining filter values
      * @return filter values
      */
-    public FilterValueSet getValueSet(MatchedEventMap matchedEvents, ExprEvaluatorContext evaluatorContext, List<FilterValueSetParam> addendum)
+    public FilterValueSet getValueSet(MatchedEventMap matchedEvents, ExprEvaluatorContext evaluatorContext, FilterValueSetParam[] addendum)
     {
-        ArrayDeque<FilterValueSetParam> valueList;
+        FilterValueSetParam[] valueList;
         if (addendum != null) {
-            valueList = new ArrayDeque<FilterValueSetParam>(parameters.size() + addendum.size());
-            valueList.addAll(addendum);
+            valueList = new FilterValueSetParam[parameters.length + addendum.length];
+            populateValueSet(valueList, matchedEvents, evaluatorContext);
+            for (int i = 0; i < addendum.length; i++) {
+                valueList[i + parameters.length] = addendum[i];
+            }
         }
         else {
-            valueList = new ArrayDeque<FilterValueSetParam>(parameters.size());
+            valueList = new FilterValueSetParam[parameters.length];
+            populateValueSet(valueList, matchedEvents, evaluatorContext);
         }
-        populateValueSet(valueList, matchedEvents, evaluatorContext);
         return new FilterValueSetImpl(filterForEventType, valueList);
     }
 
-    private void populateValueSet(ArrayDeque<FilterValueSetParam> valueList, MatchedEventMap matchedEvents, ExprEvaluatorContext exprEvaluatorContext) {
+    private void populateValueSet(FilterValueSetParam[] valueList, MatchedEventMap matchedEvents, ExprEvaluatorContext exprEvaluatorContext) {
         // Ask each filter specification parameter for the actual value to filter for
+        int count = 0;
         for (FilterSpecParam specParam : parameters)
         {
             Object filterForValue = specParam.getFilterValue(matchedEvents, exprEvaluatorContext);
 
             FilterValueSetParam valueParam = new FilterValueSetParamImpl(specParam.getLookupable(), specParam.getFilterOperator(), filterForValue);
-            valueList.add(valueParam);
+            valueList[count] = valueParam;
+            count++;
         }
     }
 
@@ -135,7 +140,7 @@ public final class FilterSpecCompiled
     {
         StringBuilder buffer = new StringBuilder();
         buffer.append("FilterSpecCompiled type=" + this.filterForEventType);
-        buffer.append(" parameters=" + Arrays.toString(parameters.toArray()));
+        buffer.append(" parameters=" + Arrays.toString(parameters));
         return buffer.toString();
     }
 
@@ -184,21 +189,17 @@ public final class FilterSpecCompiled
         {
             return false;
         }
-        if (this.parameters.size() != other.parameters.size())
+        if (this.parameters.length != other.parameters.length)
         {
             return false;
         }
 
-        Iterator<FilterSpecParam> iterOne = parameters.iterator();
-        Iterator<FilterSpecParam> iterOther = other.parameters.iterator();
-        while (iterOne.hasNext())
-        {
-            if (!iterOne.next().equals(iterOther.next()))
+        for (int i = 0; i < this.parameters.length; i++) {
+            if (!parameters[i].equals(other.parameters[i]))
             {
                 return false;
             }
         }
-
         return true;
     }
 
@@ -212,18 +213,17 @@ public final class FilterSpecCompiled
         return hashCode;
     }
 
-    protected static ArrayDeque<FilterSpecParam> sortRemoveDups(List<FilterSpecParam> parameters) {
+    protected static FilterSpecParam[] sortRemoveDups(List<FilterSpecParam> parameters) {
 
         if (parameters.isEmpty()) {
-            return EMPTY_LIST;
+            return FilterSpecParam.EMPTY_PARAM_ARRAY;
+        }
+
+        if (parameters.size() == 1) {
+            return new FilterSpecParam[] {parameters.get(0)};
         }
 
         ArrayDeque<FilterSpecParam> result = new ArrayDeque<FilterSpecParam>();
-        if (parameters.size() == 1) {
-            result.addAll(parameters);
-            return result;
-        }
-
         TreeMap<FilterOperator, List<FilterSpecParam>> map = new TreeMap<FilterOperator, List<FilterSpecParam>>(COMPARATOR_PARAMETERS);
         for (FilterSpecParam parameter : parameters) {
 
@@ -250,6 +250,6 @@ public final class FilterSpecCompiled
         for (Map.Entry<FilterOperator, List<FilterSpecParam>> entry : map.entrySet()) {
             result.addAll(entry.getValue());
         }
-        return result;
+        return FilterSpecParam.toArray(result);
     }
 }

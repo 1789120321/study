@@ -95,9 +95,15 @@ public interface ConfigurationInformation
     public List<ConfigurationPlugInAggregationFunction> getPlugInAggregationFunctions();
 
     /**
-     * Returns a list of configured plug-in single-row functions.
-     * @return list of configured single-row functions
+     * Returns a list of configured plug-in multi-function aggregation functions.
+     * @return list of configured multi-function aggregations
      */
+    public List<ConfigurationPlugInAggregationMultiFunction> getPlugInAggregationMultiFunctions();
+
+    /**
+    * Returns a list of configured plug-in single-row functions.
+    * @return list of configured single-row functions
+    */
     public List<ConfigurationPlugInSingleRowFunction> getPlugInSingleRowFunctions();
 
     /**

@@ -9,8 +9,6 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
-import com.espertech.esper.epl.core.MethodResolutionService;
-import com.espertech.esper.epl.core.StreamTypeService;
 
 /**
  * Represents the stddev(...) aggregate function is an expression tree.
@@ -31,9 +29,9 @@ public class ExprStddevNode extends ExprAggregateNodeBase
         this.hasFilter = hasFilter;
     }
 
-    public AggregationMethodFactory validateAggregationChild(StreamTypeService streamTypeService, MethodResolutionService methodResolutionService, ExprEvaluatorContext exprEvaluatorContext) throws ExprValidationException
+    public AggregationMethodFactory validateAggregationChild(ExprValidationContext validationContext) throws ExprValidationException
     {
-        Class childType = super.validateNumericChildAllowFilter(streamTypeService, hasFilter);
+        Class childType = super.validateNumericChildAllowFilter(validationContext.getStreamTypeService(), hasFilter);
         return new ExprStddevNodeFactory(super.isDistinct, childType, hasFilter);
     }
 

@@ -11,7 +11,6 @@
 
 package com.espertech.esper.schedule;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,5 +33,5 @@ public interface SchedulingServiceSPI extends SchedulingService
 
     public Long getNearestTimeHandle();
 
-    public Map<String, Long> getStatementSchedules();    
+    public void visitSchedules(ScheduleVisitor visitor);
 }

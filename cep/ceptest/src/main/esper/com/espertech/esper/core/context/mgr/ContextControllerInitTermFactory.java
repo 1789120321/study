@@ -12,6 +12,8 @@
 package com.espertech.esper.core.context.mgr;
 
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.client.context.ContextPartitionIdentifier;
+import com.espertech.esper.client.context.ContextPartitionIdentifierInitiatedTerminated;
 import com.espertech.esper.core.context.stmt.*;
 import com.espertech.esper.core.service.EPStatementHandle;
 import com.espertech.esper.core.service.StatementContext;
@@ -77,7 +79,7 @@ public class ContextControllerInitTermFactory extends ContextControllerFactoryBa
         return new ContextControllerInitTerm(pathId, callback, this);
     }
 
-    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> filterAddendum, ContextControllerStatementDesc statement, Object key, int contextId) {
+    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> filterAddendum, ContextControllerStatementDesc statement, Object key, int contextId) {
     }
 
     public FilterSpecLookupable getFilterLookupable(EventType eventType) {
@@ -131,5 +133,10 @@ public class ContextControllerInitTermFactory extends ContextControllerFactoryBa
 
     public StatementContext getStatementContext() {
         return factoryContext.getAgentInstanceContextCreate().getStatementContext();
+    }
+
+    public ContextPartitionIdentifier keyPayloadToIdentifier(Object payload) {
+        ContextControllerInitTermState state = (ContextControllerInitTermState) payload;
+        return new ContextPartitionIdentifierInitiatedTerminated(state.getPatternData(), state.getStartTime(), null);
     }
 }

@@ -92,6 +92,10 @@ public class NamedWindowProcessor
         instances.remove(instance.getAgentInstanceId());
     }
 
+    public NamedWindowProcessorInstance getProcessorInstanceNoContext() {
+        return instanceNoContext;
+    }
+
     public synchronized Collection<Integer> getProcessorInstancesAll() {
         Set<Integer> keyset = instances.keySet();
         return new ArrayDeque<Integer>(keyset);

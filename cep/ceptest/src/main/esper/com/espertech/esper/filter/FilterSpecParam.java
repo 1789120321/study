@@ -13,6 +13,7 @@ import com.espertech.esper.pattern.MatchedEventMap;
 import com.espertech.esper.util.MetaDefItem;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * This class represents one filter parameter in an {@link FilterSpecCompiled} filter specification.
@@ -20,6 +21,8 @@ import java.io.Serializable;
  */
 public abstract class FilterSpecParam implements MetaDefItem, Serializable
 {
+    public final static FilterSpecParam[] EMPTY_PARAM_ARRAY = new FilterSpecParam[0];
+
     /**
      * The property name of the filter parameter.
      */
@@ -90,5 +93,12 @@ public abstract class FilterSpecParam implements MetaDefItem, Serializable
         result = lookupable.hashCode();
         result = 31 * result + filterOperator.hashCode();
         return result;
+    }
+
+    public static FilterSpecParam[] toArray(Collection<FilterSpecParam> coll) {
+        if (coll.isEmpty()) {
+            return EMPTY_PARAM_ARRAY;
+        }
+        return coll.toArray(new FilterSpecParam[coll.size()]);
     }
 }

@@ -11,6 +11,7 @@ package com.espertech.esper.epl.expression;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventType;
 import com.espertech.esper.client.hook.AggregationFunctionFactory;
+import com.espertech.esper.client.hook.EPLMethodInvocationContext;
 import com.espertech.esper.collection.Pair;
 import com.espertech.esper.core.context.util.ContextPropertyRegistry;
 import com.espertech.esper.core.service.ExprEvaluatorContextStatement;
@@ -18,14 +19,14 @@ import com.espertech.esper.core.service.StatementContext;
 import com.espertech.esper.epl.agg.service.AggregationSupport;
 import com.espertech.esper.epl.core.*;
 import com.espertech.esper.epl.declexpr.ExprDeclaredNode;
-import com.espertech.esper.epl.declexpr.ExprDeclaredNodeImpl;
 import com.espertech.esper.epl.enummethod.dot.ExprDeclaredOrLambdaNode;
 import com.espertech.esper.epl.enummethod.dot.ExprLambdaGoesNode;
-import com.espertech.esper.epl.named.NamedWindowTailViewInstance;
+import com.espertech.esper.event.EventAdapterService;
 import com.espertech.esper.event.EventBeanUtility;
 import com.espertech.esper.schedule.ScheduleParameterException;
 import com.espertech.esper.schedule.ScheduleSpec;
 import com.espertech.esper.schedule.ScheduleSpecUtil;
+import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.util.JavaClassHelper;
 import net.sf.cglib.reflect.FastClass;
 import net.sf.cglib.reflect.FastMethod;
@@ -38,13 +39,17 @@ import java.util.*;
 
 public class ExprNodeUtility {
 
+    public static final ExprNode[] EMPTY_EXPR_ARRAY = new ExprNode[0];
+    public static final ExprDeclaredNode[] EMPTY_DECLARED_ARR = new ExprDeclaredNode[0];
+
     public static void applyFilterExpressionsIterable(Iterable<EventBean> iterable, List<ExprNode> filterExpressions, ExprEvaluatorContext exprEvaluatorContext, Collection<EventBean> eventsInWindow) {
+        ExprEvaluator[] evaluators = ExprNodeUtility.getEvaluators(filterExpressions);
         EventBean[] events = new EventBean[1];
         for (EventBean theEvent : iterable) {
             events[0] = theEvent;
             boolean add = true;
-            for (ExprNode filter : filterExpressions) {
-                Object result = filter.getExprEvaluator().evaluate(events, true, exprEvaluatorContext);
+            for (ExprEvaluator filter : evaluators) {
+                Object result = filter.evaluate(events, true, exprEvaluatorContext);
                 if ((result == null) || (!((Boolean) result))) {
                     add = false;
                     break;
@@ -53,6 +58,18 @@ public class ExprNodeUtility {
             if (add) {
                 eventsInWindow.add(events[0]);
             }
+        }
+    }
+
+    public static void applyFilterExpressionIterable(Iterable<EventBean> iterable, ExprEvaluator filterExpression, ExprEvaluatorContext exprEvaluatorContext, Collection<EventBean> eventsInWindow) {
+        EventBean[] events = new EventBean[1];
+        for (EventBean theEvent : iterable) {
+            events[0] = theEvent;
+            Object result = filterExpression.evaluate(events, true, exprEvaluatorContext);
+            if ((result == null) || (!((Boolean) result))) {
+                continue;
+            }
+            eventsInWindow.add(events[0]);
         }
     }
 
@@ -112,9 +129,9 @@ public class ExprNodeUtility {
             return exprNode;
         }
 
-        for (int i = 0; i < exprNode.getChildNodes().size(); i++)
+        for (int i = 0; i < exprNode.getChildNodes().length; i++)
         {
-            ExprNode childNode = exprNode.getChildNodes().get(i);
+            ExprNode childNode = exprNode.getChildNodes()[i];
             if (childNode instanceof ExprDeclaredOrLambdaNode) {
                 ExprDeclaredOrLambdaNode node = (ExprDeclaredOrLambdaNode) childNode;
                 if (node.validated()) {
@@ -122,7 +139,7 @@ public class ExprNodeUtility {
                 }
             }
             ExprNode childNodeValidated = getValidatedSubtreeInternal(childNode, validationContext, false);
-            exprNode.getChildNodes().set(i, childNodeValidated);
+            exprNode.setChildNode(i, childNodeValidated);
         }
 
         try
@@ -468,11 +485,39 @@ public class ExprNodeUtility {
         return new ExprIdentNodeImpl(typesPerStream[streamId], property, streamId);
     }
 
-    public static ExprNodeUtilSingleRowMethodDesc resolveSingleRowPluginFunc(String className, String methodName, List<ExprNode> parameters, MethodResolutionService methodResolutionService, boolean allowWildcard, final EventType wildcardType, String resolvedExpression, boolean configuredAsSingleRow) throws ExprValidationException {
+    public static Class[] getExprResultTypes(ExprEvaluator[] evaluators) {
+        Class[] returnTypes = new Class[evaluators.length];
+        for (int i = 0; i < evaluators.length; i++) {
+            returnTypes[i] = evaluators[i].getType();
+        }
+        return returnTypes;
+    }
+
+    public static Class[] getExprResultTypes(List<ExprNode> expressions) {
+        Class[] returnTypes = new Class[expressions.size()];
+        for (int i = 0; i < expressions.size(); i++) {
+            returnTypes[i] = expressions.get(i).getExprEvaluator().getType();
+        }
+        return returnTypes;
+    }
+
+    public static ExprNodeUtilMethodDesc resolveMethodAllowWildcardAndStream(String className,
+                                                                             Class optionalClass,
+                                                                             String methodName,
+                                                                             List<ExprNode> parameters,
+                                                                             MethodResolutionService methodResolutionService,
+                                                                             EventAdapterService eventAdapterService,
+                                                                             String statementId,
+                                                                             boolean allowWildcard,
+                                                                             final EventType wildcardType,
+                                                                             ExprNodeUtilResolveExceptionHandler exceptionHandler,
+                                                                             String functionName) throws ExprValidationException {
         Class[] paramTypes = new Class[parameters.size()];
         ExprEvaluator[] childEvals = new ExprEvaluator[parameters.size()];
         int count = 0;
-
+        boolean[] allowEventBeanType = new boolean[parameters.size()];
+        boolean[] allowEventBeanCollType = new boolean[parameters.size()];
+        ExprEvaluator[] childEvalsEventBeanReturnTypes = new ExprEvaluator[parameters.size()];
         boolean allConstants = true;
         for(ExprNode childNode : parameters)
         {
@@ -483,23 +528,43 @@ public class ExprNodeUtility {
                 if (wildcardType == null || !allowWildcard) {
                     throw new ExprValidationException("Failed to resolve wildcard parameter to a given event type");
                 }
-                childEvals[count] = new ExprEvaluator() {
-                    public Object evaluate(EventBean[] eventsPerStream, boolean isNewData, ExprEvaluatorContext context) {
-                        return eventsPerStream[0].getUnderlying();
-                    }
-
-                    public Class getType() {
-                        return wildcardType.getUnderlyingType();
-                    }
-
-                    public Map<String, Object> getEventType() throws ExprValidationException {
-                        return null;
-                    }
-                };
+                childEvals[count] = new ExprNodeUtilExprEvalStreamNumUnd(0, wildcardType.getUnderlyingType());
+                childEvalsEventBeanReturnTypes[count] = new ExprNodeUtilExprEvalStreamNumEvent(0);
                 paramTypes[count] = wildcardType.getUnderlyingType();
+                allowEventBeanType[count] = true;
                 allConstants = false;
                 count++;
                 continue;
+            }
+            if (childNode instanceof ExprStreamUnderlyingNode) {
+                ExprStreamUnderlyingNode und = (ExprStreamUnderlyingNode) childNode;
+                childEvals[count] = childNode.getExprEvaluator();
+                childEvalsEventBeanReturnTypes[count] = new ExprNodeUtilExprEvalStreamNumEvent(und.getStreamId());
+                paramTypes[count] = childEvals[count].getType();
+                allowEventBeanType[count] = true;
+                allConstants = false;
+                count++;
+                continue;
+            }
+            if (childNode instanceof ExprEvaluatorEnumeration) {
+                ExprEvaluatorEnumeration enumeration = (ExprEvaluatorEnumeration) childNode;
+                EventType eventType = enumeration.getEventTypeSingle(eventAdapterService, statementId);
+                childEvals[count] = childNode.getExprEvaluator();
+                paramTypes[count] = childEvals[count].getType();
+                allConstants = false;
+                if (eventType != null) {
+                    childEvalsEventBeanReturnTypes[count] = new ExprNodeUtilExprEvalStreamNumEnumSingle(enumeration);
+                    allowEventBeanType[count] = true;
+                    count++;
+                    continue;
+                }
+                EventType eventTypeColl = enumeration.getEventTypeCollection(eventAdapterService);
+                if (eventTypeColl != null) {
+                    childEvalsEventBeanReturnTypes[count] = new ExprNodeUtilExprEvalStreamNumEnumColl(enumeration);
+                    allowEventBeanCollType[count] = true;
+                    count++;
+                    continue;
+                }
             }
             ExprEvaluator eval = childNode.getExprEvaluator();
             childEvals[count] = eval;
@@ -516,23 +581,45 @@ public class ExprNodeUtility {
         Method method;
         try
         {
-            method = methodResolutionService.resolveMethod(className, methodName, paramTypes);
+            if (optionalClass != null) {
+                method = methodResolutionService.resolveMethod(optionalClass, methodName, paramTypes, allowEventBeanType, allowEventBeanCollType);
+            }
+            else {
+                method = methodResolutionService.resolveMethod(className, methodName, paramTypes, allowEventBeanType, allowEventBeanCollType);
+            }
             FastClass declaringClass = FastClass.create(Thread.currentThread().getContextClassLoader(), method.getDeclaringClass());
             staticMethod = declaringClass.getMethod(method);
         }
         catch(Exception e)
         {
-            String message;
-            if (configuredAsSingleRow) {
-                message = e.getMessage();
-            }
-            else {
-                message = "Failed to resolve '" + resolvedExpression + "' to a property, single-row function, script, stream or class name";
-            }
-            throw new ExprValidationException(message, e);
+            throw exceptionHandler.handle(e);
         }
 
-        return new ExprNodeUtilSingleRowMethodDesc(allConstants, paramTypes, childEvals, method, staticMethod);
+        // rewrite those evaluator that should return the event itself
+        if (CollectionUtil.isAnySet(allowEventBeanType)) {
+            for (int i = 0; i < parameters.size(); i++) {
+                if (allowEventBeanType[i] && method.getParameterTypes()[i] == EventBean.class) {
+                    childEvals[i] = childEvalsEventBeanReturnTypes[i];
+                }
+            }
+        }
+
+        // rewrite those evaluators that should return the event collection
+        if (CollectionUtil.isAnySet(allowEventBeanCollType)) {
+            for (int i = 0; i < parameters.size(); i++) {
+                if (allowEventBeanCollType[i] && method.getParameterTypes()[i] == Collection.class) {
+                    childEvals[i] = childEvalsEventBeanReturnTypes[i];
+                }
+            }
+        }
+
+        // add an evaluator if the method expects a context object
+        if (method.getParameterTypes().length > 0 &&
+            method.getParameterTypes()[method.getParameterTypes().length - 1] == EPLMethodInvocationContext.class) {
+            childEvals = (ExprEvaluator[]) CollectionUtil.arrayExpandAddSingle(childEvals, new ExprNodeUtilExprEvalMethodContext(functionName));
+        }
+
+        return new ExprNodeUtilMethodDesc(allConstants, paramTypes, childEvals, method, staticMethod);
     }
 
     public static void validatePlainExpression(String expressionTextualName, ExprNode expression) throws ExprValidationException {
@@ -649,13 +736,22 @@ public class ExprNodeUtility {
     }
 
     public static final void replaceChildNode(ExprNode parentNode, ExprNode nodeToReplace, ExprNode newNode) {
-        int index = parentNode.getChildNodes().indexOf(nodeToReplace);
+        int index = ExprNodeUtility.findChildNode(parentNode, nodeToReplace);
         if (index == -1) {
             parentNode.replaceUnlistedChildNode(nodeToReplace, newNode);
         }
         else {
-            parentNode.getChildNodes().set(index, newNode);
+            parentNode.setChildNode(index, newNode);
         }
+    }
+
+    private static int findChildNode(ExprNode parentNode, ExprNode childNode) {
+        for (int i = 0; i < parentNode.getChildNodes().length; i++) {
+            if (parentNode.getChildNodes()[i] == childNode) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public static void replaceChainChildNode(ExprNode nodeToReplace, ExprNode newNode, List<ExprChainedSpec> chainSpec) {
@@ -850,7 +946,7 @@ public class ExprNodeUtility {
      */
     public static boolean deepEquals(ExprNode nodeOne, ExprNode nodeTwo)
     {
-        if (nodeOne.getChildNodes().size() != nodeTwo.getChildNodes().size())
+        if (nodeOne.getChildNodes().length != nodeTwo.getChildNodes().length)
         {
             return false;
         }
@@ -858,10 +954,10 @@ public class ExprNodeUtility {
         {
             return false;
         }
-        for (int i = 0; i < nodeOne.getChildNodes().size(); i++)
+        for (int i = 0; i < nodeOne.getChildNodes().length; i++)
         {
-            ExprNode childNodeOne = nodeOne.getChildNodes().get(i);
-            ExprNode childNodeTwo = nodeTwo.getChildNodes().get(i);
+            ExprNode childNodeOne = nodeOne.getChildNodes()[i];
+            ExprNode childNodeTwo = nodeTwo.getChildNodes()[i];
 
             if (!ExprNodeUtility.deepEquals(childNodeOne, childNodeTwo))
             {
@@ -1001,6 +1097,29 @@ public class ExprNodeUtility {
         return result;
     }
 
+    public static void toExpressionStringParams(StringWriter writer, ExprNode[] params, boolean isWildcard, String streamWildcard, boolean firstParamOnly) {
+        writer.append('(');
+        if (isWildcard) {
+            writer.append('*');
+        }
+        else if (streamWildcard != null) {
+            writer.append(streamWildcard);
+            writer.append(".*");
+        }
+        else {
+            String delimiter = "";
+            for (ExprNode childNode : params) {
+                writer.append(delimiter);
+                delimiter = ",";
+                writer.append(childNode.toExpressionString());
+                if (firstParamOnly) {
+                    break;
+                }
+            }
+        }
+        writer.append(')');
+    }
+
     public static String printEvaluators(ExprEvaluator[] evaluators) {
         StringWriter writer = new StringWriter();
         String delimiter = "";
@@ -1057,6 +1176,20 @@ public class ExprNodeUtility {
             }
         }
         return results;
+    }
+
+    public static ExprNode[] toArray(Collection<ExprNode> expressions) {
+        if (expressions.isEmpty()) {
+            return EMPTY_EXPR_ARRAY;
+        }
+        return expressions.toArray(new ExprNode[expressions.size()]);
+    }
+
+    public static ExprDeclaredNode[] toArray(List<ExprDeclaredNode> declaredNodes) {
+        if (declaredNodes.isEmpty()) {
+            return EMPTY_DECLARED_ARR;
+        }
+        return declaredNodes.toArray(new ExprDeclaredNode[declaredNodes.size()]);
     }
 
     private static final Log log = LogFactory.getLog(ExprNodeUtility.class);

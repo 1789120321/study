@@ -885,6 +885,26 @@ public class Expressions implements Serializable
     }
 
     /**
+     * Is-null test.
+     * @param property the name of the property supplying the value to check for null
+     * @return expression
+     */
+    public static RelationalOpExpression isNull(String property)
+    {
+        return new RelationalOpExpression(getPropExpr(property), "is", null);
+    }
+
+    /**
+     * Is-null test.
+     * @param expression supplies the value to check for null
+     * @return expression
+     */
+    public static RelationalOpExpression isNull(Expression expression)
+    {
+        return new RelationalOpExpression(expression, "is", null);
+    }
+
+    /**
      * Property value.
      * <p>
      * An expression that returns the value of the named property.

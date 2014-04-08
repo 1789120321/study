@@ -12,24 +12,20 @@
 package com.espertech.esper.epl.core;
 
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.core.service.StatementEventTypeRef;
 import com.espertech.esper.event.EventTypeSPI;
-
-import java.util.HashSet;
 
 /**
  * Registry for event types creates as part of the select expression analysis.
  */
 public class SelectExprEventTypeRegistry
 {
-    private HashSet<String> registry;
+    private final String statementName;
+    private final StatementEventTypeRef statementEventTypeRef;
 
-    /**
-     * Ctor.
-     * @param registry the holder of the registry
-     */
-    public SelectExprEventTypeRegistry(HashSet<String> registry)
-    {
-        this.registry = registry;
+    public SelectExprEventTypeRegistry(String statementName, StatementEventTypeRef statementEventTypeRef) {
+        this.statementName = statementName;
+        this.statementEventTypeRef = statementEventTypeRef;
     }
 
     /**
@@ -42,6 +38,6 @@ public class SelectExprEventTypeRegistry
         {
             return;
         }
-        registry.add(((EventTypeSPI) eventType).getMetadata().getPrimaryName());
+        statementEventTypeRef.addReferences(statementName, new String[]{((EventTypeSPI) eventType).getMetadata().getPrimaryName()});
     }
 }

@@ -14,7 +14,7 @@ package com.espertech.esper.epl.expression;
 import com.espertech.esper.util.MetaDefItem;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Collection;
 
 public interface ExprNode extends ExprValidator, MetaDefItem, Serializable {
     
@@ -72,10 +72,20 @@ public interface ExprNode extends ExprValidator, MetaDefItem, Serializable {
     public void addChildNode(ExprNode childNode);
 
     /**
+     * Adds child nodes.
+     * @param childNodes are the child evaluation tree node to add
+     */
+    public void addChildNodes(Collection<ExprNode> childNodes);
+
+    /**
      * Returns list of child nodes.
      * @return list of child nodes
      */
-    public ArrayList<ExprNode> getChildNodes();
+    public ExprNode[] getChildNodes();
 
     public void replaceUnlistedChildNode(ExprNode nodeToReplace, ExprNode newNode);
+
+    public void setChildNode(int index, ExprNode newNode);
+
+    public void setChildNodes(ExprNode ... nodes);
 }

@@ -34,6 +34,10 @@ public class AIRegistryAggregationMultiPerm implements AIRegistryAggregation {
     }
 
     public void deassignService(int serviceId) {
+        if (serviceId >= services.getArray().length) {
+            // possible since it may not have been assigned as there was nothing to assign
+            return;
+        }
         services.getArray()[serviceId] = null;
         count--;
     }

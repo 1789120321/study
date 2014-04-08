@@ -177,7 +177,7 @@ public class NamedWindowRootViewInstance extends ViewSupport
             virtualDataWindow = getVirtualDataWindow();
         }
 
-        if (optionalFilter == null || optionalFilter.getParameters().isEmpty()) {
+        if (optionalFilter == null || optionalFilter.getParameters().length == 0) {
             if (virtualDataWindow != null) {
                 Pair<IndexMultiKey,EventTable> pair = virtualDataWindow.getFireAndForgetDesc(Collections.<String>emptySet(), Collections.<String>emptySet());
                 return virtualDataWindow.getFireAndForgetData(pair.getSecond(), new Object[0], new RangeIndexLookupValue[0], annotations);
@@ -296,7 +296,7 @@ public class NamedWindowRootViewInstance extends ViewSupport
         return Collections.EMPTY_LIST;
     }
 
-    private RangeIndexLookupValue[] compileRangeLookupValues(String[] rangeIndexProps, ArrayDeque<FilterSpecParam> parameters) {
+    private RangeIndexLookupValue[] compileRangeLookupValues(String[] rangeIndexProps, FilterSpecParam[] parameters) {
         RangeIndexLookupValue[] result = new RangeIndexLookupValue[rangeIndexProps.length];
 
         for (int rangeIndex = 0; rangeIndex < rangeIndexProps.length; rangeIndex++) {
@@ -654,14 +654,14 @@ public class NamedWindowRootViewInstance extends ViewSupport
     }
 
     public boolean isVirtualDataWindow() {
-        return this.getViews().get(0) instanceof VirtualDWView;
+        return this.getViews()[0] instanceof VirtualDWView;
     }
 
     public VirtualDWView getVirtualDataWindow() {
         if (!isVirtualDataWindow()) {
             return null;
         }
-        return (VirtualDWView) this.getViews().get(0);
+        return (VirtualDWView) this.getViews()[0];
     }
 
     public void postLoad() {

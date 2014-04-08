@@ -12,6 +12,7 @@
 package com.espertech.esper.core.context.mgr;
 
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.client.context.ContextPartitionIdentifier;
 import com.espertech.esper.core.context.stmt.StatementAIResourceRegistryFactory;
 import com.espertech.esper.epl.expression.ExprValidationException;
 import com.espertech.esper.epl.spec.ContextDetail;
@@ -37,9 +38,11 @@ public interface ContextControllerFactory {
     public void validateFactory() throws ExprValidationException;
     public ContextControllerStatementCtxCache validateStatement(ContextControllerStatementBase statement) throws ExprValidationException;
     public ContextController createNoCallback(int pathId, ContextControllerLifecycleCallback callback);
-    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> filterAddendum, ContextControllerStatementDesc statement, Object key, int contextId);
+    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> filterAddendum, ContextControllerStatementDesc statement, Object key, int contextId);
 
     public FilterSpecLookupable getFilterLookupable(EventType eventType);
 
     public ContextStateCache getStateCache();
+
+    public ContextPartitionIdentifier keyPayloadToIdentifier(Object payload);
 }

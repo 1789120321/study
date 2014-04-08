@@ -89,14 +89,14 @@ public class EPStatementStartMethodHelperPrevious
             ExprPreviousEvalStrategy evaluator;
 
             if (previousType == PreviousType.PREVWINDOW) {
-                evaluator = new ExprPreviousEvalStrategyWindow(streamNumber, previousNode.getChildNodes().get(1).getExprEvaluator(), previousNode.getResultType().getComponentType(),
+                evaluator = new ExprPreviousEvalStrategyWindow(streamNumber, previousNode.getChildNodes()[1].getExprEvaluator(), previousNode.getResultType().getComponentType(),
                         randomAccessGetter, relativeAccessGetter);
             }
             else if (previousType == PreviousType.PREVCOUNT) {
                 evaluator = new ExprPreviousEvalStrategyCount(streamNumber, randomAccessGetter, relativeAccessGetter);
             }
             else {
-                evaluator = new ExprPreviousEvalStrategyPrev(streamNumber, previousNode.getChildNodes().get(0).getExprEvaluator(), previousNode.getChildNodes().get(1).getExprEvaluator(),
+                evaluator = new ExprPreviousEvalStrategyPrev(streamNumber, previousNode.getChildNodes()[0].getExprEvaluator(), previousNode.getChildNodes()[1].getExprEvaluator(),
                         randomAccessGetter, relativeAccessGetter, previousNode.isConstantIndex(), previousNode.getConstantIndexNumber(), previousType == PreviousType.PREVTAIL);
             }
 

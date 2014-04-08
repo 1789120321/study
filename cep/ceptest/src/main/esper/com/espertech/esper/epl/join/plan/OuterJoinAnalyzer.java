@@ -11,8 +11,6 @@ package com.espertech.esper.epl.join.plan;
 import com.espertech.esper.epl.expression.ExprIdentNode;
 import com.espertech.esper.epl.spec.OuterJoinDesc;
 
-import java.util.List;
-
 /**
  * Analyzes an outer join descriptor list and builds a query graph model from it.
  * The 'on' expression identifiers are extracted
@@ -27,7 +25,7 @@ public class OuterJoinAnalyzer
      * @param queryGraph - model containing relationships between streams that is written into
      * @return queryGraph object
      */
-    public static QueryGraph analyze(List<OuterJoinDesc> outerJoinDescList, QueryGraph queryGraph)
+    public static QueryGraph analyze(OuterJoinDesc[] outerJoinDescList, QueryGraph queryGraph)
     {
         for (OuterJoinDesc outerJoinDesc : outerJoinDescList)
         {

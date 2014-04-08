@@ -10,14 +10,12 @@ package com.espertech.esper.epl.spec;
 
 import com.espertech.esper.client.ConfigurationInformation;
 import com.espertech.esper.client.EPException;
-import com.espertech.esper.client.hook.AggregationFunctionFactory;
 import com.espertech.esper.client.soda.*;
 import com.espertech.esper.collection.Pair;
 import com.espertech.esper.core.context.mgr.ContextManagementService;
 import com.espertech.esper.core.context.util.ContextPropertyRegistry;
 import com.espertech.esper.core.service.EPAdministratorHelper;
-import com.espertech.esper.epl.agg.access.AggregationAccessType;
-import com.espertech.esper.epl.agg.service.AggregationSupport;
+import com.espertech.esper.epl.agg.access.AggregationStateType;
 import com.espertech.esper.epl.core.EngineImportService;
 import com.espertech.esper.epl.core.EngineImportSingleRowDesc;
 import com.espertech.esper.epl.db.DatabasePollingViewableFactory;
@@ -28,6 +26,7 @@ import com.espertech.esper.epl.declexpr.ExprDeclaredService;
 import com.espertech.esper.epl.enummethod.dot.ExprLambdaGoesNode;
 import com.espertech.esper.epl.expression.*;
 import com.espertech.esper.epl.named.NamedWindowService;
+import com.espertech.esper.epl.parse.ASTAggregationHelper;
 import com.espertech.esper.epl.parse.ASTFilterSpecHelper;
 import com.espertech.esper.epl.parse.ASTWalkException;
 import com.espertech.esper.epl.script.ExprNodeScript;
@@ -113,6 +112,7 @@ public class StatementSpecMapper
 
         List<AnnotationDesc> annotations = mapAnnotations(sodaStatement.getAnnotations());
         raw.setAnnotations(annotations);
+        mapFireAndForget(sodaStatement.getFireAndForgetClause(), raw, mapContext);
         mapExpressionDeclaration(sodaStatement.getExpressionDeclarations(), raw, mapContext);
         mapScriptExpressions(sodaStatement.getScriptExpressions(), raw, mapContext);
         mapContextName(sodaStatement.getContextName(), raw, mapContext);
@@ -142,9 +142,32 @@ public class StatementSpecMapper
         // from clause is required for create-window
         if (sodaStatement.getCreateWindow() != null && raw.getStreamSpecs().size() == 0) {
             FilterSpecRaw spec = new FilterSpecRaw("java.lang.Object", Collections.<ExprNode>emptyList(), null);
-            raw.getStreamSpecs().add(new FilterStreamSpecRaw(spec, Collections.<ViewSpec>emptyList(), null, new StreamSpecOptions()));
+            raw.getStreamSpecs().add(new FilterStreamSpecRaw(spec, ViewSpec.EMPTY_VIEWSPEC_ARRAY, null, new StreamSpecOptions()));
         }
         return raw;
+    }
+
+    private static void mapFireAndForget(FireAndForgetClause fireAndForgetClause, StatementSpecRaw raw, StatementSpecMapContext mapContext) {
+        if (fireAndForgetClause == null) {
+            return;
+        }
+        else if (fireAndForgetClause instanceof FireAndForgetDelete) {
+            raw.setFireAndForgetSpec(new FireAndForgetSpecDelete());
+        }
+        else if (fireAndForgetClause instanceof FireAndForgetUpdate) {
+            FireAndForgetUpdate upd = (FireAndForgetUpdate) fireAndForgetClause;
+            List<OnTriggerSetAssignment> assignments = new ArrayList<OnTriggerSetAssignment>();
+            for (AssignmentPair pair : upd.getAssignments())
+            {
+                ExprNode expr = mapExpressionDeep(pair.getValue(), mapContext);
+                assignments.add(new OnTriggerSetAssignment(pair.getName(), expr));
+            }
+            FireAndForgetSpecUpdate updspec = new FireAndForgetSpecUpdate(assignments);
+            raw.setFireAndForgetSpec(updspec);
+        }
+        else {
+            throw new IllegalStateException("Unrecognized fire-and-forget clause " + fireAndForgetClause);
+        }
     }
 
     /**
@@ -164,6 +187,7 @@ public class StatementSpecMapper
         EPStatementObjectModel model = new EPStatementObjectModel();
         List<AnnotationPart> annotations = unmapAnnotations(statementSpec.getAnnotations());
         model.setAnnotations(annotations);
+        unmapFireAndForget(statementSpec.getFireAndForgetSpec(), model, unmapContext);
         List<ExpressionDeclaration> expressionDeclarations = unmapExpressionDeclarations(statementSpec.getExpressionDeclDesc(), unmapContext);
         model.setExpressionDeclarations(expressionDeclarations);
         List<ScriptExpression> scripts = unmapScriptExpressions(statementSpec.getScriptExpressions(), unmapContext);
@@ -193,6 +217,28 @@ public class StatementSpecMapper
         unmapForClause(statementSpec.getForClauseSpec(), model, unmapContext);
         unmapSQLParameters(statementSpec.getSqlParameters(), unmapContext);
         return model;
+    }
+
+    private static void unmapFireAndForget(FireAndForgetSpec fireAndForgetSpec, EPStatementObjectModel model, StatementSpecUnMapContext unmapContext) {
+        if (fireAndForgetSpec == null) {
+            return;
+        }
+        else if (fireAndForgetSpec instanceof FireAndForgetSpecDelete) {
+            model.setFireAndForgetClause(new FireAndForgetDelete());
+        }
+        else if (fireAndForgetSpec instanceof FireAndForgetSpecUpdate) {
+            FireAndForgetSpecUpdate upd = (FireAndForgetSpecUpdate) fireAndForgetSpec;
+            FireAndForgetUpdate faf = new FireAndForgetUpdate();
+            for (OnTriggerSetAssignment assignment : upd.getAssignments())
+            {
+                Expression expr = unmapExpressionDeep(assignment.getExpression(), unmapContext);
+                faf.addAssignment(new AssignmentPair(assignment.getVariableName(), expr));
+            }
+            model.setFireAndForgetClause(faf);
+        }
+        else {
+            throw new IllegalStateException("Unrecognized type of fire-and-forget: " + fireAndForgetSpec);
+        }
     }
 
     // Collect substitution parameters
@@ -1094,7 +1140,7 @@ public class StatementSpecMapper
             return;
         }
         ExprNode node = mapExpressionDeep(whereClause, mapContext);
-        raw.setFilterRootNode(node);
+        raw.setFilterExprRootNode(node);
     }
 
     private static void unmapWhere(ExprNode filterRootNode, EPStatementObjectModel model, StatementSpecUnMapContext unmapContext)
@@ -1390,7 +1436,7 @@ public class StatementSpecMapper
         UpdateDesc desc = new UpdateDesc(updateClause.getOptionalAsClauseStreamName(), assignments, whereClause);
         raw.setUpdateDesc(desc);
         FilterSpecRaw filterSpecRaw = new FilterSpecRaw(updateClause.getEventType(), Collections.EMPTY_LIST, null);
-        raw.getStreamSpecs().add(new FilterStreamSpecRaw(filterSpecRaw, Collections.EMPTY_LIST, null, new StreamSpecOptions()));
+        raw.getStreamSpecs().add(new FilterStreamSpecRaw(filterSpecRaw, ViewSpec.EMPTY_VIEWSPEC_ARRAY, null, new StreamSpecOptions()));
     }
 
     private static void mapCreateVariable(CreateVariableClause createVariable, StatementSpecRaw raw, StatementSpecMapContext mapContext)
@@ -1977,38 +2023,11 @@ public class StatementSpecMapper
         else if (expr instanceof PlugInProjectionExpression)
         {
             PlugInProjectionExpression node = (PlugInProjectionExpression) expr;
-
-            // first try the configured aggregation
-            try
-            {
-                AggregationFunctionFactory aggregationFactory = mapContext.getEngineImportService().resolveAggregationFactory(node.getFunctionName());
-                return new ExprPlugInAggFunctionFactoryNode(node.isDistinct(), aggregationFactory, node.getFunctionName());
+            ExprNode exprNode = ASTAggregationHelper.tryResolveAsAggregation(mapContext.getEngineImportService(), node.isDistinct(), node.getFunctionName(), mapContext.getPlugInAggregations(), mapContext.getEngineURI());
+            if (exprNode == null) {
+                throw new EPException("Error resolving aggregation function named '" + node.getFunctionName() + "'");
             }
-            catch (Exception e)
-            {
-                // then try the builtin aggregation
-                ExprNode exprNode = mapContext.getEngineImportService().resolveAggExtendedBuiltin(node.getFunctionName(), node.isDistinct());
-                if (exprNode != null) {
-                    return exprNode;
-                }
-            }
-
-            // first try the configured aggregation (AggregationSupport, deprecated)
-            try
-            {
-                AggregationSupport aggregation = mapContext.getEngineImportService().resolveAggregation(node.getFunctionName());
-                return new ExprPlugInAggFunctionNode(node.isDistinct(), aggregation, node.getFunctionName());
-            }
-            catch (Exception e)
-            {
-                // then try the builtin aggregation
-                ExprNode exprNode = mapContext.getEngineImportService().resolveAggExtendedBuiltin(node.getFunctionName(), node.isDistinct());
-                if (exprNode != null) {
-                    return exprNode;
-                }
-
-                throw new EPException("Error resolving aggregation: " + e.getMessage(), e);
-            }
+            return exprNode;
         }
         else if (expr instanceof OrderedObjectParamExpression)
         {
@@ -2054,18 +2073,18 @@ public class StatementSpecMapper
         }
         else if (expr instanceof AccessProjectionExpressionBase) {
             AccessProjectionExpressionBase theBase = (AccessProjectionExpressionBase) expr;
-            AggregationAccessType type;
+            AggregationStateType type;
             if (expr instanceof FirstProjectionExpression) {
-                type = AggregationAccessType.FIRST;
+                type = AggregationStateType.FIRST;
             }
             else if (expr instanceof LastProjectionExpression) {
-                type = AggregationAccessType.LAST;
+                type = AggregationStateType.LAST;
             }
             else {
-                type = AggregationAccessType.WINDOW;
+                type = AggregationStateType.WINDOW;
             }
 
-            return new ExprAccessAggNode(type, theBase.isWildcard(), theBase.getStreamWildcard());
+            return new ExprAggMultiFunctionLinearAccessNode(type, theBase.isWildcard(), theBase.getStreamWildcard());
         }
         else if (expr instanceof DotExpression) {
             DotExpression theBase = (DotExpression) expr;
@@ -2260,7 +2279,7 @@ public class StatementSpecMapper
         else if (expr instanceof ExprCountNode)
         {
             ExprCountNode sub = (ExprCountNode) expr;
-            if (sub.getChildNodes().size() == 0)
+            if (sub.getChildNodes().length == 0)
             {
                 return new CountStarProjectionExpression();
             }
@@ -2299,6 +2318,11 @@ public class StatementSpecMapper
         else if (expr instanceof ExprLeavingAggNode)
         {
             return new PlugInProjectionExpression("leaving", false);
+        }
+        else if (expr instanceof ExprAggMultiFunctionSortedMinMaxByNode)
+        {
+            ExprAggMultiFunctionSortedMinMaxByNode node = (ExprAggMultiFunctionSortedMinMaxByNode) expr;
+            return new PlugInProjectionExpression(node.getAggregationFunctionName(), false);
         }
         else if (expr instanceof ExprPreviousNode)
         {
@@ -2407,6 +2431,11 @@ public class StatementSpecMapper
             ExprPlugInAggFunctionFactoryNode node = (ExprPlugInAggFunctionFactoryNode) expr;
             return new PlugInProjectionExpression(node.getAggregationFunctionName(), node.isDistinct());
         }
+        else if (expr instanceof ExprPlugInAggMultiFunctionNode)
+        {
+            ExprPlugInAggMultiFunctionNode node = (ExprPlugInAggMultiFunctionNode) expr;
+            return new PlugInProjectionExpression(node.getAggregationFunctionName(), node.isDistinct());
+        }
         else if (expr instanceof ExprPlugInSingleRowNode)
         {
             ExprPlugInSingleRowNode node = (ExprPlugInSingleRowNode) expr;
@@ -2510,14 +2539,14 @@ public class StatementSpecMapper
             }
             return new CrontabParameterExpression(type);
         }
-        else if (expr instanceof ExprAccessAggNode)
+        else if (expr instanceof ExprAggMultiFunctionLinearAccessNode)
         {
-            ExprAccessAggNode accessNode = (ExprAccessAggNode) expr;
+            ExprAggMultiFunctionLinearAccessNode accessNode = (ExprAggMultiFunctionLinearAccessNode) expr;
             AccessProjectionExpressionBase ape;
-            if (accessNode.getAccessType() == AggregationAccessType.FIRST) {
+            if (accessNode.getStateType() == AggregationStateType.FIRST) {
                 ape = new FirstProjectionExpression();
             }
-            else if (accessNode.getAccessType() == AggregationAccessType.WINDOW) {
+            else if (accessNode.getStateType() == AggregationStateType.WINDOW) {
                 ape = new WindowProjectionExpression();
             }
             else {
@@ -2610,17 +2639,24 @@ public class StatementSpecMapper
         {
             StreamSpecRaw spec;
 
+            ViewSpec[] views = ViewSpec.EMPTY_VIEWSPEC_ARRAY;
+            if (stream instanceof ProjectedStream)
+            {
+                ProjectedStream projectedStream = (ProjectedStream) stream;
+                views = ViewSpec.toArray(mapViews(projectedStream.getViews(), mapContext));
+            }
+
             if (stream instanceof FilterStream)
             {
                 FilterStream filterStream = (FilterStream) stream;
                 FilterSpecRaw filterSpecRaw = mapFilter(filterStream.getFilter(), mapContext);
                 StreamSpecOptions options = mapStreamOpts(filterStream);
-                spec = new FilterStreamSpecRaw(filterSpecRaw, new ArrayList<ViewSpec>(), filterStream.getStreamName(), options);
+                spec = new FilterStreamSpecRaw(filterSpecRaw, views, filterStream.getStreamName(), options);
             }
             else if (stream instanceof SQLStream)
             {
                 SQLStream sqlStream = (SQLStream) stream;
-                spec = new DBStatementStreamSpec(sqlStream.getStreamName(), new ArrayList<ViewSpec>(),
+                spec = new DBStatementStreamSpec(sqlStream.getStreamName(), views,
                         sqlStream.getDatabaseName(), sqlStream.getSqlWithSubsParams(), sqlStream.getOptionalMetadataSQL());
             }
             else if (stream instanceof PatternStream)
@@ -2628,7 +2664,7 @@ public class StatementSpecMapper
                 PatternStream patternStream = (PatternStream) stream;
                 EvalFactoryNode child = mapPatternEvalDeep(patternStream.getExpression(), mapContext);
                 StreamSpecOptions options = mapStreamOpts(patternStream);
-                spec = new PatternStreamSpecRaw(child, Collections.<EvalFactoryNode, String>emptyMap(), new ArrayList<ViewSpec>(), patternStream.getStreamName(), options);
+                spec = new PatternStreamSpecRaw(child, Collections.<EvalFactoryNode, String>emptyMap(), views, patternStream.getStreamName(), options);
             }
             else if (stream instanceof MethodInvocationStream)
             {
@@ -2640,7 +2676,7 @@ public class StatementSpecMapper
                     expressions.add(exprNode);
                 }
 
-                spec = new MethodStreamSpec(methodStream.getStreamName(), new ArrayList<ViewSpec>(), "method",
+                spec = new MethodStreamSpec(methodStream.getStreamName(), views, "method",
                         methodStream.getClassName(), methodStream.getMethodName(), expressions);
             }
             else
@@ -2649,12 +2685,6 @@ public class StatementSpecMapper
             }
 
             raw.getStreamSpecs().add(spec);
-
-            if (stream instanceof ProjectedStream)
-            {
-                ProjectedStream projectedStream = (ProjectedStream) stream;
-                spec.getViewSpecs().addAll(mapViews(projectedStream.getViews(), mapContext));
-            }
         }
 
         for (OuterJoinQualifier qualifier : fromClause.getOuterJoinQualifiers())

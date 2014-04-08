@@ -38,4 +38,6 @@ public final class ExpressionViewUtil {
     public final static String NEWEST_TIMESTAMP = "newest_timestamp";
     public final static String EXPIRED_COUNT = "expired_count";
     public final static String VIEW_REFERENCE = "view_reference";
+    public final static String NEWEST_EVENT = "newest_event";
+    public final static String OLDEST_EVENT = "oldest_event";
 }

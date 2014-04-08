@@ -11,7 +11,10 @@ package com.espertech.esper.event;
 import com.espertech.esper.client.*;
 import com.espertech.esper.epl.parse.ASTFilterSpecHelper;
 import com.espertech.esper.event.bean.BeanEventType;
-import com.espertech.esper.event.property.*;
+import com.espertech.esper.event.property.IndexedProperty;
+import com.espertech.esper.event.property.MappedProperty;
+import com.espertech.esper.event.property.Property;
+import com.espertech.esper.event.property.PropertyParser;
 import com.espertech.esper.util.GraphUtil;
 import com.espertech.esper.util.JavaClassHelper;
 
@@ -33,12 +36,9 @@ public abstract class BaseNestableEventType implements EventTypeSPI
     // Simple (not-nested) properties are stored here
     protected String[] propertyNames;       // Cache an array of property names so not to construct one frequently
     protected EventPropertyDescriptor[] propertyDescriptors;
-    protected Map<String, EventPropertyDescriptor> propertyDescriptorMap;
 
-    protected final Map<String, FragmentEventType> simpleFragmentTypes;     // Mapping of property name (fragment-only) and type
-    protected final Map<String, Class> simplePropertyTypes;     // Mapping of property name (simple-only) and type
-    protected final Map<String, EventPropertyGetter> propertyGetters;   // Mapping of simple property name and getters
-    protected final Map<String, EventPropertyGetter> propertyGetterCache; // Mapping of all property names and getters
+    protected final Map<String, PropertySetDescriptorItem> propertyItems;
+    protected Map<String, EventPropertyGetter> propertyGetterCache; // Mapping of all property names and getters
 
     // Nestable definition of Map contents is here
     protected Map<String, Object> nestableTypes;  // Deep definition of the map-type, containing nested maps and objects
@@ -92,16 +92,8 @@ public abstract class BaseNestableEventType implements EventTypeSPI
         
         nestableTypes = propertySet.getNestableTypes();
         propertyNames = propertySet.getPropertyNameArray();
-        propertyGetters = propertySet.getPropertyGetters();
-        propertyGetterCache = new HashMap<String, EventPropertyGetter>();
-        simplePropertyTypes = propertySet.getSimplePropertyTypes();
-        simpleFragmentTypes = propertySet.getSimpleFragmentTypes();
+        propertyItems = propertySet.getPropertyItems();
         propertyDescriptors = propertySet.getPropertyDescriptors().toArray(new EventPropertyDescriptor[propertySet.getPropertyDescriptors().size()]);
-        propertyDescriptorMap = new HashMap<String, EventPropertyDescriptor>();
-        for (EventPropertyDescriptor desc : propertyDescriptors)
-        {
-            propertyDescriptorMap.put(desc.getPropertyName(), desc);
-        }
 
         EventTypeUtility.TimestampPropertyDesc desc = EventTypeUtility.validatedDetermineTimestampProps(this, typeConfig == null ? null : typeConfig.getStartTimestampPropertyName(), typeConfig == null ? null : typeConfig.getEndTimestampPropertyName(), optionalSuperTypes);
         startTimestampPropertyName = desc.getStart();
@@ -127,17 +119,20 @@ public abstract class BaseNestableEventType implements EventTypeSPI
 
     public final Class getPropertyType(String propertyName)
     {
-        return EventTypeUtility.getNestablePropertyType(propertyName, simplePropertyTypes, nestableTypes, eventAdapterService);
+        return EventTypeUtility.getNestablePropertyType(propertyName, propertyItems, nestableTypes, eventAdapterService);
     }
 
     public EventPropertyGetter getGetter(final String propertyName)
     {
-        return EventTypeUtility.getNestableGetter(propertyName, propertyGetters, propertyGetterCache, nestableTypes, eventAdapterService, getterFactory);
+        if (propertyGetterCache == null) {
+            propertyGetterCache = new HashMap<String, EventPropertyGetter>();
+        }
+        return EventTypeUtility.getNestableGetter(propertyName, propertyItems, propertyGetterCache, nestableTypes, eventAdapterService, getterFactory);
     }
 
     public EventPropertyGetterMapped getGetterMapped(String mappedPropertyName) {
-        EventPropertyDescriptor desc = this.propertyDescriptorMap.get(mappedPropertyName);
-        if (desc == null || !desc.isMapped()) {
+        PropertySetDescriptorItem item = propertyItems.get(mappedPropertyName);
+        if (item == null || !item.getPropertyDescriptor().isMapped()) {
             return null;
         }
         MappedProperty mappedProperty = new MappedProperty(mappedPropertyName);
@@ -145,8 +140,8 @@ public abstract class BaseNestableEventType implements EventTypeSPI
     }
 
     public EventPropertyGetterIndexed getGetterIndexed(String indexedPropertyName) {
-        EventPropertyDescriptor desc = this.propertyDescriptorMap.get(indexedPropertyName);
-        if (desc == null || !desc.isIndexed()) {
+        PropertySetDescriptorItem item = propertyItems.get(indexedPropertyName);
+        if (item == null || !item.getPropertyDescriptor().isIndexed()) {
             return null;
         }
         IndexedProperty indexedProperty = new IndexedProperty(indexedPropertyName);
@@ -164,7 +159,7 @@ public abstract class BaseNestableEventType implements EventTypeSPI
         if (propertyType == null)
         {
             // Could be a native null type, such as "insert into A select null as field..."
-            if (simplePropertyTypes.containsKey(ASTFilterSpecHelper.unescapeDot(propertyName)))
+            if (propertyItems.containsKey(ASTFilterSpecHelper.unescapeDot(propertyName)))
             {
                 return true;
             }
@@ -213,7 +208,7 @@ public abstract class BaseNestableEventType implements EventTypeSPI
         List<EventPropertyDescriptor> newPropertyDescriptors = new ArrayList<EventPropertyDescriptor>();
         for (EventPropertyDescriptor propertyDesc : propertySet.getPropertyDescriptors())
         {
-            if (propertyGetters.containsKey(propertyDesc.getPropertyName()))  // not a new property
+            if (propertyItems.containsKey(propertyDesc.getPropertyName()))  // not a new property
             {
                 continue;
             }
@@ -224,13 +219,12 @@ public abstract class BaseNestableEventType implements EventTypeSPI
         List<String> newPropertyNames = new ArrayList<String>();
         for (String propertyName : propertySet.getPropertyNameList())
         {
-            if (propertyGetters.containsKey(propertyName))  // not a new property
+            if (propertyItems.containsKey(propertyName))  // not a new property
             {
                 continue;
             }
             newPropertyNames.add(propertyName);
-            propertyGetters.put(propertyName, propertySet.getPropertyGetters().get(propertyName));
-            simplePropertyTypes.put(propertyName, propertySet.getSimplePropertyTypes().get(propertyName));
+            propertyItems.put(propertyName, propertySet.getPropertyItems().get(propertyName));
         }
 
         // expand property name array
@@ -434,7 +428,11 @@ public abstract class BaseNestableEventType implements EventTypeSPI
 
     public EventPropertyDescriptor getPropertyDescriptor(String propertyName)
     {
-        return propertyDescriptorMap.get(propertyName);
+        PropertySetDescriptorItem item = propertyItems.get(propertyName);
+        if (item == null) {
+            return null;
+        }
+        return item.getPropertyDescriptor();
     }
 
     public EventTypeMetadata getMetadata()
@@ -444,9 +442,10 @@ public abstract class BaseNestableEventType implements EventTypeSPI
 
     public FragmentEventType getFragmentType(String propertyName)
     {
-        if (simpleFragmentTypes.containsKey(propertyName))  // may contain null values
+        PropertySetDescriptorItem item = propertyItems.get(propertyName);
+        if (item != null)  // may contain null values
         {
-            return simpleFragmentTypes.get(propertyName);
+            return item.getFragmentEventType();
         }
 
         // see if this is a nested property

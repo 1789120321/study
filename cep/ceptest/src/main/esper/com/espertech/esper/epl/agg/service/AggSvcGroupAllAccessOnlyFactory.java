@@ -12,8 +12,7 @@
 package com.espertech.esper.epl.agg.service;
 
 import com.espertech.esper.core.context.util.AgentInstanceContext;
-import com.espertech.esper.epl.agg.access.AggregationAccess;
-import com.espertech.esper.epl.agg.access.AggregationAccessUtil;
+import com.espertech.esper.epl.agg.access.AggregationState;
 import com.espertech.esper.epl.agg.access.AggregationAccessorSlotPair;
 import com.espertech.esper.epl.core.MethodResolutionService;
 
@@ -23,17 +22,17 @@ import com.espertech.esper.epl.core.MethodResolutionService;
 public class AggSvcGroupAllAccessOnlyFactory implements AggregationServiceFactory
 {
     protected final AggregationAccessorSlotPair[] accessors;
-    protected final int[] streams;
+    protected final AggregationStateFactory[] accessAggSpecs;
     protected final boolean isJoin;
 
-    public AggSvcGroupAllAccessOnlyFactory(AggregationAccessorSlotPair[] accessors, int[] streams, boolean join) {
+    public AggSvcGroupAllAccessOnlyFactory(AggregationAccessorSlotPair[] accessors, AggregationStateFactory[] accessAggSpecs, boolean join) {
         this.accessors = accessors;
-        this.streams = streams;
+        this.accessAggSpecs = accessAggSpecs;
         isJoin = join;
     }
 
     public AggregationService makeService(AgentInstanceContext agentInstanceContext, MethodResolutionService methodResolutionService) {
-        AggregationAccess[] accesses = AggregationAccessUtil.getNewAccesses(agentInstanceContext.getAgentInstanceId(), isJoin, streams, methodResolutionService, null);
-        return new AggSvcGroupAllAccessOnlyImpl(accessors, accesses);
+        AggregationState[] states = methodResolutionService.newAccesses(agentInstanceContext.getAgentInstanceId(), isJoin, accessAggSpecs);
+        return new AggSvcGroupAllAccessOnlyImpl(accessors, states);
     }
 }

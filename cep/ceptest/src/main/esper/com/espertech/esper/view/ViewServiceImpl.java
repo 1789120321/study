@@ -38,13 +38,13 @@ public final class ViewServiceImpl implements ViewService
 
     public ViewFactoryChain createFactories(int streamNum,
                                             EventType parentEventType,
-                                            List<ViewSpec> viewSpecDefinitions,
+                                            ViewSpec[] viewSpecDefinitions,
                                             StreamSpecOptions options,
                                             StatementContext context)
             throws ViewProcessingException
     {
         // Clone the view spec list to prevent parameter modification
-        List<ViewSpec> viewSpecList = new ArrayList<ViewSpec>(viewSpecDefinitions);
+        List<ViewSpec> viewSpecList = new ArrayList<ViewSpec>(Arrays.asList(viewSpecDefinitions));
 
         // Inspect views and add merge views if required
         ViewServiceHelper.addMergeViews(viewSpecList);

@@ -13,6 +13,7 @@ package com.espertech.esper.view.internal;
 
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.core.context.util.AgentInstanceContext;
 import com.espertech.esper.core.service.EPStatementHandle;
 import com.espertech.esper.core.service.ExprEvaluatorContextStatement;
 import com.espertech.esper.core.service.InternalEventRouter;
@@ -43,24 +44,24 @@ public class RouteResultView extends ViewSupport
      * @param internalEventRouter routining output events
      * @param processors processors for select clauses
      * @param whereClauses where expressions
-     * @param statementContext statement context
+     * @param agentInstanceContext agent instance context
      */
-    public RouteResultView(boolean isFirst, EventType eventType, EPStatementHandle epStatementHandle, InternalEventRouter internalEventRouter, boolean[] isNamedWindowInsert, ResultSetProcessor[] processors, ExprNode[] whereClauses, StatementContext statementContext)
+    public RouteResultView(boolean isFirst, EventType eventType, EPStatementHandle epStatementHandle, InternalEventRouter internalEventRouter, boolean[] isNamedWindowInsert, ResultSetProcessor[] processors, ExprNode[] whereClauses, AgentInstanceContext agentInstanceContext)
     {
         if (whereClauses.length != processors.length)
         {
             throw new IllegalArgumentException("Number of where-clauses and processors does not match");
         }
 
-        this.exprEvaluatorContext = new ExprEvaluatorContextStatement(statementContext);
+        this.exprEvaluatorContext = agentInstanceContext;
         this.eventType = eventType;
         if (isFirst)
         {
-            handler = new RouteResultViewHandlerFirst(epStatementHandle, internalEventRouter, isNamedWindowInsert, processors, ExprNodeUtility.getEvaluators(whereClauses), statementContext);
+            handler = new RouteResultViewHandlerFirst(epStatementHandle, internalEventRouter, isNamedWindowInsert, processors, ExprNodeUtility.getEvaluators(whereClauses), agentInstanceContext);
         }
         else
         {
-            handler = new RouteResultViewHandlerAll(epStatementHandle, internalEventRouter, isNamedWindowInsert, processors, ExprNodeUtility.getEvaluators(whereClauses), statementContext);
+            handler = new RouteResultViewHandlerAll(epStatementHandle, internalEventRouter, isNamedWindowInsert, processors, ExprNodeUtility.getEvaluators(whereClauses), agentInstanceContext);
         }
     }
 

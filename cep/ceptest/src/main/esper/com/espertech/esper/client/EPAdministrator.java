@@ -8,8 +8,9 @@
  **************************************************************************************/
 package com.espertech.esper.client;
 
-import com.espertech.esper.client.soda.EPStatementObjectModel;
+import com.espertech.esper.client.context.EPContextPartitionAdmin;
 import com.espertech.esper.client.deploy.EPDeploymentAdmin;
+import com.espertech.esper.client.soda.EPStatementObjectModel;
 
 /**
  * Administrative interface to the event stream processing engine. Includes methods to create patterns and EPL statements.
@@ -264,4 +265,10 @@ public interface EPAdministrator
      * @return runtime engine configuration operations
      */
     public ConfigurationOperations getConfiguration();
+
+    /**
+     * Returns the administrative interface for context partitions.
+     * @return context partition administrative interface
+     */
+    public EPContextPartitionAdmin getContextPartitionAdmin();
 }

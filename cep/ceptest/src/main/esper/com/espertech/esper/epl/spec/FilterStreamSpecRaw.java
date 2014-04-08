@@ -49,7 +49,7 @@ public class FilterStreamSpecRaw extends StreamSpecBase implements StreamSpecRaw
      * @param optionalStreamName is the stream name if supplied, or null if not supplied
      * @param streamSpecOptions - additional options, such as unidirectional stream in a join
      */
-    public FilterStreamSpecRaw(FilterSpecRaw rawFilterSpec, List<ViewSpec> viewSpecs, String optionalStreamName, StreamSpecOptions streamSpecOptions)
+    public FilterStreamSpecRaw(FilterSpecRaw rawFilterSpec, ViewSpec[] viewSpecs, String optionalStreamName, StreamSpecOptions streamSpecOptions)
     {
         super(optionalStreamName, viewSpecs, streamSpecOptions);
         this.rawFilterSpec = rawFilterSpec;

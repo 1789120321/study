@@ -74,10 +74,10 @@ public class ResultSetProcessorFactoryFactory
     )
             throws ExprValidationException
     {
-        List<OrderByItem> orderByListUnexpanded = statementSpec.getOrderByList();
+        OrderByItem[] orderByListUnexpanded = statementSpec.getOrderByList();
         SelectClauseSpecCompiled selectClauseSpec = statementSpec.getSelectClauseSpec();
         InsertIntoDesc insertIntoDesc = statementSpec.getInsertIntoDesc();
-        List<ExprNode> groupByNodes = statementSpec.getGroupByExpressions();
+        ExprNode[] groupByNodes = statementSpec.getGroupByExpressions();
         ExprNode optionalHavingNode = statementSpec.getHavingExprRootNode();
         OutputLimitSpec outputLimitSpec = statementSpec.getOutputLimitSpec();
 
@@ -85,7 +85,7 @@ public class ResultSetProcessorFactoryFactory
         {
             log.debug(".getProcessor Getting processor for " +
                     " selectionList=" + selectClauseSpec.getSelectExprList() +
-                    " groupByNodes=" + Arrays.toString(groupByNodes.toArray()) +
+                    " groupByNodes=" + Arrays.toString(groupByNodes) +
                     " optionalHavingNode=" + optionalHavingNode);
         }
 
@@ -104,10 +104,10 @@ public class ResultSetProcessorFactoryFactory
         ExprEvaluatorContextStatement evaluatorContextStmt = new ExprEvaluatorContextStatement(stmtContext);
         ExprValidationContext validationContext = new ExprValidationContext(typeService, stmtContext.getMethodResolutionService(), viewResourceDelegate, stmtContext.getSchedulingService(), stmtContext.getVariableService(),evaluatorContextStmt, stmtContext.getEventAdapterService(), stmtContext.getStatementName(), stmtContext.getStatementId(), stmtContext.getAnnotations(), stmtContext.getContextDescriptor());
 
-        for (int i = 0; i < selectClauseSpec.getSelectExprList().size(); i++)
+        for (int i = 0; i < selectClauseSpec.getSelectExprList().length; i++)
         {
             // validate element
-            SelectClauseElementCompiled element = selectClauseSpec.getSelectExprList().get(i);
+            SelectClauseElementCompiled element = selectClauseSpec.getSelectExprList()[i];
             if (element instanceof SelectClauseExprCompiledSpec)
             {
                 SelectClauseExprCompiledSpec expr = (SelectClauseExprCompiledSpec) element;
@@ -190,19 +190,19 @@ public class ResultSetProcessorFactoryFactory
         }
 
         // Validate group-by expressions, if any (could be empty list for no group-by)
-        Class[] groupByTypes = new Class[groupByNodes.size()];
-        for (int i = 0; i < groupByNodes.size(); i++)
+        Class[] groupByTypes = new Class[groupByNodes.length];
+        for (int i = 0; i < groupByNodes.length; i++)
         {
             // Ensure there is no subselects
             ExprNodeSubselectDeclaredDotVisitor visitor = new ExprNodeSubselectDeclaredDotVisitor();
-            groupByNodes.get(i).accept(visitor);
+            groupByNodes[i].accept(visitor);
             if (visitor.getSubselects().size() > 0)
             {
                 throw new ExprValidationException("Subselects not allowed within group-by");
             }
 
-            ExprNode validatedGroupBy = ExprNodeUtility.getValidatedSubtree(groupByNodes.get(i), validationContext);
-            groupByNodes.set(i, validatedGroupBy);
+            ExprNode validatedGroupBy = ExprNodeUtility.getValidatedSubtree(groupByNodes[i], validationContext);
+            groupByNodes[i] = validatedGroupBy;
             groupByTypes[i] = validatedGroupBy.getExprEvaluator().getType();
         }
         stmtContext.getMethodResolutionService().setGroupKeyTypes(groupByTypes);
@@ -292,7 +292,7 @@ public class ResultSetProcessorFactoryFactory
         }
 
         // Construct the appropriate aggregation service
-        boolean hasGroupBy = !groupByNodes.isEmpty();
+        boolean hasGroupBy = groupByNodes.length > 0;
         AggregationServiceFactoryDesc aggregationServiceFactory = AggregationServiceFactoryFactory.getService(selectAggregateExprNodes, havingAggregateExprNodes, orderByAggregateExprNodes, hasGroupBy, evaluatorContextStmt, statementSpec.getAnnotations(), stmtContext.getVariableService(), typeService.getEventTypes().length > 1,
                 statementSpec.getFilterRootNode(), statementSpec.getHavingExprRootNode(),
                 stmtContext.getAggregationServiceFactoryService(), typeService.getEventTypes());
@@ -308,7 +308,7 @@ public class ResultSetProcessorFactoryFactory
                 groupByNodes, orderByList, statementSpec.getRowLimitSpec(), stmtContext.getVariableService(), useCollatorSort);
 
         // Construct the processor for evaluating the select clause
-        SelectExprEventTypeRegistry selectExprEventTypeRegistry = new SelectExprEventTypeRegistry(stmtContext.getDynamicReferenceEventTypes());
+        SelectExprEventTypeRegistry selectExprEventTypeRegistry = new SelectExprEventTypeRegistry(stmtContext.getStatementName(), stmtContext.getStatementEventTypeRef());
         SelectExprProcessor selectExprProcessor = SelectExprProcessorFactory.getProcessor(Collections.<Integer>emptyList(), selectClauseSpec.getSelectExprList(), isUsingWildcard, insertIntoDesc, statementSpec.getForClauseSpec(), typeService, stmtContext.getEventAdapterService(), stmtContext.getStatementResultService(), stmtContext.getValueAddEventService(), selectExprEventTypeRegistry, stmtContext.getMethodResolutionService(), evaluatorContextStmt,
                 stmtContext.getVariableService(), stmtContext.getTimeProvider(), stmtContext.getEngineURI(), stmtContext.getStatementId(), stmtContext.getStatementName(), stmtContext.getAnnotations(), stmtContext.getContextDescriptor(), stmtContext.getConfigSnapshot(), selectExprProcessorCallback);
 
@@ -349,7 +349,7 @@ public class ResultSetProcessorFactoryFactory
 
         // (1)
         // There is no group-by clause and no aggregate functions with event properties in the select clause and having clause (simplest case)
-        if ((groupByNodes.isEmpty()) && (selectAggregateExprNodes.isEmpty()) && (havingAggregateExprNodes.isEmpty()))
+        if ((groupByNodes.length == 0) && (selectAggregateExprNodes.isEmpty()) && (havingAggregateExprNodes.isEmpty()))
         {
             // (1a)
             // There is no need to perform select expression processing, the single view itself (no join) generates
@@ -380,7 +380,7 @@ public class ResultSetProcessorFactoryFactory
             return new ResultSetProcessorFactoryDesc(factory, orderByProcessorFactory, aggregationServiceFactory);
         }
 
-        if ((groupByNodes.isEmpty()) && hasAggregation)
+        if ((groupByNodes.length == 0) && hasAggregation)
         {
             // (3)
             // There is no group-by clause and there are aggregate functions with event properties in the select clause (aggregation case)
@@ -401,7 +401,7 @@ public class ResultSetProcessorFactoryFactory
         }
 
         // Handle group-by cases
-        if (groupByNodes.isEmpty())
+        if (groupByNodes.length == 0)
         {
             throw new IllegalStateException("Unexpected empty group-by expression list");
         }
@@ -493,7 +493,7 @@ public class ResultSetProcessorFactoryFactory
         }
     }
 
-    private static void validateGroupBy(List<ExprNode> groupByNodes)
+    private static void validateGroupBy(ExprNode[] groupByNodes)
         throws ExprValidationException
     {
         // Make sure there is no aggregate function in group-by
@@ -508,7 +508,7 @@ public class ResultSetProcessorFactoryFactory
         }
     }
 
-    private static Set<Pair<Integer, String>> getGroupByProperties(List<ExprNode> groupByNodes)
+    private static Set<Pair<Integer, String>> getGroupByProperties(ExprNode[] groupByNodes)
         throws ExprValidationException
     {
         // Get the set of properties refered to by all group-by expression nodes.
@@ -531,9 +531,9 @@ public class ResultSetProcessorFactoryFactory
         return propertiesGroupBy;
     }
 
-    private static List<OrderByItem> expandColumnNames(List<SelectClauseElementCompiled> selectionList, List<OrderByItem> orderByUnexpanded)
+    private static List<OrderByItem> expandColumnNames(SelectClauseElementCompiled[] selectionList, OrderByItem[] orderByUnexpanded)
     {
-        if (orderByUnexpanded.isEmpty()) {
+        if (orderByUnexpanded.length == 0) {
             return Collections.emptyList();
         }
 

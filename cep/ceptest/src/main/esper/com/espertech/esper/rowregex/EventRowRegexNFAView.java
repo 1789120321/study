@@ -131,7 +131,7 @@ public class EventRowRegexNFAView extends ViewSupport implements StopCallback, E
             handle = new EPStatementHandleCallback(agentInstanceContext.getEpStatementAgentInstanceHandle(), callback);
             schedule = new TreeMap<Long, Object>();
 
-            agentInstanceContext.getTerminationCallbacks().add(this);
+            agentInstanceContext.addTerminationCallback(this);
         }
         else
         {

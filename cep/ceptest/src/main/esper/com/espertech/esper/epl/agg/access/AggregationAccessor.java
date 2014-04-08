@@ -16,18 +16,37 @@ import com.espertech.esper.client.EventBean;
 import java.util.Collection;
 
 /**
- * Accessor for first/last/window access aggregation functions.
+ * Accessor for access aggregation functions.
  */
 public interface AggregationAccessor
 {
     /**
-     * Returns the value for a first/last/window access aggregation function.
-     * @param access access
-     * @return value
+     * Return the aggregation state value either as a scalar value or any other object.
+     * <p>
+     *     For enumeration over scalar values or objects return an array or collection of scalar or object values.
+     * </p>
+     * <p>
+     *     Use the #getEnumerableEvents method to return a collection of events.
+     * </p>
+     * <p>
+     *     Use the #getEnumerableEvent to return a single events.
+     * </p>
+     * @param state aggregation state, downcast as needed
+     * @return return value
      */
-    public Object getValue(AggregationAccess access);
+    public Object getValue(AggregationState state);
 
-    public Collection<EventBean> getCollectionReadOnly(AggregationAccess access);
+    /**
+     * Return the aggregation state value consisting of a collection of events.
+     * @param state aggregation state, downcast as needed
+     * @return return collection of events or null or empty collection
+     */
+    public Collection<EventBean> getEnumerableEvents(AggregationState state);
 
-    public EventBean getEventBean(AggregationAccess currentAcces);
+    /**
+     * Return the aggregation state value consisting of a single event.
+     * @param state aggregation state, downcast as needed
+     * @return return event or null
+     */
+    public EventBean getEnumerableEvent(AggregationState state);
 }

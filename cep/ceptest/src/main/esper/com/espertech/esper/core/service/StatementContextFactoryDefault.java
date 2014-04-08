@@ -8,17 +8,18 @@
  **************************************************************************************/
 package com.espertech.esper.core.service;
 
+import com.espertech.esper.client.EPException;
 import com.espertech.esper.client.EPStatementException;
-import com.espertech.esper.client.annotation.Audit;
-import com.espertech.esper.client.annotation.AuditEnum;
-import com.espertech.esper.client.annotation.Drop;
-import com.espertech.esper.client.annotation.Priority;
+import com.espertech.esper.client.annotation.*;
+import com.espertech.esper.core.context.mgr.ContextControllerFactoryService;
 import com.espertech.esper.core.context.mgr.ContextControllerFactoryServiceImpl;
+import com.espertech.esper.core.context.mgr.ContextStateCache;
 import com.espertech.esper.core.context.stmt.StatementAIResourceRegistry;
 import com.espertech.esper.core.context.util.ContextDescriptor;
 import com.espertech.esper.epl.agg.service.AggregationServiceFactoryServiceImpl;
 import com.espertech.esper.epl.core.MethodResolutionService;
 import com.espertech.esper.epl.core.MethodResolutionServiceImpl;
+import com.espertech.esper.epl.expression.ExprValidationException;
 import com.espertech.esper.epl.metric.StatementMetricHandle;
 import com.espertech.esper.epl.script.AgentInstanceScriptContext;
 import com.espertech.esper.epl.spec.*;
@@ -28,6 +29,7 @@ import com.espertech.esper.pattern.pool.PatternSubexpressionPoolStmtHandler;
 import com.espertech.esper.pattern.pool.PatternSubexpressionPoolStmtSvc;
 import com.espertech.esper.schedule.ScheduleBucket;
 import com.espertech.esper.schedule.SchedulingServiceSPI;
+import com.espertech.esper.util.JavaClassHelper;
 import com.espertech.esper.view.StatementStopServiceImpl;
 import com.espertech.esper.view.ViewEnumHelper;
 import com.espertech.esper.view.ViewResolutionService;
@@ -79,7 +81,8 @@ public class StatementContextFactoryDefault implements StatementContextFactory
                 services.getMetricsReportingService(),
                 services.getViewService(),
                 services.getExceptionHandlingService(),
-                services.getExpressionResultCacheSharable()
+                services.getExpressionResultCacheSharable(),
+                services.getStatementEventTypeRefService()
                 );
     }
 
@@ -184,12 +187,12 @@ public class StatementContextFactoryDefault implements StatementContextFactory
             defaultAgentInstanceScriptContext = new AgentInstanceScriptContext();
         }
 
+        // allow a special context controller factory for testing
+        ContextControllerFactoryService contextControllerFactoryService = getContextControllerFactoryService(annotations);
+
         // Create statement context
         return new StatementContext(stmtEngineServices,
-                statementId,
-                null, 
-                statementName,
-                expression,
+                null,
                 schedulingService,
                 scheduleBucket,
                 epStatementHandle,
@@ -208,9 +211,22 @@ public class StatementContextFactoryDefault implements StatementContextFactory
                 contextDescriptor,
                 patternSubexpressionPoolStmtSvc,
                 stateless,
-                ContextControllerFactoryServiceImpl.DEFAULT_FACTORY,
+                contextControllerFactoryService,
                 defaultAgentInstanceScriptContext,
                 AggregationServiceFactoryServiceImpl.DEFAULT_FACTORY);
+    }
+
+    private ContextControllerFactoryService getContextControllerFactoryService(Annotation[] annotations) {
+        try {
+            ContextStateCache replacementCache = (ContextStateCache) JavaClassHelper.getAnnotationHook(annotations, HookType.CONTEXT_STATE_CACHE, ContextStateCache.class, null);
+            if (replacementCache != null) {
+                return new ContextControllerFactoryServiceImpl(replacementCache);
+            }
+        }
+        catch (ExprValidationException e) {
+            throw new EPException("Failed to obtain hook for " + HookType.CONTEXT_STATE_CACHE);
+        }
+        return ContextControllerFactoryServiceImpl.DEFAULT_FACTORY;
     }
 
     /**

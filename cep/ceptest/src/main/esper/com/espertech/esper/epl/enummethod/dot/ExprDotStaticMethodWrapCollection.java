@@ -11,6 +11,7 @@
 
 package com.espertech.esper.epl.enummethod.dot;
 
+import com.espertech.esper.client.util.ExpressionReturnType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -27,8 +28,8 @@ public class ExprDotStaticMethodWrapCollection implements ExprDotStaticMethodWra
         this.componentType = componentType;
     }
 
-    public ExprDotEvalTypeInfo getTypeInfo() {
-        return ExprDotEvalTypeInfo.componentColl(componentType);
+    public ExpressionReturnType getTypeInfo() {
+        return ExpressionReturnType.collectionOfSingleValue(componentType);
     }
 
     public Collection convert(Object result) {

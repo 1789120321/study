@@ -39,7 +39,7 @@ public interface ViewService
      */
     public ViewFactoryChain createFactories(int streamNum,
                                             EventType parentEventType,
-                                            List<ViewSpec> viewSpecList,
+                                            ViewSpec[] viewSpecList,
                                             StreamSpecOptions options,
                                             StatementContext context)
             throws ViewProcessingException;

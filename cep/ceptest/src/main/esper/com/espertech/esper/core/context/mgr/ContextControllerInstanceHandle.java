@@ -12,5 +12,7 @@
 package com.espertech.esper.core.context.mgr;
 
 public interface ContextControllerInstanceHandle {
+    public int getSubPathId();
     public Integer getContextPartitionOrPathId();
+    public ContextControllerTreeAgentInstanceList getInstances();
 }

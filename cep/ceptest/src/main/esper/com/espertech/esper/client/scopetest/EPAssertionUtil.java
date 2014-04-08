@@ -179,14 +179,27 @@ public class EPAssertionUtil
      */
     public static void assertEqualsExactOrder(Object[] expected, Object[] actual)
     {
-        if (compareArraySize(expected, actual)) {
+        assertEqualsExactOrder(null, expected, actual);
+    }
+
+    /**
+     * Compare the objects in the two object arrays assuming the exact same order.
+     * @param expected is the expected values
+     * @param actual is the actual values
+     * @param message an optional message that can be output when assrtion fails
+     */
+    public static void assertEqualsExactOrder(String message, Object[] expected, Object[] actual)
+    {
+        if (compareArraySize(message, expected, actual)) {
             return;
         }
         for (int i = 0; i < expected.length; i++)
         {
             Object value = actual[i];
             Object expectedValue = expected[i];
-            assertEqualsAllowArray("Failed to assert at element " + i, expectedValue, value);
+            String text = message != null ? message + ", " : "";
+            text += "Failed to assert at element " + i;
+            assertEqualsAllowArray(text, expectedValue, value);
         }
     }
 
@@ -1414,14 +1427,14 @@ public class EPAssertionUtil
         if ((expected != null) && (expected.getClass().isArray()) && (actual != null) && (actual.getClass().isArray())) {
             Object[] valueArray = toObjectArray(expected);
             Object[] eventPropArray = toObjectArray(actual);
-            assertEqualsExactOrder(eventPropArray, valueArray);
+            assertEqualsExactOrder(message, valueArray, eventPropArray);
             return;
         }
         ScopeTestHelper.assertEquals(message, expected, actual);
     }
 
     private static EventAdapterService getEventAdapterService() {
-        return new EventAdapterServiceImpl(new EventTypeIdGeneratorImpl());
+        return new EventAdapterServiceImpl(new EventTypeIdGeneratorImpl(), 0);
     }
 
     private static String dump(Map<EventBean, Object[]> valuesEachEvent)
@@ -1471,19 +1484,25 @@ public class EPAssertionUtil
     }
 
     private static boolean compareArraySize(Object expected, Object actual) {
+        return compareArraySize(null, expected, actual);
+    }
+
+    private static boolean compareArraySize(String message, Object expected, Object actual) {
         if ((expected == null) && (actual == null || Array.getLength(actual) == 0)) {
             return true;
         }
         if (expected == null || actual == null) {
+            String prefix = message != null ? message + ", " : "";
             if (expected == null) {
-                ScopeTestHelper.assertNull("Expected is null but actual is not null", actual);
+                ScopeTestHelper.assertNull(prefix + "Expected is null but actual is not null", actual);
             }
-            ScopeTestHelper.assertNull("Actual is null but expected is not null", expected);
+            ScopeTestHelper.assertNull(prefix + "Actual is null but expected is not null", expected);
         }
         else {
             int expectedLength = Array.getLength(expected);
             int actualLength = Array.getLength(actual);
-            ScopeTestHelper.assertEquals("Mismatch in the number of expected and actual number of values asserted", expectedLength, actualLength);
+            String prefix = message != null ? message + ", " : "";
+            ScopeTestHelper.assertEquals(prefix + "Mismatch in the number of expected and actual number of values asserted", expectedLength, actualLength);
         }
         return false;
     }

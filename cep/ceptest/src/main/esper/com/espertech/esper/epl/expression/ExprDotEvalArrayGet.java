@@ -12,8 +12,7 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.client.EventBean;
-import com.espertech.esper.client.EventType;
-import com.espertech.esper.epl.enummethod.dot.ExprDotEvalTypeInfo;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -23,13 +22,13 @@ public class ExprDotEvalArrayGet implements ExprDotEval
 {
     private static final Log log = LogFactory.getLog(ExprDotEvalArrayGet.class);
 
-    private final ExprDotEvalTypeInfo typeInfo;
+    private final ExpressionReturnType typeInfo;
     private final ExprEvaluator indexExpression;
 
     public ExprDotEvalArrayGet(ExprEvaluator index, Class componentType)
     {
         this.indexExpression = index;
-        this.typeInfo = ExprDotEvalTypeInfo.scalarOrUnderlying(componentType);
+        this.typeInfo = ExpressionReturnType.singleValue(componentType);
     }
 
     public Object evaluate(Object target, EventBean[] eventsPerStream, boolean isNewData, ExprEvaluatorContext exprEvaluatorContext) {
@@ -52,7 +51,7 @@ public class ExprDotEvalArrayGet implements ExprDotEval
         return Array.get(target, indexNum);
     }
 
-    public ExprDotEvalTypeInfo getTypeInfo() {
+    public ExpressionReturnType getTypeInfo() {
         return typeInfo;
     }
 }

@@ -13,13 +13,8 @@ package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.epl.enummethod.dot.ArrayWrappingCollection;
-import com.espertech.esper.epl.enummethod.dot.ExprDotEvalTypeInfo;
-import com.espertech.esper.util.JavaClassHelper;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import net.sf.cglib.reflect.FastMethod;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import java.lang.reflect.InvocationTargetException;
 
 public class ExprDotMethodEvalNoDuckWrapArray extends ExprDotMethodEvalNoDuck
 {
@@ -37,7 +32,7 @@ public class ExprDotMethodEvalNoDuckWrapArray extends ExprDotMethodEvalNoDuck
     }
 
     @Override
-    public ExprDotEvalTypeInfo getTypeInfo() {
-        return ExprDotEvalTypeInfo.componentColl(method.getReturnType().getComponentType());
+    public ExpressionReturnType getTypeInfo() {
+        return ExpressionReturnType.collectionOfSingleValue(method.getReturnType().getComponentType());
     }
 }

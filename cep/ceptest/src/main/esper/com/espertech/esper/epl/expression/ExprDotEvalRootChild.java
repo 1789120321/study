@@ -10,7 +10,7 @@ package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventType;
-import com.espertech.esper.epl.enummethod.dot.ExprDotEvalTypeInfo;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.event.EventAdapterService;
 
 import java.util.Collection;
@@ -22,16 +22,16 @@ public class ExprDotEvalRootChild implements ExprEvaluator, ExprEvaluatorEnumera
     private final ExprDotEval[] evalIteratorEventBean;
     private final ExprDotEval[] evalUnpacking;
 
-    public ExprDotEvalRootChild(ExprEvaluator rootNodeEvaluator, ExprEvaluatorEnumeration rootLambdaEvaluator, ExprDotEvalTypeInfo typeInfo, ExprDotEval[] evalIteratorEventBean, ExprDotEval[] evalUnpacking) {
+    public ExprDotEvalRootChild(ExprEvaluator rootNodeEvaluator, ExprEvaluatorEnumeration rootLambdaEvaluator, ExpressionReturnType typeInfo, ExprDotEval[] evalIteratorEventBean, ExprDotEval[] evalUnpacking) {
         if (rootLambdaEvaluator != null) {
-            if (typeInfo.getEventTypeColl() != null) {
-                innerEvaluator = new InnerEvaluatorEventCollection(rootLambdaEvaluator, typeInfo.getEventTypeColl());
+            if (typeInfo.getCollOfEventEventType() != null) {
+                innerEvaluator = new InnerEvaluatorEventCollection(rootLambdaEvaluator, typeInfo.getCollOfEventEventType());
             }
-            else if (typeInfo.getEventType() != null) {
-                innerEvaluator = new InnerEvaluatorEventBean(rootLambdaEvaluator, typeInfo.getEventType());
+            else if (typeInfo.getSingleEventEventType() != null) {
+                innerEvaluator = new InnerEvaluatorEventBean(rootLambdaEvaluator, typeInfo.getSingleEventEventType());
             }
             else {
-                innerEvaluator = new InnerEvaluatorScalarCollection(rootLambdaEvaluator, typeInfo.getComponent());
+                innerEvaluator = new InnerEvaluatorScalarCollection(rootLambdaEvaluator, typeInfo.getComponentType());
             }
         }
         else {
@@ -43,7 +43,7 @@ public class ExprDotEvalRootChild implements ExprEvaluator, ExprEvaluatorEnumera
 
     public Class getType()
     {
-        return evalUnpacking[evalUnpacking.length - 1].getTypeInfo().getScalar();
+        return evalUnpacking[evalUnpacking.length - 1].getTypeInfo().getSingleValueType();
     }
 
     public Object evaluate(EventBean[] eventsPerStream, boolean isNewData, ExprEvaluatorContext context)

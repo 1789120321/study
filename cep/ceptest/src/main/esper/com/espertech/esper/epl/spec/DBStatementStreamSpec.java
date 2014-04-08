@@ -8,13 +8,12 @@
  **************************************************************************************/
 package com.espertech.esper.epl.spec;
 
-import com.espertech.esper.util.MetaDefItem;
 import com.espertech.esper.core.service.StatementContext;
+import com.espertech.esper.util.MetaDefItem;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Specification object for historical data poll via database SQL statement.
@@ -34,7 +33,7 @@ public class DBStatementStreamSpec extends StreamSpecBase implements StreamSpecR
      * @param sqlWithSubsParams is the SQL with placeholder parameters
      * @param metadataSQL is the sample SQL to retrieve statement metadata, if any was supplied
      */
-    public DBStatementStreamSpec(String optionalStreamName, List<ViewSpec> viewSpecs, String databaseName, String sqlWithSubsParams, String metadataSQL)
+    public DBStatementStreamSpec(String optionalStreamName, ViewSpec[] viewSpecs, String databaseName, String sqlWithSubsParams, String metadataSQL)
     {
         super(optionalStreamName, viewSpecs, new StreamSpecOptions());
 

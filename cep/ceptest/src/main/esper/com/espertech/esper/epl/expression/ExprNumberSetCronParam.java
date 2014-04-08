@@ -61,20 +61,20 @@ public class ExprNumberSetCronParam extends ExprNodeBase implements ExprEvaluato
 
     public String toExpressionString()
     {
-        if (this.getChildNodes().isEmpty())
+        if (this.getChildNodes().length == 0)
         {
             return cronOperator.getSyntax();
         }
-        return this.getChildNodes().get(0).toExpressionString() + " " + cronOperator.getSyntax();
+        return this.getChildNodes()[0].toExpressionString() + " " + cronOperator.getSyntax();
     }
 
     public boolean isConstantResult()
     {
-        if (this.getChildNodes().size() == 0)
+        if (this.getChildNodes().length == 0)
         {
             return true;
         }
-        return this.getChildNodes().get(0).isConstantResult();
+        return this.getChildNodes()[0].isConstantResult();
     }
 
     public Map<String, Object> getEventType() {
@@ -94,11 +94,11 @@ public class ExprNumberSetCronParam extends ExprNodeBase implements ExprEvaluato
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
         this.timeProvider = validationContext.getTimeProvider();
-        if (this.getChildNodes().isEmpty())
+        if (this.getChildNodes().length == 0)
         {
             return;
         }
-        evaluator = this.getChildNodes().get(0).getExprEvaluator();
+        evaluator = this.getChildNodes()[0].getExprEvaluator();
         Class type = evaluator.getType();
         if (!(JavaClassHelper.isNumericNonFP(type)))
         {
@@ -117,7 +117,7 @@ public class ExprNumberSetCronParam extends ExprNodeBase implements ExprEvaluato
         {
             throw new EPException("Expression node has not been validated");
         }
-        if (this.getChildNodes().isEmpty())
+        if (this.getChildNodes().length == 0)
         {
             return new CronParameter(cronOperator, null, timeProvider.getTime());
         }

@@ -13,6 +13,8 @@ package com.espertech.esper.core.context.mgr;
 
 import com.espertech.esper.client.EventPropertyGetter;
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.client.context.ContextPartitionIdentifier;
+import com.espertech.esper.client.context.ContextPartitionIdentifierHash;
 import com.espertech.esper.collection.Pair;
 import com.espertech.esper.core.context.stmt.*;
 import com.espertech.esper.epl.core.EngineImportSingleRowDesc;
@@ -27,6 +29,7 @@ import com.espertech.esper.epl.spec.util.StatementSpecCompiledAnalyzer;
 import com.espertech.esper.epl.spec.util.StatementSpecCompiledAnalyzerResult;
 import com.espertech.esper.event.EventTypeUtility;
 import com.espertech.esper.filter.*;
+import com.espertech.esper.util.CollectionUtil;
 
 import java.io.StringWriter;
 import java.util.*;
@@ -71,7 +74,7 @@ public class ContextControllerHashFactory extends ContextControllerFactoryBase i
         return new ContextControllerStatementCtxCacheFilters(streamAnalysis.getFilters());
     }
 
-    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> filterAddendum, ContextControllerStatementDesc statement, Object key, int contextId) {
+    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> filterAddendum, ContextControllerStatementDesc statement, Object key, int contextId) {
         ContextControllerStatementCtxCacheFilters statementInfo = (ContextControllerStatementCtxCacheFilters) statement.getCaches()[factoryContext.getNestingLevel() - 1];
         int assignedContextPartition = (Integer) key;
         int code = assignedContextPartition % hashedSpec.getGranularity();
@@ -134,6 +137,10 @@ public class ContextControllerHashFactory extends ContextControllerFactoryBase i
         return new ContextControllerHash(pathId, callback, this);
     }
 
+    public ContextPartitionIdentifier keyPayloadToIdentifier(Object payload) {
+        return new ContextPartitionIdentifierHash((Integer) payload);
+    }
+
     private Collection<EventType> getItemEventTypes(ContextDetailHash hashedSpec) {
         List<EventType> itemEventTypes = new ArrayList<EventType>();
         for (ContextDetailHashItem item : hashedSpec.getItems()) {
@@ -194,7 +201,11 @@ public class ContextControllerHashFactory extends ContextControllerFactoryBase i
                 }
             }
             else if (hashSingleRowFunction != null) {
-                getter = new ContextControllerHashedGetterSingleRow(factoryContext.getAgentInstanceContextCreate().getStatementContext().getStatementName(), hashFuncName, hashSingleRowFunction, item.getFunction().getParameters(), hashedSpec.getGranularity(), factoryContext.getAgentInstanceContextCreate().getStatementContext().getMethodResolutionService(), item.getFilterSpecCompiled().getFilterForEventType());
+                getter = new ContextControllerHashedGetterSingleRow(factoryContext.getAgentInstanceContextCreate().getStatementContext().getStatementName(), hashFuncName, hashSingleRowFunction, item.getFunction().getParameters(), hashedSpec.getGranularity(),
+                        factoryContext.getAgentInstanceContextCreate().getStatementContext().getMethodResolutionService(),
+                        item.getFilterSpecCompiled().getFilterForEventType(),
+                        factoryContext.getAgentInstanceContextCreate().getStatementContext().getEventAdapterService(),
+                        factoryContext.getAgentInstanceContextCreate().getStatementId());
             }
             else {
                 throw new IllegalArgumentException("Unrecognized hash code function '" + hashFuncName + "'");
@@ -206,7 +217,7 @@ public class ContextControllerHashFactory extends ContextControllerFactoryBase i
     }
 
     // Compare filters in statement with filters in segmented context, addendum filter compilation
-    private static void getAddendumFilters(IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> addendums, int agentInstanceId, List<FilterSpecCompiled> filtersSpecs, ContextDetailHash hashSpec, ContextControllerStatementDesc statementDesc) {
+    private static void getAddendumFilters(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> addendums, int agentInstanceId, List<FilterSpecCompiled> filtersSpecs, ContextDetailHash hashSpec, ContextControllerStatementDesc statementDesc) {
 
         // determine whether create-named-window
         boolean isCreateWindow = statementDesc != null && statementDesc.getStatement().getStatementSpec().getCreateWindowDesc() != null;
@@ -219,16 +230,17 @@ public class ContextControllerHashFactory extends ContextControllerFactoryBase i
                 }
 
                 List<FilterValueSetParam> addendumFilters = new ArrayList<FilterValueSetParam>();
-                addendumFilters.addAll(foundPartition.getParametersCompiled());
+                addendumFilters.addAll(Arrays.asList(foundPartition.getParametersCompiled()));
                 FilterValueSetParam filter = new FilterValueSetParamImpl(foundPartition.getLookupable(), FilterOperator.EQUAL, agentInstanceId);
                 addendumFilters.add(filter);
 
-                List<FilterValueSetParam> existing = addendums.get(filtersSpec);
+                FilterValueSetParam[] existing = addendums.get(filtersSpec);
                 if (existing == null) {
-                    addendums.put(filtersSpec, addendumFilters);
+                    addendums.put(filtersSpec, addendumFilters.toArray(new FilterValueSetParam[addendumFilters.size()]));
                 }
                 else {
-                    existing.addAll(addendumFilters);
+                    existing = (FilterValueSetParam[]) CollectionUtil.arrayExpandAddElements(existing, addendumFilters);
+                    addendums.put(filtersSpec, existing);
                 }
             }
         }
@@ -252,12 +264,13 @@ public class ContextControllerHashFactory extends ContextControllerFactoryBase i
 
                     FilterValueSetParam filter = new FilterValueSetParamImpl(foundPartition.getLookupable(), FilterOperator.EQUAL, agentInstanceId);
 
-                    List<FilterValueSetParam> existing = addendums.get(filterSpec);
+                    FilterValueSetParam[] existing = addendums.get(filterSpec);
                     if (existing == null) {
-                        addendums.put(filterSpec, Collections.singletonList(filter));
+                        addendums.put(filterSpec, new FilterValueSetParam[] {filter});
                     }
                     else {
-                        existing.add(filter);
+                        existing = (FilterValueSetParam[]) CollectionUtil.arrayExpandAddSingle(existing, filter);
+                        addendums.put(filterSpec, existing);
                     }
                 }
             }

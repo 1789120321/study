@@ -130,6 +130,11 @@ public class Configuration implements ConfigurationOperations, ConfigurationInfo
     protected List<ConfigurationPlugInAggregationFunction> plugInAggregationFunctions;
 
     /**
+     * List of configured plug-in aggregation multi-functions.
+     */
+    protected List<ConfigurationPlugInAggregationMultiFunction> plugInAggregationMultiFunctions;
+
+    /**
      * List of configured plug-in single-row functions.
      */
     protected List<ConfigurationPlugInSingleRowFunction> plugInSingleRowFunctions;
@@ -222,6 +227,10 @@ public class Configuration implements ConfigurationOperations, ConfigurationInfo
         entry.setName(functionName);
         entry.setFactoryClassName(aggregationFactoryClassName);
         plugInAggregationFunctions.add(entry);
+    }
+
+    public void addPlugInAggregationMultiFunction(ConfigurationPlugInAggregationMultiFunction config) throws ConfigurationException {
+        plugInAggregationMultiFunctions.add(config);
     }
 
     public void addPlugInSingleRowFunction(String functionName, String className, String methodName) throws ConfigurationException
@@ -566,6 +575,10 @@ public class Configuration implements ConfigurationOperations, ConfigurationInfo
     public List<ConfigurationPlugInAggregationFunction> getPlugInAggregationFunctions()
     {
         return plugInAggregationFunctions;
+    }
+
+    public List<ConfigurationPlugInAggregationMultiFunction> getPlugInAggregationMultiFunctions() {
+        return plugInAggregationMultiFunctions;
     }
 
     public List<ConfigurationPlugInSingleRowFunction> getPlugInSingleRowFunctions()
@@ -1101,6 +1114,7 @@ public class Configuration implements ConfigurationOperations, ConfigurationInfo
         plugInVirtualDataWindows = new ArrayList<ConfigurationPlugInVirtualDataWindow>();
         pluginLoaders = new ArrayList<ConfigurationPluginLoader>();
         plugInAggregationFunctions = new ArrayList<ConfigurationPlugInAggregationFunction>();
+        plugInAggregationMultiFunctions = new ArrayList<ConfigurationPlugInAggregationMultiFunction>();
         plugInSingleRowFunctions = new ArrayList<ConfigurationPlugInSingleRowFunction>();
         plugInPatternObjects = new ArrayList<ConfigurationPlugInPatternObject>();
         engineDefaults = new ConfigurationEngineDefaults();

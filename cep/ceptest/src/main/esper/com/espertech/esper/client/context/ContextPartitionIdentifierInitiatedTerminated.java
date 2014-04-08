@@ -11,15 +11,36 @@
 
 package com.espertech.esper.client.context;
 
+import com.espertech.esper.core.context.mgr.ContextControllerInitTerm;
+
 import java.util.Map;
 
 /**
  * Context partition identifier for overlapping and non-overlapping contexts.
  */
 public class ContextPartitionIdentifierInitiatedTerminated extends ContextPartitionIdentifier {
+    private static final long serialVersionUID = 1035193605492122638L;
     private Map<String, Object> properties;
     private long startTime;
     private Long endTime;
+
+    /**
+     * Ctor.
+     */
+    public ContextPartitionIdentifierInitiatedTerminated() {
+    }
+
+    /**
+     * Ctor.
+     * @param properties of triggering object
+     * @param startTime start time
+     * @param endTime optional end time
+     */
+    public ContextPartitionIdentifierInitiatedTerminated(Map<String, Object> properties, long startTime, Long endTime) {
+        this.properties = properties;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
 
     /**
      * Event or pattern information.
@@ -67,5 +88,21 @@ public class ContextPartitionIdentifierInitiatedTerminated extends ContextPartit
      */
     public void setEndTime(Long endTime) {
         this.endTime = endTime;
+    }
+
+    public boolean compareTo(ContextPartitionIdentifier other) {
+        if (!(other instanceof ContextPartitionIdentifierInitiatedTerminated)) {
+            return false;
+        }
+        ContextPartitionIdentifierInitiatedTerminated ito = (ContextPartitionIdentifierInitiatedTerminated) other;
+        return ContextControllerInitTerm.compare(startTime, properties, endTime, ito.startTime, ito.properties, ito.endTime);
+    }
+
+    public String toString() {
+        return "ContextPartitionIdentifierInitiatedTerminated{" +
+                "properties=" + properties +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                '}';
     }
 }

@@ -15,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 
 /**
  * Builder manipulates a tree structure consisting of {@link FilterHandleSetNode} and {@link FilterParamIndexBase} instances.
@@ -25,7 +26,6 @@ import java.util.ArrayDeque;
  */
 public final class IndexTreeBuilder
 {
-    private EventType eventType;
     private ArrayDeque<FilterValueSetParam> remainingParameters;
     private FilterHandle filterCallback;
     private long currentThreadId;
@@ -49,8 +49,7 @@ public final class IndexTreeBuilder
                                     FilterHandle filterCallback,
                                     FilterHandleSetNode topNode)
     {
-        this.eventType = filterValueSet.getEventType();
-        this.remainingParameters = new ArrayDeque<FilterValueSetParam>(filterValueSet.getParameters());
+        this.remainingParameters = new ArrayDeque<FilterValueSetParam>(Arrays.asList(filterValueSet.getParameters()));
         this.filterCallback = filterCallback;
         this.currentThreadId = Thread.currentThread().getId();
 
@@ -81,7 +80,7 @@ public final class IndexTreeBuilder
     public final void remove(
                        EventType eventType,
                        FilterHandle filterCallback,
-                       IndexTreePath treePathInfo,
+                       EventTypeIndexBuilderIndexLookupableIterator treePathInfo,
                        FilterHandleSetNode topNode)
     {
         this.remainingParameters = null;
@@ -188,9 +187,9 @@ public final class IndexTreeBuilder
 
     // Remove an filterCallback from the current node, return true if the node is the node is empty now
     private boolean removeFromNode(FilterHandleSetNode currentNode,
-                                   IndexTreePath treePathInfo)
+                                   EventTypeIndexBuilderIndexLookupableIterator treePathInfo)
     {
-        Pair<FilterParamIndexBase, Object> nextPair = treePathInfo.removeFirst();
+        EventTypeIndexBuilderIndexLookupablePair nextPair = treePathInfo.hasNext() ? treePathInfo.next() : null;
 
         // No remaining filter parameters
         if (nextPair == null)
@@ -217,8 +216,8 @@ public final class IndexTreeBuilder
         }
 
         // Remove from index
-        FilterParamIndexBase nextIndex = nextPair.getFirst();
-        Object filteredForValue = nextPair.getSecond();
+        FilterParamIndexBase nextIndex = nextPair.getIndex();
+        Object filteredForValue = nextPair.getLookupable();
 
         currentNode.getNodeRWLock().writeLock().lock();
         try
@@ -253,7 +252,7 @@ public final class IndexTreeBuilder
 
     // Remove filterCallback from index, returning true if index empty after removal
     private boolean removeFromIndex(FilterParamIndexBase index,
-                                    IndexTreePath treePathInfo,
+                                    EventTypeIndexBuilderIndexLookupableIterator treePathInfo,
                                     Object filterForValue)
     {
         index.getReadWriteLock().writeLock().lock();
@@ -285,7 +284,7 @@ public final class IndexTreeBuilder
             }
 
             FilterParamIndexBase nextIndex = (FilterParamIndexBase) eventEvaluator;
-            Pair<FilterParamIndexBase, Object> nextPair = treePathInfo.removeFirst();
+            EventTypeIndexBuilderIndexLookupablePair nextPair = treePathInfo.hasNext() ? treePathInfo.next() : null;
 
             if (nextPair == null)
             {
@@ -294,17 +293,17 @@ public final class IndexTreeBuilder
                 return false;
             }
 
-            if (nextPair.getFirst() != nextIndex)
+            if (nextPair.getIndex() != nextIndex)
             {
                 log.fatal(".removeFromIndex Expected an index for filterCallback that differs from the found index, this=" + this.toString() +
-                        "  expected=" + nextPair.getFirst());
+                        "  expected=" + nextPair.getIndex());
                 assert false;
                 return false;
             }
 
-            Object nextExpressionValue = nextPair.getSecond();
+            Object nextExpressionValue = nextPair.getLookupable();
 
-            boolean isEmpty = removeFromIndex(nextPair.getFirst(), treePathInfo, nextExpressionValue);
+            boolean isEmpty = removeFromIndex(nextPair.getIndex(), treePathInfo, nextExpressionValue);
 
             if (isEmpty)
             {

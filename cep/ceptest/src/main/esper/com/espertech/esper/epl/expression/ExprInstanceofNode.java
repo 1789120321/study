@@ -47,7 +47,7 @@ public class ExprInstanceofNode extends ExprNodeBase implements ExprEvaluator
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() != 1)
+        if (this.getChildNodes().length != 1)
         {
             throw new ExprValidationException("Instanceof node must have 1 child expression node supplying the expression to test");
         }
@@ -56,7 +56,7 @@ public class ExprInstanceofNode extends ExprNodeBase implements ExprEvaluator
             throw new ExprValidationException("Instanceof node must have 1 or more class identifiers to verify type against");
         }
 
-        evaluator = this.getChildNodes().get(0).getExprEvaluator();
+        evaluator = this.getChildNodes()[0].getExprEvaluator();
         Set<Class> classList = getClassSet(classIdentifiers);
         synchronized(this) {
             classes = classList.toArray(new Class[classList.size()]);
@@ -129,7 +129,7 @@ public class ExprInstanceofNode extends ExprNodeBase implements ExprEvaluator
     {
         StringBuilder buffer = new StringBuilder();
         buffer.append("instanceof(");
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
         buffer.append(", ");
 
         String delimiter = "";

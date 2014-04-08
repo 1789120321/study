@@ -8,18 +8,17 @@
  **************************************************************************************/
 package com.espertech.esper.epl.core;
 
+import com.espertech.esper.client.EventBean;
+import com.espertech.esper.client.EventType;
 import com.espertech.esper.epl.expression.ExprEvaluator;
-import com.espertech.esper.epl.expression.ExprValidationException;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
+import com.espertech.esper.epl.expression.ExprValidationException;
 import com.espertech.esper.epl.spec.SelectClauseElementCompiled;
 import com.espertech.esper.epl.spec.SelectClauseElementWildcard;
 import com.espertech.esper.epl.spec.SelectClauseExprCompiledSpec;
 import com.espertech.esper.epl.spec.SelectClauseStreamCompiledSpec;
-import com.espertech.esper.client.EventBean;
-import com.espertech.esper.client.EventType;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,7 +38,7 @@ public class BindProcessor
      * @param streamNames the stream names
      * @throws ExprValidationException when the validation of the select clause failed
      */
-    public BindProcessor(List<SelectClauseElementCompiled> selectionList,
+    public BindProcessor(SelectClauseElementCompiled[] selectionList,
                          EventType[] typesPerStream,
                          String[] streamNames)
             throws ExprValidationException

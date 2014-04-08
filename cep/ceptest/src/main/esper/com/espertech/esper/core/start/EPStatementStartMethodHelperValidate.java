@@ -145,9 +145,9 @@ public class EPStatementStartMethodHelperValidate
             }
         }
 
-        for (int outerJoinCount = 0; outerJoinCount < statementSpec.getOuterJoinDescList().size(); outerJoinCount++)
+        for (int outerJoinCount = 0; outerJoinCount < statementSpec.getOuterJoinDescList().length; outerJoinCount++)
         {
-            OuterJoinDesc outerJoinDesc = statementSpec.getOuterJoinDescList().get(outerJoinCount);
+            OuterJoinDesc outerJoinDesc = statementSpec.getOuterJoinDescList()[outerJoinCount];
 
             // validate on-expression nodes, if provided
             if (outerJoinDesc.getOptLeftNode() != null) {

@@ -32,6 +32,6 @@ public class StatementLockFactoryImpl implements StatementLockFactory
         if (disableLocking || foundNoLock || stateless) {
            return new StatementNoLockImpl(statementName);
         }
-        return new StatementAgentInstanceRWLockImpl(statementName, fairlocks);
+        return new StatementAgentInstanceRWLockImpl(fairlocks);
     }
 }

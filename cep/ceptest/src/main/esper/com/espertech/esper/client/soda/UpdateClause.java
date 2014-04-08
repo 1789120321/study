@@ -156,7 +156,23 @@ public class UpdateClause implements MetaDefItem, Serializable
             writer.write(" as ");
             writer.write(optionalAsClauseStreamName);
         }
-        writer.write(" set ");
+        writer.write(" ");
+        renderEPLAssignments(writer, assignments);
+
+        if (optionalWhereClause != null)
+        {
+            writer.write(" where ");
+            optionalWhereClause.toEPL(writer, ExpressionPrecedenceEnum.MINIMUM);
+        }
+    }
+
+    /**
+     * Write assignments.
+     * @param writer to write to
+     * @param assignments to write
+     */
+    public static void renderEPLAssignments(StringWriter writer, List<AssignmentPair> assignments) {
+        writer.write("set ");
         String delimiter = "";
         for (AssignmentPair pair : assignments)
         {
@@ -165,12 +181,6 @@ public class UpdateClause implements MetaDefItem, Serializable
             writer.write(" = ");
             pair.getValue().toEPL(writer, ExpressionPrecedenceEnum.MINIMUM);
             delimiter = ", ";
-        }
-
-        if (optionalWhereClause != null)
-        {
-            writer.write(" where ");
-            optionalWhereClause.toEPL(writer, ExpressionPrecedenceEnum.MINIMUM);
         }
     }
 }

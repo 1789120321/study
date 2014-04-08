@@ -23,7 +23,6 @@ import com.espertech.esper.filter.FilterValueSet;
 import com.espertech.esper.filter.FilterValueSetParam;
 
 import java.util.Collection;
-import java.util.List;
 
 public class ContextControllerHashedFilterCallback implements FilterHandleCallback {
 
@@ -39,7 +38,7 @@ public class ContextControllerHashedFilterCallback implements FilterHandleCallba
 
         filterHandle = new EPStatementHandleCallback(agentInstanceContextCreateContext.getEpStatementAgentInstanceHandle(), this);
 
-        List<FilterValueSetParam> addendum = filterAddendum != null ? filterAddendum.getFilterAddendum(hashItem.getFilterSpecCompiled()) : null;
+        FilterValueSetParam[] addendum = filterAddendum != null ? filterAddendum.getFilterAddendum(hashItem.getFilterSpecCompiled()) : null;
         FilterValueSet filterValueSet = hashItem.getFilterSpecCompiled().getValueSet(null, null, addendum);
         servicesContext.getFilterService().add(filterValueSet, filterHandle);
     }

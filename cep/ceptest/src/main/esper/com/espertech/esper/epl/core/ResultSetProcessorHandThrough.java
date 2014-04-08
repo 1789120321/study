@@ -8,9 +8,6 @@
  **************************************************************************************/
 package com.espertech.esper.epl.core;
 
-import java.util.Iterator;
-import java.util.Set;
-
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventType;
 import com.espertech.esper.collection.ArrayEventIterator;
@@ -21,6 +18,9 @@ import com.espertech.esper.core.context.util.AgentInstanceContext;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.view.Viewable;
+
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Result set processor for the hand-through case:
@@ -162,19 +162,4 @@ public class ResultSetProcessorHandThrough extends ResultSetProcessorBaseSimple
     public boolean hasAggregation() {
         return false;
     }
-
-	/*
-	 * 优化代码：
-	 * 
-	 * 返回select子句中是否包含rstream逻辑，prototype内保存了该结果。
-	 * 如果包含则返回true
-	 * 
-	 * Code line： 513-515
-	 * Author: luonq@primeton.com
-	 * Date: 2013-6-16 12：00
-	 */
-	public boolean isSelectRStream()
-	{
-		return prototype.isSelectRStream();
-	}
 }

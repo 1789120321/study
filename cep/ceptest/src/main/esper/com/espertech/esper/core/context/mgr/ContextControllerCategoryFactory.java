@@ -12,6 +12,8 @@
 package com.espertech.esper.core.context.mgr;
 
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.client.context.ContextPartitionIdentifier;
+import com.espertech.esper.client.context.ContextPartitionIdentifierCategory;
 import com.espertech.esper.core.context.stmt.AIRegistryAggregationMultiPerm;
 import com.espertech.esper.core.context.stmt.AIRegistryExprMultiPerm;
 import com.espertech.esper.core.context.stmt.StatementAIResourceRegistry;
@@ -23,29 +25,23 @@ import com.espertech.esper.epl.spec.ContextDetailCategoryItem;
 import com.espertech.esper.epl.spec.ContextDetailPartitionItem;
 import com.espertech.esper.epl.spec.util.StatementSpecCompiledAnalyzer;
 import com.espertech.esper.epl.spec.util.StatementSpecCompiledAnalyzerResult;
-import com.espertech.esper.event.EventAdapterService;
 import com.espertech.esper.event.EventTypeUtility;
 import com.espertech.esper.filter.FilterSpecCompiled;
 import com.espertech.esper.filter.FilterSpecLookupable;
 import com.espertech.esper.filter.FilterValueSetParam;
+import com.espertech.esper.util.CollectionUtil;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ContextControllerCategoryFactory extends ContextControllerFactoryBase implements ContextControllerFactory {
-
-    public static final ContextStatePathValueBinding EMPTY_BINDING = new ContextStatePathValueBinding() {
-        public Object byteArrayToObject(byte[] bytes, EventAdapterService eventAdapterService) {
-            return null;
-        }
-
-        public byte[] toByteArray(Object contextInfo) {
-            return new byte[0];
-        }
-    };
 
     private final ContextDetailCategory categorySpec;
     private final List<FilterSpecCompiled> filtersSpecsNestedContexts;
     private final ContextStateCache stateCache;
+    private final ContextStatePathValueBinding binding;
 
     private Map<String, Object> contextBuiltinProps;
 
@@ -54,6 +50,7 @@ public class ContextControllerCategoryFactory extends ContextControllerFactoryBa
         this.categorySpec = categorySpec;
         this.filtersSpecsNestedContexts = filtersSpecsNestedContexts;
         this.stateCache = stateCache;
+        this.binding = stateCache.getBinding(Integer.class);    // the integer ordinal of the category
     }
 
     public boolean hasFiltersSpecsNestedContexts() {
@@ -73,7 +70,7 @@ public class ContextControllerCategoryFactory extends ContextControllerFactoryBa
         return new ContextControllerStatementCtxCacheFilters(streamAnalysis.getFilters());
     }
 
-    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> filterAddendum, ContextControllerStatementDesc statement, Object categoryLabel, int contextId) {
+    public void populateFilterAddendums(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> filterAddendum, ContextControllerStatementDesc statement, Object categoryLabel, int contextId) {
         ContextControllerStatementCtxCacheFilters statementInfo = (ContextControllerStatementCtxCacheFilters) statement.getCaches()[factoryContext.getNestingLevel() - 1];
         ContextDetailCategoryItem category = findCategoryForName((String) categoryLabel);
         getAddendumFilters(filterAddendum, category, categorySpec, statementInfo.getFilterSpecs(), statement);
@@ -116,12 +113,21 @@ public class ContextControllerCategoryFactory extends ContextControllerFactoryBa
         return contextBuiltinProps;
     }
 
+    public ContextStatePathValueBinding getBinding() {
+        return binding;
+    }
+
     public ContextStateCache getStateCache() {
         return stateCache;
     }
 
     public ContextController createNoCallback(int pathId, ContextControllerLifecycleCallback callback) {
         return new ContextControllerCategory(pathId, callback, this);
+    }
+
+    public ContextPartitionIdentifier keyPayloadToIdentifier(Object payload) {
+        int index = (Integer) payload;
+        return new ContextPartitionIdentifierCategory(categorySpec.getItems().get(index).getName());
     }
 
     private void validateStatementForContext(ContextControllerStatementBase statement, StatementSpecCompiledAnalyzerResult streamAnalysis)
@@ -162,7 +168,7 @@ public class ContextControllerCategoryFactory extends ContextControllerFactoryBa
     }
 
     // Compare filters in statement with filters in segmented context, addendum filter compilation
-    private static void getAddendumFilters(IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> addendums,
+    private static void getAddendumFilters(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> addendums,
                                            ContextDetailCategoryItem category,
                                            ContextDetailCategory categorySpec,
                                            List<FilterSpecCompiled> filters,
@@ -177,18 +183,7 @@ public class ContextControllerCategoryFactory extends ContextControllerFactoryBa
                 if (!typeOrSubtype) {
                     continue;   // does not apply
                 }
-
-                List<FilterValueSetParam> addendumFilters = new ArrayList<FilterValueSetParam>();
-                addendumFilters.addAll(category.getCompiledFilterParam());
-                addendumFilters.addAll(categorySpec.getFilterParamsCompiled());
-
-                List<FilterValueSetParam> existing = addendums.get(filtersSpec);
-                if (existing == null) {
-                    addendums.put(filtersSpec, addendumFilters);
-                }
-                else {
-                    existing.addAll(addendumFilters);
-                }
+                addAddendums(addendums, filtersSpec, category, categorySpec);
             }
         }
         // handle segmented context for create-window
@@ -196,20 +191,24 @@ public class ContextControllerCategoryFactory extends ContextControllerFactoryBa
             String declaredAsName = statement.getStatement().getStatementSpec().getCreateWindowDesc().getAsEventTypeName();
             if (declaredAsName != null) {
                 for (FilterSpecCompiled filtersSpec : filters) {
-
-                    List<FilterValueSetParam> addendumFilters = new ArrayList<FilterValueSetParam>();
-                    addendumFilters.addAll(category.getCompiledFilterParam());
-                    addendumFilters.addAll(categorySpec.getFilterParamsCompiled());
-
-                    List<FilterValueSetParam> existing = addendums.get(filtersSpec);
-                    if (existing == null) {
-                        addendums.put(filtersSpec, addendumFilters);
-                    }
-                    else {
-                        existing.addAll(addendumFilters);
-                    }
+                    addAddendums(addendums, filtersSpec, category, categorySpec);
                 }
             }
+        }
+    }
+
+    private static void addAddendums(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> addendums, FilterSpecCompiled filtersSpec, ContextDetailCategoryItem category, ContextDetailCategory categorySpec) {
+        FilterValueSetParam[] addendumFilters = new FilterValueSetParam[category.getCompiledFilterParam().length + categorySpec.getFilterParamsCompiled().length];
+        System.arraycopy(category.getCompiledFilterParam(), 0, addendumFilters, 0, category.getCompiledFilterParam().length);
+        System.arraycopy(categorySpec.getFilterParamsCompiled(), 0, addendumFilters, category.getCompiledFilterParam().length, categorySpec.getFilterParamsCompiled().length);
+
+        FilterValueSetParam[] existing = addendums.get(filtersSpec);
+        if (existing == null) {
+            addendums.put(filtersSpec, addendumFilters);
+        }
+        else {
+            existing = (FilterValueSetParam[]) CollectionUtil.arrayExpandAddElements(existing, addendumFilters);
+            addendums.put(filtersSpec, existing);
         }
     }
 

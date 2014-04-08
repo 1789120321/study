@@ -8,11 +8,6 @@
  **************************************************************************************/
 package com.espertech.esper.view;
 
-import com.espertech.esper.view.EventCollection;
-import com.espertech.esper.view.View;
-
-import java.util.List;
-
 /**
  * The Viewable interface marks an object as supporting zero, one or more View instances.
  * All implementing classes must call each view's 'update' method when new data enters it.
@@ -32,7 +27,7 @@ public interface Viewable extends EventCollection
      * Returns all added views.
      * @return list of added views
      */
-    public List<View> getViews();
+    public View[] getViews();
 
     /**
      * Remove a view.

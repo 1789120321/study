@@ -13,6 +13,7 @@ import com.espertech.esper.client.EPStatementException;
 import com.espertech.esper.client.EventType;
 import com.espertech.esper.client.context.ContextPartitionSelector;
 import com.espertech.esper.core.start.EPPreparedExecuteMethod;
+import com.espertech.esper.core.start.EPPreparedExecuteMethodQuery;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

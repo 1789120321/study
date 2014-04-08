@@ -9,8 +9,7 @@
 package com.espertech.esper.epl.agg.service;
 
 import com.espertech.esper.client.EventBean;
-import com.espertech.esper.epl.agg.access.AggregationAccess;
-import com.espertech.esper.epl.agg.access.AggregationAccessUtil;
+import com.espertech.esper.epl.agg.access.AggregationState;
 import com.espertech.esper.epl.agg.access.AggregationAccessorSlotPair;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
 import com.espertech.esper.epl.core.MethodResolutionService;
@@ -32,7 +31,7 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
     private static final long DEFAULT_MAX_AGE_MSEC = 60000L;
 
     private final AggregationAccessorSlotPair[] accessors;
-    protected final int[] streams;
+    protected final AggregationStateFactory[] accessAggregations;
     protected final boolean isJoin;
 
     private final AggSvcGroupByReclaimAgedEvalFunc evaluationFunctionMaxAge;
@@ -45,7 +44,7 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
     // maintain a current row for random access into the aggregator state table
     // (row=groups, columns=expression nodes that have aggregation functions)
     private AggregationMethod[] currentAggregatorMethods;
-    private AggregationAccess[] currentAggregatorAccesses;
+    private AggregationState[] currentAggregatorStates;
 
     private List<Object> removedKeys;
     private Long nextSweepTime = null;
@@ -53,10 +52,10 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
     private volatile long currentMaxAge = DEFAULT_MAX_AGE_MSEC;
     private volatile long currentReclaimFrequency = DEFAULT_MAX_AGE_MSEC;
 
-    public AggSvcGroupByReclaimAgedImpl(ExprEvaluator evaluators[], AggregationMethodFactory aggregators[], AggregationAccessorSlotPair[] accessors, int[] streams, boolean join, AggSvcGroupByReclaimAgedEvalFunc evaluationFunctionMaxAge, AggSvcGroupByReclaimAgedEvalFunc evaluationFunctionFrequency, MethodResolutionService methodResolutionService) {
+    public AggSvcGroupByReclaimAgedImpl(ExprEvaluator evaluators[], AggregationMethodFactory aggregators[], AggregationAccessorSlotPair[] accessors, AggregationStateFactory[] accessAggregations, boolean join, AggSvcGroupByReclaimAgedEvalFunc evaluationFunctionMaxAge, AggSvcGroupByReclaimAgedEvalFunc evaluationFunctionFrequency, MethodResolutionService methodResolutionService) {
         super(evaluators, aggregators);
         this.accessors = accessors;
-        this.streams = streams;
+        this.accessAggregations = accessAggregations;
         isJoin = join;
         this.evaluationFunctionMaxAge = evaluationFunctionMaxAge;
         this.evaluationFunctionFrequency = evaluationFunctionFrequency;
@@ -91,24 +90,24 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
 
         // The aggregators for this group do not exist, need to create them from the prototypes
         AggregationMethod[] groupAggregators;
-        AggregationAccess[] groupAccesses;
+        AggregationState[] groupStates;
         if (row == null)
         {
             groupAggregators = methodResolutionService.newAggregators(aggregators, exprEvaluatorContext.getAgentInstanceId(), groupByKey);
-            groupAccesses = AggregationAccessUtil.getNewAccesses(exprEvaluatorContext.getAgentInstanceId(), isJoin, streams, methodResolutionService, groupByKey);
-            row = new AggregationMethodRowAged(methodResolutionService.getCurrentRowCount(groupAggregators, groupAccesses) + 1, currentTime, groupAggregators, groupAccesses);
+            groupStates = methodResolutionService.newAccesses(exprEvaluatorContext.getAgentInstanceId(), isJoin, accessAggregations, groupByKey);
+            row = new AggregationMethodRowAged(methodResolutionService.getCurrentRowCount(groupAggregators, groupStates) + 1, currentTime, groupAggregators, groupStates);
             aggregatorsPerGroup.put(groupByKey, row);
         }
         else
         {
             groupAggregators = row.getMethods();
-            groupAccesses = row.getAccesses();
+            groupStates = row.getStates();
             row.increaseRefcount();
             row.setLastUpdateTime(currentTime);
         }
 
         currentAggregatorMethods = groupAggregators;
-        currentAggregatorAccesses = groupAccesses;
+        currentAggregatorStates = groupStates;
 
         // For this row, evaluate sub-expressions, enter result
         for (int j = 0; j < evaluators.length; j++)
@@ -116,8 +115,8 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
             Object columnResult = evaluators[j].evaluate(eventsPerStream, true, exprEvaluatorContext);
             groupAggregators[j].enter(columnResult);
         }
-        for (AggregationAccess access : currentAggregatorAccesses) {
-            access.applyEnter(eventsPerStream);
+        for (AggregationState state : currentAggregatorStates) {
+            state.applyEnter(eventsPerStream, exprEvaluatorContext);
         }
         internalHandleUpdated(groupByKey, row);
     }
@@ -169,22 +168,22 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
 
         // The aggregators for this group do not exist, need to create them from the prototypes
         AggregationMethod[] groupAggregators;
-        AggregationAccess[] groupAccesses;
+        AggregationState[] groupStates;
         if (row != null)
         {
             groupAggregators = row.getMethods();
-            groupAccesses = row.getAccesses();
+            groupStates = row.getStates();
         }
         else
         {
             groupAggregators = methodResolutionService.newAggregators(aggregators, exprEvaluatorContext.getAgentInstanceId(), groupByKey);
-            groupAccesses = AggregationAccessUtil.getNewAccesses(exprEvaluatorContext.getAgentInstanceId(), isJoin, streams, methodResolutionService, groupByKey);
-            row = new AggregationMethodRowAged(methodResolutionService.getCurrentRowCount(groupAggregators, groupAccesses) + 1, currentTime, groupAggregators, groupAccesses);
+            groupStates = methodResolutionService.newAccesses(exprEvaluatorContext.getAgentInstanceId(), isJoin, accessAggregations, groupByKey);
+            row = new AggregationMethodRowAged(methodResolutionService.getCurrentRowCount(groupAggregators, groupStates) + 1, currentTime, groupAggregators, groupStates);
             aggregatorsPerGroup.put(groupByKey, row);
         }
 
         currentAggregatorMethods = groupAggregators;
-        currentAggregatorAccesses = groupAccesses;
+        currentAggregatorStates = groupStates;
 
         // For this row, evaluate sub-expressions, enter result
         for (int j = 0; j < evaluators.length; j++)
@@ -192,8 +191,8 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
             Object columnResult = evaluators[j].evaluate(eventsPerStream, false, exprEvaluatorContext);
             groupAggregators[j].leave(columnResult);
         }
-        for (AggregationAccess access : currentAggregatorAccesses) {
-            access.applyLeave(eventsPerStream);
+        for (AggregationState state : currentAggregatorStates) {
+            state.applyLeave(eventsPerStream, exprEvaluatorContext);
         }
 
         row.decreaseRefcount();
@@ -213,7 +212,7 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
         if (row != null)
         {
             currentAggregatorMethods = row.getMethods();
-            currentAggregatorAccesses = row.getAccesses();
+            currentAggregatorStates = row.getStates();
         }
         else
         {
@@ -223,7 +222,7 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
         if (currentAggregatorMethods == null)
         {
             currentAggregatorMethods = methodResolutionService.newAggregators(aggregators, agentInstanceId, groupByKey);
-            currentAggregatorAccesses = AggregationAccessUtil.getNewAccesses(agentInstanceId, isJoin, streams, methodResolutionService, groupByKey);
+            currentAggregatorStates = methodResolutionService.newAccesses(agentInstanceId, isJoin, accessAggregations, groupByKey);
         }
     }
 
@@ -234,7 +233,7 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
         }
         else {
             AggregationAccessorSlotPair pair = accessors[column - aggregators.length];
-            return pair.getAccessor().getValue(currentAggregatorAccesses[pair.getSlot()]);
+            return pair.getAccessor().getValue(currentAggregatorStates[pair.getSlot()]);
         }
     }
 
@@ -244,7 +243,7 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
         }
         else {
             AggregationAccessorSlotPair pair = accessors[column - aggregators.length];
-            return pair.getAccessor().getCollectionReadOnly(currentAggregatorAccesses[pair.getSlot()]);
+            return pair.getAccessor().getEnumerableEvents(currentAggregatorStates[pair.getSlot()]);
         }
     }
 
@@ -254,7 +253,7 @@ public class AggSvcGroupByReclaimAgedImpl extends AggregationServiceBaseGrouped
         }
         else {
             AggregationAccessorSlotPair pair = accessors[column - aggregators.length];
-            return pair.getAccessor().getEventBean(currentAggregatorAccesses[pair.getSlot()]);
+            return pair.getAccessor().getEnumerableEvent(currentAggregatorStates[pair.getSlot()]);
         }
     }
 

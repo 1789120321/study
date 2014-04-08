@@ -33,6 +33,7 @@ public class ExprDotEvalStaticMethod implements ExprEvaluator, EventPropertyGett
     private final ExprDotEval[] chainEval;
     private final ExprDotStaticMethodWrap resultWrapLambda;
     private final boolean rethrowExceptions;
+    private final Object targetObject;
 
     private boolean isCachedResult;
     private Object cachedResult;
@@ -44,12 +45,14 @@ public class ExprDotEvalStaticMethod implements ExprEvaluator, EventPropertyGett
                                    boolean constantParameters,
                                    ExprDotStaticMethodWrap resultWrapLambda,
                                    ExprDotEval[] chainEval,
-                                   boolean rethrowExceptions)
+                                   boolean rethrowExceptions,
+                                   Object targetObject)
     {
         this.statementName = statementName;
         this.classOrPropertyName = classOrPropertyName;
         this.staticMethod = staticMethod;
         this.childEvals = childEvals;
+        this.targetObject = targetObject;
         if (chainEval.length > 0) {
             isConstantParameters = false;
         }
@@ -67,7 +70,7 @@ public class ExprDotEvalStaticMethod implements ExprEvaluator, EventPropertyGett
             return staticMethod.getReturnType();
         }
         else {
-            return chainEval[chainEval.length - 1].getTypeInfo().getScalar();
+            return chainEval[chainEval.length - 1].getTypeInfo().getSingleValueType();
         }
     }
 
@@ -90,10 +93,9 @@ public class ExprDotEvalStaticMethod implements ExprEvaluator, EventPropertyGett
 
 		// The method is static so the object it is invoked on
 		// can be null
-		Object obj = null;
 		try
 		{
-            Object result = staticMethod.invoke(obj, args);
+            Object result = staticMethod.invoke(targetObject, args);
 
             if (resultWrapLambda != null) {
                 result = resultWrapLambda.convert(result);
@@ -135,7 +137,7 @@ public class ExprDotEvalStaticMethod implements ExprEvaluator, EventPropertyGett
         // can be null
         try
         {
-            return staticMethod.invoke(null, args);
+            return staticMethod.invoke(targetObject, args);
         }
         catch (InvocationTargetException e)
         {

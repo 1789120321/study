@@ -14,8 +14,6 @@ package com.espertech.esper.core.context.mgr;
 import com.espertech.esper.filter.FilterSpecCompiled;
 import com.espertech.esper.filter.FilterValueSetParam;
 
-import java.util.List;
-
 public interface AgentInstanceFilterProxy {
-    public List<FilterValueSetParam> getAddendumFilters(FilterSpecCompiled filterSpec);
+    public FilterValueSetParam[] getAddendumFilters(FilterSpecCompiled filterSpec);
 }

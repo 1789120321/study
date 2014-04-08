@@ -80,7 +80,7 @@ public class SortWindowView extends ViewSupport implements DataWindowView, Clone
         this.optionalSortedRandomAccess = optionalSortedRandomAccess;
         this.agentInstanceViewFactoryContext = agentInstanceViewFactoryContext;
 
-        Comparator<Object> comparator = RankWindowView.getComparator(sortCriteriaEvaluators, isSortUsingCollator, isDescendingValues);
+        Comparator<Object> comparator = CollectionUtil.getComparator(sortCriteriaEvaluators, isSortUsingCollator, isDescendingValues);
         sortedEvents = new TreeMap<Object, Object>(comparator);
     }
 

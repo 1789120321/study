@@ -42,12 +42,13 @@ public class AggregationAccessorAll implements AggregationAccessor
         this.componentType = componentType;
     }
 
-    public Object getValue(AggregationAccess access) {
-        if (access.size() == 0) {
+    public Object getValue(AggregationState state) {
+        AggregationStateLinear linear = ((AggregationStateLinear) state);
+        if (linear.size() == 0) {
             return null;
         }
-        Object array = Array.newInstance(componentType, access.size());
-        Iterator<EventBean> it = access.iterator();
+        Object array = Array.newInstance(componentType, linear.size());
+        Iterator<EventBean> it = linear.iterator();
         int count = 0;
         for (;it.hasNext();) {
             EventBean bean = it.next();
@@ -59,14 +60,15 @@ public class AggregationAccessorAll implements AggregationAccessor
         return array;
     }
 
-    public Collection<EventBean> getCollectionReadOnly(AggregationAccess access) {
-        if (access.size() == 0) {
+    public Collection<EventBean> getEnumerableEvents(AggregationState state) {
+        AggregationStateLinear linear = ((AggregationStateLinear) state);
+        if (linear.size() == 0) {
             return null;
         }
-        return access.collectionReadOnly();
+        return linear.collectionReadOnly();
     }
 
-    public EventBean getEventBean(AggregationAccess currentAcces) {
+    public EventBean getEnumerableEvent(AggregationState state) {
         return null;
     }
 }

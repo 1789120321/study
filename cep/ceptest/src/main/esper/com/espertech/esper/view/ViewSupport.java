@@ -8,15 +8,15 @@
  **************************************************************************************/
 package com.espertech.esper.view;
 
-import com.espertech.esper.collection.UniformPair;
 import com.espertech.esper.client.EventBean;
+import com.espertech.esper.collection.UniformPair;
+import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.util.ExecutionPathDebugLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Stack;
@@ -32,19 +32,21 @@ import java.util.Stack;
  */
 public abstract class ViewSupport implements View
 {
+    public final static View[] EMPTY_VIEW_ARRAY = new View[0];
+
     /**
      * Parent viewable to this view - directly accessible by subclasses.
      */
     protected Viewable parent;
 
-    private final ArrayList<View> children;
+    private View[] children;
 
     /**
      * Constructor.
      */
     protected ViewSupport()
     {
-        children = new ArrayList<View>();
+        children = EMPTY_VIEW_ARRAY;
     }
 
     public Viewable getParent()
@@ -59,31 +61,35 @@ public abstract class ViewSupport implements View
 
     public View addView(View view)
     {
-        children.add(view);
+        children = addView(children, view);
         view.setParent(this);
         return view;
     }
 
     public boolean removeView(View view)
     {
-        boolean isRemoved = children.remove(view);
+        int index = findViewIndex(children, view);
+        if (index == -1) {
+            return false;
+        }
+        children = removeView(children, index);
         view.setParent(null);
-        return isRemoved;
+        return true;
     }
 
     public void removeAllViews()
     {
-        children.clear();
+        children = EMPTY_VIEW_ARRAY;
     }
 
-    public List<View> getViews()
+    public View[] getViews()
     {
         return children;
     }
 
     public boolean hasViews()
     {
-        return (!children.isEmpty());
+        return children.length > 0;
     }
 
     /**
@@ -96,7 +102,7 @@ public abstract class ViewSupport implements View
      */
     public void updateChildren(EventBean[] newData, EventBean[] oldData)
     {
-        int size = children.size();
+        int size = children.length;
 
         // Provide a shortcut for a single child view since this is a very common case.
         // No iteration required here.
@@ -106,7 +112,7 @@ public abstract class ViewSupport implements View
         }
         if (size == 1)
         {
-            children.get(0).update(newData, oldData);
+            children[0].update(newData, oldData);
         }
         else
         {
@@ -273,6 +279,34 @@ public abstract class ViewSupport implements View
         }
 
         return true;
+    }
+
+    public static View[] addView(View[] children, View view)
+    {
+        if (children.length == 0) {
+            return new View[] {view};
+        }
+        else {
+            return (View[]) (CollectionUtil.arrayExpandAddSingle(children, view));
+        }
+    }
+
+    public static int findViewIndex(View[] children, View view) {
+        for (int i = 0; i < children.length; i++) {
+            if (children[i] == view) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static View[] removeView(View[] children, int index) {
+        if (children.length == 1) {
+            return EMPTY_VIEW_ARRAY;
+        }
+        else {
+            return (View[]) (CollectionUtil.arrayShrinkRemoveSingle(children, index));
+        }
     }
 
     private static final Log log = LogFactory.getLog(ViewSupport.class);

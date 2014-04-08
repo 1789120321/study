@@ -28,7 +28,7 @@ public class AggSvcGroupByReclaimAgedFactory extends AggregationServiceFactoryBa
     private static final long DEFAULT_MAX_AGE_MSEC = 60000L;
 
     protected final AggregationAccessorSlotPair[] accessors;
-    protected final int[] streams;
+    protected final AggregationStateFactory[] accessAggregations;
     protected final boolean isJoin;
 
     protected final AggSvcGroupByReclaimAgedEvalFunc evaluationFunctionMaxAge;
@@ -44,7 +44,7 @@ public class AggSvcGroupByReclaimAgedFactory extends AggregationServiceFactoryBa
      * @param reclaimGroupFrequency hint to reclaim
      * @param variableService variables
      * @param accessors accessor definitions
-     * @param streams streams in join
+     * @param accessAggregations access aggs
      * @param isJoin true for join, false for single-stream
      * @throws com.espertech.esper.epl.expression.ExprValidationException when validation fails
      */
@@ -54,13 +54,13 @@ public class AggSvcGroupByReclaimAgedFactory extends AggregationServiceFactoryBa
                                            Hint reclaimGroupFrequency,
                                            final VariableService variableService,
                                            AggregationAccessorSlotPair[] accessors,
-                                           int[] streams,
+                                           AggregationStateFactory[] accessAggregations,
                                            boolean isJoin)
             throws ExprValidationException
     {
         super(evaluators, prototypes);
         this.accessors = accessors;
-        this.streams = streams;
+        this.accessAggregations = accessAggregations;
         this.isJoin = isJoin;
 
         String hintValueMaxAge = HintEnum.RECLAIM_GROUP_AGED.getHintAssignedValue(reclaimGroupAged);
@@ -83,7 +83,7 @@ public class AggSvcGroupByReclaimAgedFactory extends AggregationServiceFactoryBa
     }
 
     public AggregationService makeService(AgentInstanceContext agentInstanceContext, MethodResolutionService methodResolutionService) {
-        return new AggSvcGroupByReclaimAgedImpl(evaluators, aggregators, accessors, streams, isJoin, evaluationFunctionMaxAge, evaluationFunctionFrequency, methodResolutionService);
+        return new AggSvcGroupByReclaimAgedImpl(evaluators, aggregators, accessors, accessAggregations, isJoin, evaluationFunctionMaxAge, evaluationFunctionFrequency, methodResolutionService);
     }
 
     private AggSvcGroupByReclaimAgedEvalFunc getEvaluationFunction(final VariableService variableService, String hintValue)

@@ -8,11 +8,8 @@
  **************************************************************************************/
 package com.espertech.esper.epl.spec;
 
-import com.espertech.esper.epl.spec.ViewSpec;
 import com.espertech.esper.util.MetaDefItem;
 
-import java.util.List;
-import java.util.LinkedList;
 import java.io.Serializable;
 
 /**
@@ -27,7 +24,7 @@ public abstract class StreamSpecBase implements MetaDefItem, Serializable
     private static final long serialVersionUID = 0L;
 
     private String optionalStreamName;
-    private List<ViewSpec> viewSpecs = new LinkedList<ViewSpec>();
+    private ViewSpec[] viewSpecs;
     private StreamSpecOptions streamSpecOptions;
 
     /**
@@ -36,10 +33,10 @@ public abstract class StreamSpecBase implements MetaDefItem, Serializable
      * @param viewSpecs - specifies what view to use to derive data
      * @param streamSpecOptions - indicates additional options such as unidirectional stream or retain-union or retain-intersection
      */
-    public StreamSpecBase(String optionalStreamName, List<ViewSpec> viewSpecs, StreamSpecOptions streamSpecOptions)
+    public StreamSpecBase(String optionalStreamName, ViewSpec[] viewSpecs, StreamSpecOptions streamSpecOptions)
     {
         this.optionalStreamName = optionalStreamName;
-        this.viewSpecs.addAll(viewSpecs);
+        this.viewSpecs = viewSpecs;
         this.streamSpecOptions = streamSpecOptions;
     }
 
@@ -48,6 +45,7 @@ public abstract class StreamSpecBase implements MetaDefItem, Serializable
      */
     public StreamSpecBase()
     {
+        viewSpecs = ViewSpec.EMPTY_VIEWSPEC_ARRAY;
     }
 
     /**
@@ -63,7 +61,7 @@ public abstract class StreamSpecBase implements MetaDefItem, Serializable
      * Returns view definitions to use to construct views to derive data on stream.
      * @return view defs
      */
-    public List<ViewSpec> getViewSpecs()
+    public ViewSpec[] getViewSpecs()
     {
         return viewSpecs;
     }

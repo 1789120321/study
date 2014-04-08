@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class EventTypeIndexBuilder
 {
-    private final Map<FilterHandle, Pair<FilterValueSet, IndexTreePath>> callbacks;
+    private final Map<FilterHandle, EventTypeIndexBuilderValueIndexesPair> callbacks;
     private final Lock callbacksLock;
     private final EventTypeIndex eventTypeIndex;
 
@@ -34,7 +34,7 @@ public class EventTypeIndexBuilder
     {
         this.eventTypeIndex = eventTypeIndex;
 
-        this.callbacks = new HashMap<FilterHandle, Pair<FilterValueSet, IndexTreePath>>();
+        this.callbacks = new HashMap<FilterHandle, EventTypeIndexBuilderValueIndexesPair>();
         this.callbacksLock = new ReentrantLock();
     }
 
@@ -95,11 +95,13 @@ public class EventTypeIndexBuilder
         // Now add to tree
         IndexTreeBuilder treeBuilder = new IndexTreeBuilder();
         IndexTreePath path = treeBuilder.add(filterValueSet, filterCallback, rootNode);
+        EventTypeIndexBuilderIndexLookupablePair[] pathArray = path.toArray();
+        EventTypeIndexBuilderValueIndexesPair pair = new EventTypeIndexBuilderValueIndexesPair(filterValueSet, pathArray);
 
         callbacksLock.lock();
         try
         {
-            callbacks.put(filterCallback, new Pair<FilterValueSet, IndexTreePath>(filterValueSet, path));
+            callbacks.put(filterCallback, pair);
         }
         finally
         {
@@ -113,7 +115,7 @@ public class EventTypeIndexBuilder
      */
     public final void remove(FilterHandle filterCallback)
     {
-        Pair<FilterValueSet, IndexTreePath> pair = null;
+        EventTypeIndexBuilderValueIndexesPair pair = null;
         callbacksLock.lock();
         try
         {
@@ -129,13 +131,13 @@ public class EventTypeIndexBuilder
             return;
         }
 
-        EventType eventType = pair.getFirst().getEventType();
+        EventType eventType = pair.getFilterValueSet().getEventType();
         FilterHandleSetNode rootNode = eventTypeIndex.get(eventType);
 
         // Now remove from tree
         if (rootNode != null) {
             IndexTreeBuilder treeBuilder = new IndexTreeBuilder();
-            treeBuilder.remove(eventType, filterCallback, pair.getSecond(), rootNode);
+            treeBuilder.remove(eventType, filterCallback, new EventTypeIndexBuilderIndexLookupableIterator(pair.getIndexPairs()), rootNode);
         }
 
         // Remove from callbacks list
@@ -161,19 +163,19 @@ public class EventTypeIndexBuilder
         callbacksLock.lock();
         try
         {
-            for (Map.Entry<FilterHandle, Pair<FilterValueSet, IndexTreePath>> entry : callbacks.entrySet())
+            for (Map.Entry<FilterHandle, EventTypeIndexBuilderValueIndexesPair> entry : callbacks.entrySet())
             {
-                Pair<FilterValueSet, IndexTreePath> pair = entry.getValue();
+                EventTypeIndexBuilderValueIndexesPair pair = entry.getValue();
                 if (statementIds.contains(entry.getKey().getStatementId()))
                 {
-                    list.add(new FilterSetEntry(entry.getKey(), pair.getFirst()));
+                    list.add(new FilterSetEntry(entry.getKey(), pair.getFilterValueSet()));
 
-                    EventType eventType = pair.getFirst().getEventType();
+                    EventType eventType = pair.getFilterValueSet().getEventType();
                     FilterHandleSetNode rootNode = eventTypeIndex.get(eventType);
 
                     // Now remove from tree
                     IndexTreeBuilder treeBuilder = new IndexTreeBuilder();
-                    treeBuilder.remove(eventType, entry.getKey(), pair.getSecond(), rootNode);
+                    treeBuilder.remove(eventType, entry.getKey(), new EventTypeIndexBuilderIndexLookupableIterator(pair.getIndexPairs()), rootNode);
                 }
             }
             

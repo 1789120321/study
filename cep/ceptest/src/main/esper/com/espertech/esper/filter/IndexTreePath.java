@@ -8,9 +8,7 @@
  **************************************************************************************/
 package com.espertech.esper.filter;
 
-import com.espertech.esper.collection.Pair;
-
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 
 /**
@@ -19,14 +17,14 @@ import java.util.Arrays;
  */
 public class IndexTreePath
 {
-    private final LinkedList<Pair<FilterParamIndexBase, Object>> indizes;
+    private final ArrayDeque<EventTypeIndexBuilderIndexLookupablePair> indizes;
 
     /**
      * Constructor.
      */
     public IndexTreePath()
     {
-        indizes = new LinkedList<Pair<FilterParamIndexBase, Object>>();
+        indizes = new ArrayDeque<EventTypeIndexBuilderIndexLookupablePair>(2);
     }
 
     /**
@@ -36,28 +34,16 @@ public class IndexTreePath
      */
     public final void add(FilterParamIndexBase index, Object filteredForValue)
     {
-        indizes.add(new Pair<FilterParamIndexBase, Object>(index, filteredForValue));
-    }
-
-    /**
-     * Remove and return first index.
-     * @return first index
-     */
-    public final Pair<FilterParamIndexBase, Object> removeFirst()
-    {
-        if (!indizes.isEmpty())
-        {
-            return indizes.removeFirst();
-        }
-        else
-        {
-            return null;
-        }
+        indizes.add(new EventTypeIndexBuilderIndexLookupablePair(index, filteredForValue));
     }
 
     public final String toString()
     {
         return Arrays.toString(indizes.toArray());
+    }
+
+    public EventTypeIndexBuilderIndexLookupablePair[] toArray() {
+        return indizes.toArray(new EventTypeIndexBuilderIndexLookupablePair[indizes.size()]);
     }
 }
 

@@ -10,8 +10,9 @@ package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.epl.agg.access.AggregationAccessor;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
+import com.espertech.esper.epl.agg.service.AggregationStateFactory;
+import com.espertech.esper.epl.agg.access.AggregationStateKey;
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
-import com.espertech.esper.epl.agg.service.AggregationSpec;
 import com.espertech.esper.epl.core.MethodResolutionService;
 
 public class ExprSumNodeFactory implements AggregationMethodFactory
@@ -29,19 +30,25 @@ public class ExprSumNodeFactory implements AggregationMethodFactory
         this.hasFilter = hasFilter;
     }
 
-    public AggregationSpec getSpec(boolean isMatchRecognize)
-    {
-        return null;    // default spec
+    public boolean isAccessAggregation() {
+        return false;
+    }
+
+    public AggregationStateKey getAggregationStateKey(boolean isMatchRecognize) {
+        throw new IllegalStateException("Not an access aggregation function");
+    }
+
+    public AggregationStateFactory getAggregationStateFactory(boolean isMatchRecognize) {
+        throw new IllegalStateException("Not an access aggregation function");
+    }
+
+    public AggregationAccessor getAccessor() {
+        throw new IllegalStateException("Not an access aggregation function");
     }
 
     public Class getResultType()
     {
         return resultType;
-    }
-
-    public AggregationAccessor getAccessor()
-    {
-        throw new UnsupportedOperationException();
     }
 
     public AggregationMethod make(MethodResolutionService methodResolutionService, int agentInstanceId, int groupId, int aggregationId) {

@@ -19,14 +19,17 @@ import java.util.Set;
  */
 public class ScheduleAdjustmentService
 {
-    private Set<ScheduleAdjustmentCallback> callbacks = new HashSet<ScheduleAdjustmentCallback>();
+    private Set<ScheduleAdjustmentCallback> callbacks;
 
     /**
      * Add a callback
      * @param callback to add
      */
-    public void addCallback(ScheduleAdjustmentCallback callback)
+    public synchronized void addCallback(ScheduleAdjustmentCallback callback)
     {
+        if (callbacks == null) {
+            callbacks = new HashSet<ScheduleAdjustmentCallback>();
+        }
         callbacks.add(callback);
     }
 
@@ -36,13 +39,18 @@ public class ScheduleAdjustmentService
      */
     public void adjust(long delta)
     {
-        for (ScheduleAdjustmentCallback callback : callbacks)
-        {
+        if (callbacks == null) {
+            return;
+        }
+        for (ScheduleAdjustmentCallback callback : callbacks) {
             callback.adjust(delta);
         }
     }
 
     public void removeCallback(ScheduleAdjustmentCallback callback) {
+        if (callbacks == null) {
+            return;
+        }
         callbacks.remove(callback);
     }
 }

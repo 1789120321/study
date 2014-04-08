@@ -12,9 +12,6 @@
 package com.espertech.esper.event;
 
 import com.espertech.esper.client.EventPropertyDescriptor;
-import com.espertech.esper.client.EventPropertyGetter;
-import com.espertech.esper.client.FragmentEventType;
-import com.espertech.esper.event.map.MapEventPropertyGetter;
 
 import java.util.List;
 import java.util.Map;
@@ -26,45 +23,18 @@ public class PropertySetDescriptor
 {
     private final List<String> propertyNameList;
     private final List<EventPropertyDescriptor> propertyDescriptors;
-    private final Map<String, Class> simplePropertyTypes;
-    private final Map<String, EventPropertyGetter> propertyGetters;
-    private final Map<String, FragmentEventType> simpleFragmentTypes;
+    private final Map<String, PropertySetDescriptorItem> propertyItems;
     private final Map<String, Object> nestableTypes;
 
-    /**
-     * Ctor.
-     * @param propertyNameList property name list
-     * @param simplePropertyTypes property types
-     * @param propertyDescriptors property descriptors
-     * @param propertyGetters property getters
-     * @param simpleFragmentTypes fragment types per property
-     */
-    public PropertySetDescriptor(List<String> propertyNameList, List<EventPropertyDescriptor> propertyDescriptors, Map<String, Class> simplePropertyTypes, Map<String, EventPropertyGetter> propertyGetters, Map<String, FragmentEventType> simpleFragmentTypes, Map<String, Object> nestableTypes)
-    {
+    public PropertySetDescriptor(List<String> propertyNameList, List<EventPropertyDescriptor> propertyDescriptors, Map<String, PropertySetDescriptorItem> propertyItems, Map<String, Object> nestableTypes) {
         this.propertyNameList = propertyNameList;
         this.propertyDescriptors = propertyDescriptors;
-        this.simplePropertyTypes = simplePropertyTypes;
-        this.propertyGetters = propertyGetters;
-        this.simpleFragmentTypes = simpleFragmentTypes;
+        this.propertyItems = propertyItems;
         this.nestableTypes = nestableTypes;
     }
 
-    /**
-     * Returns map of property name and class.
-     * @return property name and class
-     */
-    public Map<String, Class> getSimplePropertyTypes()
-    {
-        return simplePropertyTypes;
-    }
-
-    /**
-     * Returns map of property name and getter.
-     * @return property name and getter
-     */
-    public Map<String, EventPropertyGetter> getPropertyGetters()
-    {
-        return propertyGetters;
+    public Map<String, PropertySetDescriptorItem> getPropertyItems() {
+        return propertyItems;
     }
 
     /**
@@ -83,15 +53,6 @@ public class PropertySetDescriptor
     public List<EventPropertyDescriptor> getPropertyDescriptors()
     {
         return propertyDescriptors;
-    }
-
-    /**
-     * Returns the property fragment types.
-     * @return fragment types.
-     */
-    public Map<String, FragmentEventType> getSimpleFragmentTypes()
-    {
-        return simpleFragmentTypes;
     }
 
     public Map<String, Object> getNestableTypes() {

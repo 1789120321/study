@@ -176,8 +176,8 @@ public class GroupByViewImpl extends ViewSupport implements CloneableView, Group
         }
 
         Object subviewHolder;
-        if (groupView.getViews().size() == 1) {
-            subviewHolder = copyChildView(groupView, propertyNames, groupByValues, agentInstanceContext, groupView.getViews().get(0));
+        if (groupView.getViews().length == 1) {
+            subviewHolder = copyChildView(groupView, propertyNames, groupByValues, agentInstanceContext, groupView.getViews()[0]);
         }
         else {
             // For each child node

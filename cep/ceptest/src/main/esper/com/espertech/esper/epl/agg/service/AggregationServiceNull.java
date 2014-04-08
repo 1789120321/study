@@ -19,6 +19,9 @@ import java.util.Collection;
  */
 public class AggregationServiceNull implements AggregationService {
 
+    public AggregationServiceNull() {
+    }
+
     public void applyEnter(EventBean[] eventsPerStream,
                            Object optionalGroupKeyPerRow,
                            ExprEvaluatorContext exprEvaluatorContext) {

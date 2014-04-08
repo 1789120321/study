@@ -24,7 +24,6 @@ import com.espertech.esper.filter.FilterValueSet;
 import com.espertech.esper.filter.FilterValueSetParam;
 
 import java.util.Collection;
-import java.util.List;
 
 public class ContextControllerPartitionedFilterCallback implements FilterHandleCallback {
 
@@ -46,7 +45,7 @@ public class ContextControllerPartitionedFilterCallback implements FilterHandleC
             getters[i] = getter;
         }
 
-        List<FilterValueSetParam> addendum = filterAddendum != null ? filterAddendum.getFilterAddendum(partitionItem.getFilterSpecCompiled()) : null;
+        FilterValueSetParam[] addendum = filterAddendum != null ? filterAddendum.getFilterAddendum(partitionItem.getFilterSpecCompiled()) : null;
         FilterValueSet filterValueSet = partitionItem.getFilterSpecCompiled().getValueSet(null, null, addendum);
         servicesContext.getFilterService().add(filterValueSet, filterHandle);
     }

@@ -16,6 +16,7 @@ import org.apache.commons.logging.LogFactory;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.SortedSet;
+import java.util.TimeZone;
 
 /**
  * For a crontab-like schedule, this class computes the next occurance given a start time and a specification of
@@ -81,7 +82,13 @@ public final class ScheduleComputeHelper
     {
         while (true)
         {
-            Calendar after = Calendar.getInstance();
+            Calendar after;
+            if (spec.getOptionalTimeZone() != null) {
+                after = Calendar.getInstance(TimeZone.getTimeZone(spec.getOptionalTimeZone()));
+            }
+            else {
+                after = Calendar.getInstance();
+            }
             after.setTimeInMillis(afterTimeInMillis);
 
             ScheduleCalendar result = new ScheduleCalendar();
@@ -172,7 +179,7 @@ public final class ScheduleComputeHelper
                 continue;
             }
 
-            return getTime(result, after.get(Calendar.YEAR));
+            return getTime(result, after.get(Calendar.YEAR), spec.getOptionalTimeZone());
         }
     }
 
@@ -259,9 +266,15 @@ public final class ScheduleComputeHelper
         return dayOfMonth;
     }
 
-    private static long getTime(ScheduleCalendar result, int year)
+    private static long getTime(ScheduleCalendar result, int year, String optionalTimeZone)
     {
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar;
+        if (optionalTimeZone != null) {
+            calendar = Calendar.getInstance(TimeZone.getTimeZone(optionalTimeZone));
+        }
+        else {
+            calendar = Calendar.getInstance();
+        }
         calendar.set(year, result.getMonth() - 1, result.getDayOfMonth(), result.getHour(), result.getMinute(), result.getSecond());
         calendar.set(Calendar.MILLISECOND, result.getMilliseconds());
         return calendar.getTimeInMillis();

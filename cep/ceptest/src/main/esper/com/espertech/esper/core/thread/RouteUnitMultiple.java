@@ -14,11 +14,8 @@ package com.espertech.esper.core.thread;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.core.context.util.EPStatementAgentInstanceHandle;
 import com.espertech.esper.core.service.EPRuntimeImpl;
-import com.espertech.esper.filter.FilterHandleCallback;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import java.util.ArrayDeque;
 
 /**
  * Route execution work unit.
@@ -29,7 +26,7 @@ public class RouteUnitMultiple implements RouteUnitRunnable
 
     private final EPRuntimeImpl epRuntime;
     private final EventBean theEvent;
-    private ArrayDeque<FilterHandleCallback> callbackList;
+    private Object callbackList;
     private EPStatementAgentInstanceHandle handle;
     private final long filterVersion;
 
@@ -41,7 +38,7 @@ public class RouteUnitMultiple implements RouteUnitRunnable
      * @param handle statement handle
      * @param filterVersion version of filter
      */
-    public RouteUnitMultiple(EPRuntimeImpl epRuntime, ArrayDeque<FilterHandleCallback> callbackList, EventBean theEvent, EPStatementAgentInstanceHandle handle, long filterVersion)
+    public RouteUnitMultiple(EPRuntimeImpl epRuntime, Object callbackList, EventBean theEvent, EPStatementAgentInstanceHandle handle, long filterVersion)
     {
         this.epRuntime = epRuntime;
         this.callbackList = callbackList;

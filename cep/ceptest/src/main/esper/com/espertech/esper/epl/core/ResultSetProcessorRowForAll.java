@@ -8,23 +8,20 @@
  **************************************************************************************/
 package com.espertech.esper.epl.core;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.EventType;
-import com.espertech.esper.collection.ArrayEventIterator;
-import com.espertech.esper.collection.MultiKey;
-import com.espertech.esper.collection.SingleEventIterator;
-import com.espertech.esper.collection.UniformPair;
+import com.espertech.esper.collection.*;
 import com.espertech.esper.core.context.util.AgentInstanceContext;
 import com.espertech.esper.epl.agg.service.AggregationService;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 import com.espertech.esper.epl.spec.OutputLimitLimitType;
 import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.view.Viewable;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Result set processor for the case: aggregation functions used in the select clause, and no group-by,
@@ -143,9 +140,6 @@ public class ResultSetProcessorRowForAll implements ResultSetProcessor
 
     private EventBean[] getSelectListEvents(boolean isNewData, boolean isSynthesize)
     {
-        // Since we are dealing with strictly aggregation nodes, there are no events required for evaluating
-        EventBean theEvent = selectExprProcessor.process(CollectionUtil.EVENT_PER_STREAM_EMPTY, isNewData, isSynthesize, exprEvaluatorContext);
-
         if (prototype.getOptionalHavingNode() != null)
         {
             Boolean result = (Boolean) prototype.getOptionalHavingNode().evaluate(null, isNewData, exprEvaluatorContext);
@@ -154,6 +148,9 @@ public class ResultSetProcessorRowForAll implements ResultSetProcessor
                 return null;
             }
         }
+
+        // Since we are dealing with strictly aggregation nodes, there are no events required for evaluating
+        EventBean theEvent = selectExprProcessor.process(CollectionUtil.EVENT_PER_STREAM_EMPTY, isNewData, isSynthesize, exprEvaluatorContext);
 
         // The result is always a single row
         return new EventBean[] {theEvent};
@@ -161,9 +158,6 @@ public class ResultSetProcessorRowForAll implements ResultSetProcessor
 
     private EventBean getSelectListEvent(boolean isNewData, boolean isSynthesize)
     {
-        // Since we are dealing with strictly aggregation nodes, there are no events required for evaluating
-        EventBean theEvent = selectExprProcessor.process(CollectionUtil.EVENT_PER_STREAM_EMPTY, isNewData, isSynthesize, exprEvaluatorContext);
-
         if (prototype.getOptionalHavingNode() != null)
         {
             Boolean result = (Boolean) prototype.getOptionalHavingNode().evaluate(null, isNewData, exprEvaluatorContext);
@@ -172,6 +166,9 @@ public class ResultSetProcessorRowForAll implements ResultSetProcessor
                 return null;
             }
         }
+
+        // Since we are dealing with strictly aggregation nodes, there are no events required for evaluating
+        EventBean theEvent = selectExprProcessor.process(CollectionUtil.EVENT_PER_STREAM_EMPTY, isNewData, isSynthesize, exprEvaluatorContext);
 
         // The result is always a single row
         return theEvent;
@@ -512,9 +509,6 @@ public class ResultSetProcessorRowForAll implements ResultSetProcessor
 
     private void getSelectListEvent(boolean isNewData, boolean isSynthesize, List<EventBean> resultEvents)
     {
-        // Since we are dealing with strictly aggregation nodes, there are no events required for evaluating
-        EventBean theEvent = selectExprProcessor.process(CollectionUtil.EVENT_PER_STREAM_EMPTY, isNewData, isSynthesize, exprEvaluatorContext);
-
         if (prototype.getOptionalHavingNode() != null)
         {
             Boolean result = (Boolean) prototype.getOptionalHavingNode().evaluate(null, isNewData, exprEvaluatorContext);
@@ -524,25 +518,13 @@ public class ResultSetProcessorRowForAll implements ResultSetProcessor
             }
         }
 
+        // Since we are dealing with strictly aggregation nodes, there are no events required for evaluating
+        EventBean theEvent = selectExprProcessor.process(CollectionUtil.EVENT_PER_STREAM_EMPTY, isNewData, isSynthesize, exprEvaluatorContext);
+
         resultEvents.add(theEvent);
     }
 
     public boolean hasAggregation() {
         return true;
-	}
-
-	/*
-	 * 优化代码：
-	 * 
-	 * 返回select子句中是否包含rstream逻辑，prototype内保存了该结果。
-	 * 如果包含则返回true
-	 * 
-	 * Code line： 513-515
-	 * Author: luonq@primeton.com
-	 * Date: 2013-6-16 12：00
-	 */
-	public boolean isSelectRStream()
-	{
-		return prototype.isSelectRStream();
-	}
+    }    
 }

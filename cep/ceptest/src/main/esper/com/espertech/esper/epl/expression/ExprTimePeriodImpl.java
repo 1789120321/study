@@ -221,7 +221,7 @@ public class ExprTimePeriodImpl extends ExprNodeBase implements ExprEvaluator, E
 
     private void logWarn(int ctr)
     {
-        log.warn("Time period expression returned a null value for expression '" + this.getChildNodes().get(ctr).toExpressionString() + "'");
+        log.warn("Time period expression returned a null value for expression '" + this.getChildNodes()[ctr].toExpressionString() + "'");
     }
 
     public Class getType()
@@ -247,42 +247,42 @@ public class ExprTimePeriodImpl extends ExprNodeBase implements ExprEvaluator, E
         int exprCtr = 0;
         if (hasYear)
         {
-            buf.append(getChildNodes().get(exprCtr++).toExpressionString());
+            buf.append(getChildNodes()[exprCtr++].toExpressionString());
             buf.append(" years ");
         }
         if (hasMonth)
         {
-            buf.append(getChildNodes().get(exprCtr++).toExpressionString());
+            buf.append(getChildNodes()[exprCtr++].toExpressionString());
             buf.append(" months ");
         }
         if (hasWeek)
         {
-            buf.append(getChildNodes().get(exprCtr++).toExpressionString());
+            buf.append(getChildNodes()[exprCtr++].toExpressionString());
             buf.append(" weeks ");
         }
         if (hasDay)
         {
-            buf.append(getChildNodes().get(exprCtr++).toExpressionString());
+            buf.append(getChildNodes()[exprCtr++].toExpressionString());
             buf.append(" days ");
         }
         if (hasHour)
         {
-            buf.append(getChildNodes().get(exprCtr++).toExpressionString());
+            buf.append(getChildNodes()[exprCtr++].toExpressionString());
             buf.append(" hours ");
         }
         if (hasMinute)
         {
-            buf.append(getChildNodes().get(exprCtr++).toExpressionString());
+            buf.append(getChildNodes()[exprCtr++].toExpressionString());
             buf.append(" minutes ");
         }
         if (hasSecond)
         {
-            buf.append(getChildNodes().get(exprCtr++).toExpressionString());
+            buf.append(getChildNodes()[exprCtr++].toExpressionString());
             buf.append(" seconds ");
         }
         if (hasMillisecond)
         {
-            buf.append(getChildNodes().get(exprCtr).toExpressionString());
+            buf.append(getChildNodes()[exprCtr].toExpressionString());
             buf.append(" milliseconds ");
         }
         return buf.toString();

@@ -8,27 +8,25 @@
  **************************************************************************************/
 package com.espertech.esper.epl.expression;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.espertech.esper.util.CollectionUtil;
 
-import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Superclass for filter nodes in a filter expression tree. Allow
  * validation against stream event types and evaluation of events against filter tree.
  */
 public abstract class ExprNodeBase implements ExprNode {
-    private static final Log log = LogFactory.getLog(ExprNode.class);
     private static final long serialVersionUID = 0L;
 
-    private final ArrayList<ExprNode> childNodes;
+    private ExprNode[] childNodes;
 
     /**
      * Constructor creates a list of child nodes.
      */
     public ExprNodeBase()
     {
-        childNodes = new ArrayList<ExprNode>();
+        childNodes = ExprNodeUtility.EMPTY_EXPR_ARRAY;
     }
 
     public void accept(ExprNodeVisitor visitor)
@@ -72,10 +70,15 @@ public abstract class ExprNodeBase implements ExprNode {
 
     public final void addChildNode(ExprNode childNode)
     {
-        childNodes.add(childNode);
+        childNodes = (ExprNode[]) CollectionUtil.arrayExpandAddSingle(childNodes, childNode);
     }
 
-    public final ArrayList<ExprNode> getChildNodes()
+    public final void addChildNodes(Collection<ExprNode> childNodeColl)
+    {
+        childNodes = (ExprNode[]) CollectionUtil.arrayExpandAddElements(childNodes, childNodeColl);
+    }
+
+    public final ExprNode[] getChildNodes()
     {
         return childNodes;
     }
@@ -83,4 +86,17 @@ public abstract class ExprNodeBase implements ExprNode {
     public void replaceUnlistedChildNode(ExprNode nodeToReplace, ExprNode newNode) {
         // Override to replace child expression nodes that are chained or otherwise not listed as child nodes
     }
+
+    public void addChildNodeToFront(ExprNode childNode) {
+        childNodes = (ExprNode[]) CollectionUtil.arrayExpandAddElements(new ExprNode[] {childNode}, childNodes);
+    }
+
+    public void setChildNodes(ExprNode ... nodes) {
+        this.childNodes = nodes;
+    }
+
+    public void setChildNode(int index, ExprNode newNode) {
+        this.childNodes[index] = newNode;
+    }
 }
+

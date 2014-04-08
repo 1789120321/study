@@ -129,6 +129,19 @@ public interface EPDeploymentAdmin
     public UndeploymentResult undeployRemove(String deploymentId) throws DeploymentNotFoundException;
 
     /**
+     * Undeploy a single module, if its in deployed state, and removes it from the known modules.
+     * <p>
+     * This operation, by default, destroys all statements previously associated to the deployed module
+     * and also removes this module from the list deployments list. Use the options object to control
+     * whether statements get destroyed.
+     * @param deploymentId of the deployment to undeploy.
+     * @param undeploymentOptions for controlling undeployment, can be a null value
+     * @return result object with statement-level detail
+     * @throws DeploymentNotFoundException when the deployment id could not be resolved to a deployment
+     */
+    public UndeploymentResult undeployRemove(String deploymentId, UndeploymentOptions undeploymentOptions) throws DeploymentNotFoundException;
+
+    /**
      * Return deployment ids of all currently known modules.
      * @return array of deployment ids
      */
@@ -267,4 +280,14 @@ public interface EPDeploymentAdmin
      * @throws DeploymentNotFoundException when the deployment id could not be resolved 
      */
     public UndeploymentResult undeploy(String deploymentId) throws DeploymentException;
+
+    /**
+     * Undeploy a previously deployed module.
+     * @param deploymentId of the module to undeploy
+     * @param undeploymentOptions undeployment options, or null for default behavior
+     * @return undeployment result
+     * @throws DeploymentStateException when attempting to undeploy a module that does not exist is already undeployed
+     * @throws DeploymentNotFoundException when the deployment id could not be resolved
+     */
+    public UndeploymentResult undeploy(String deploymentId, UndeploymentOptions undeploymentOptions) throws DeploymentException;
 }

@@ -19,10 +19,10 @@ import com.espertech.esper.core.context.factory.StatementAgentInstanceFactoryOnT
 import com.espertech.esper.core.context.factory.StatementAgentInstanceFactoryOnTriggerResult;
 import com.espertech.esper.core.context.factory.StatementAgentInstanceFactoryOnTriggerSplitDesc;
 import com.espertech.esper.core.context.mgr.ContextManagedStatementOnTriggerDesc;
-import com.espertech.esper.core.context.stmt.AIRegistryExpr;
-import com.espertech.esper.core.context.stmt.AIRegistrySubselect;
+import com.espertech.esper.core.context.stmt.*;
 import com.espertech.esper.core.context.subselect.SubSelectActivationCollection;
 import com.espertech.esper.core.context.subselect.SubSelectStrategyCollection;
+import com.espertech.esper.core.context.subselect.SubSelectStrategyFactoryDesc;
 import com.espertech.esper.core.context.subselect.SubSelectStrategyHolder;
 import com.espertech.esper.core.context.util.AgentInstanceContext;
 import com.espertech.esper.core.context.util.ContextMergeView;
@@ -71,7 +71,6 @@ public class EPStatementStartMethodOnTrigger extends EPStatementStartMethodBase
     public EPStatementStartResult startInternal(final EPServicesContext services, final StatementContext statementContext, boolean isNewStatement, boolean isRecoveringStatement, boolean isRecoveringResilient) throws ExprValidationException, ViewProcessingException {
         // define stop
         final List<StopCallback> stopCallbacks = new LinkedList<StopCallback>();
-        final EPStatementStopMethod stopMethod = new EPStatementStopMethodImpl(statementContext, stopCallbacks);
 
         // determine context
         final String contextName = statementSpec.getOptionalContextName();
@@ -81,7 +80,7 @@ public class EPStatementStartMethodOnTrigger extends EPStatementStartMethodBase
         SubSelectActivationCollection subSelectStreamDesc = EPStatementStartMethodHelperSubselect.createSubSelectActivation(services, statementSpec, statementContext);
 
         // obtain activator
-        final StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs().get(0);
+        final StreamSpecCompiled streamSpec = statementSpec.getStreamSpecs()[0];
         ViewableActivator activator;
         String triggereventTypeName = null;
         EventType activatorResultEventType;
@@ -95,7 +94,7 @@ public class EPStatementStartMethodOnTrigger extends EPStatementStartMethodBase
         else if (streamSpec instanceof PatternStreamSpecCompiled)
         {
             PatternStreamSpecCompiled patternStreamSpec = (PatternStreamSpecCompiled) streamSpec;
-            boolean usedByChildViews = !streamSpec.getViewSpecs().isEmpty() || (statementSpec.getInsertIntoDesc() != null);
+            boolean usedByChildViews = streamSpec.getViewSpecs().length > 0 || (statementSpec.getInsertIntoDesc() != null);
             String patternTypeName = statementContext.getStatementId() + "_patternon";
             final EventType eventType = services.getEventAdapterService().createSemiAnonymousMapType(patternTypeName, patternStreamSpec.getTaggedEventTypes(), patternStreamSpec.getArrayEventTypes(), usedByChildViews);
 
@@ -149,7 +148,7 @@ public class EPStatementStartMethodOnTrigger extends EPStatementStartMethodBase
 
             EventType namedWindowType = processor.getNamedWindowType();
             outputEventType = namedWindowType;
-            statementContext.getDynamicReferenceEventTypes().add(onTriggerDesc.getWindowName());
+            services.getStatementEventTypeRefService().addReferences(statementContext.getStatementName(), new String[] {onTriggerDesc.getWindowName()});
 
             String namedWindowName = onTriggerDesc.getOptionalAsName();
             if (namedWindowName == null)
@@ -207,8 +206,8 @@ public class EPStatementStartMethodOnTrigger extends EPStatementStartMethodBase
             // Construct a processor for results; for use in on-select to process selection results
             // Use a wildcard select if the select-clause is empty, such as for on-delete.
             // For on-select the select clause is not empty.
-            if (statementSpec.getSelectClauseSpec().getSelectExprList().size() == 0) {
-                statementSpec.getSelectClauseSpec().add(new SelectClauseElementWildcard());
+            if (statementSpec.getSelectClauseSpec().getSelectExprList().length == 0) {
+                statementSpec.getSelectClauseSpec().setSelectExprList(new SelectClauseElementWildcard());
             }
             resultSetProcessorPrototype = ResultSetProcessorFactoryFactory.getProcessorPrototype(
                     statementSpec, statementContext, typeService, null, new boolean[0], true, contextPropertyRegistry, null);
@@ -270,7 +269,7 @@ public class EPStatementStartMethodOnTrigger extends EPStatementStartMethodBase
             {
                 throw new ExprValidationException("Required insert-into clause is not provided, the clause is required for split-stream syntax");
             }
-            if ((!statementSpec.getGroupByExpressions().isEmpty()) || (statementSpec.getHavingExprRootNode() != null) || (!statementSpec.getOrderByList().isEmpty()))
+            if ((statementSpec.getGroupByExpressions().length > 0) || (statementSpec.getHavingExprRootNode() != null) || (statementSpec.getOrderByList().length > 0))
             {
                 throw new ExprValidationException("A group-by clause, having-clause or order-by clause is not allowed for the split stream syntax");
             }
@@ -315,7 +314,7 @@ public class EPStatementStartMethodOnTrigger extends EPStatementStartMethodBase
             (statementSpec.getOnTriggerDesc().getOnTriggerType() == OnTriggerType.ON_MERGE))
         {
             StatementSpecCompiled defaultSelectAllSpec = new StatementSpecCompiled();
-            defaultSelectAllSpec.getSelectClauseSpec().add(new SelectClauseElementWildcard());
+            defaultSelectAllSpec.getSelectClauseSpec().setSelectExprList(new SelectClauseElementWildcard());
 
             StreamTypeService streamTypeService = new StreamTypeServiceImpl(new EventType[] {outputEventType}, new String[] {"trigger_stream"}, new boolean[] {true}, services.getEngineURI(), false);
             outputResultSetProcessorPrototype = ResultSetProcessorFactoryFactory.getProcessorPrototype(defaultSelectAllSpec, statementContext, streamTypeService, null, new boolean[0], true, contextPropertyRegistry, null);
@@ -335,6 +334,7 @@ public class EPStatementStartMethodOnTrigger extends EPStatementStartMethodBase
         AggregationService aggregationService;
 
         // With context - delegate instantiation to context
+        final EPStatementStopMethod stopMethod = new EPStatementStopMethodImpl(statementContext, stopCallbacks);
         if (statementSpec.getOptionalContextName() != null) {
 
             // use statement-wide agent-instance-specific aggregation service
@@ -343,13 +343,27 @@ public class EPStatementStartMethodOnTrigger extends EPStatementStartMethodBase
             // use statement-wide agent-instance-specific subselects
             AIRegistryExpr aiRegistryExpr = statementContext.getStatementAgentInstanceRegistry().getAgentInstanceExprService();
             subselectStrategyInstances = new HashMap<ExprSubselectNode, SubSelectStrategyHolder>();
-            for (ExprSubselectNode node : subSelectStrategyCollection.getSubqueries().keySet()) {
-                AIRegistrySubselect specificService = aiRegistryExpr.allocateSubselect(node);
-                node.setStrategy(specificService);
-                subselectStrategyInstances.put(node, new SubSelectStrategyHolder(specificService, null, null, null, null, null));
+            for (Map.Entry<ExprSubselectNode, SubSelectStrategyFactoryDesc> entry : subSelectStrategyCollection.getSubqueries().entrySet()) {
+                AIRegistrySubselect specificService = aiRegistryExpr.allocateSubselect(entry.getKey());
+                entry.getKey().setStrategy(specificService);
+
+                Map<ExprPriorNode, ExprPriorEvalStrategy> subselectPriorStrategies = new HashMap<ExprPriorNode, ExprPriorEvalStrategy>();
+                for (ExprPriorNode subselectPrior : entry.getValue().getPriorNodesList()) {
+                    AIRegistryPrior specificSubselectPriorService = aiRegistryExpr.allocatePrior(subselectPrior);
+                    subselectPriorStrategies.put(subselectPrior, specificSubselectPriorService);
+                }
+
+                Map<ExprPreviousNode, ExprPreviousEvalStrategy> subselectPreviousStrategies = new HashMap<ExprPreviousNode, ExprPreviousEvalStrategy>();
+                for (ExprPreviousNode subselectPrevious : entry.getValue().getPrevNodesList()) {
+                    AIRegistryPrevious specificSubselectPreviousService = aiRegistryExpr.allocatePrevious(subselectPrevious);
+                    subselectPreviousStrategies.put(subselectPrevious, specificSubselectPreviousService);
+                }
+
+                AIRegistryAggregation subselectAggregation = aiRegistryExpr.allocateSubselectAggregation(entry.getKey());
+                subselectStrategyInstances.put(entry.getKey(), new SubSelectStrategyHolder(specificService, subselectAggregation, subselectPriorStrategies, subselectPreviousStrategies, null, null));
             }
 
-            ContextMergeView mergeView = new ContextMergeView(resultSetProcessorPrototype.getResultSetProcessorFactory().getResultEventType());
+            ContextMergeView mergeView = new ContextMergeView(resultEventType);
             finalViewable = mergeView;
 
             ContextManagedStatementOnTriggerDesc statement = new ContextManagedStatementOnTriggerDesc(statementSpec, statementContext, mergeView, contextFactory);

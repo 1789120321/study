@@ -28,6 +28,7 @@ import com.espertech.esper.schedule.TimeProvider;
 import com.espertech.esper.util.JavaClassHelper;
 import com.espertech.esper.view.HistoricalEventViewable;
 import com.espertech.esper.view.View;
+import com.espertech.esper.view.ViewSupport;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -106,43 +107,40 @@ public class MethodPollingViewable implements HistoricalEventViewable
     public void validate(EngineImportService engineImportService, StreamTypeService streamTypeService, MethodResolutionService methodResolutionService, TimeProvider timeProvider,
                          VariableService variableService, ExprEvaluatorContext exprEvaluatorContext, ConfigurationInformation configSnapshot,
                          SchedulingService schedulingService, String engineURI, Map<Integer, List<ExprNode>> sqlParameters, EventAdapterService eventAdapterService, String statementName, String statementId, Annotation[] annotations) throws ExprValidationException {
-        Class[] paramTypes = new Class[inputParameters.size()];
-        int count = 0;
-        validatedExprNodes = new ExprEvaluator[inputParameters.size()];
-        requiredStreams = new TreeSet<Integer>();
-        ExprNodeIdentifierVisitor visitor = new ExprNodeIdentifierVisitor(true);
 
+        // validate and visit
         ExprValidationContext validationContext = new ExprValidationContext(streamTypeService, methodResolutionService, null, timeProvider, variableService, exprEvaluatorContext, eventAdapterService, statementName, statementId, annotations, null);
-        for (ExprNode exprNode : inputParameters)
-        {
+        ExprNodeIdentifierVisitor visitor = new ExprNodeIdentifierVisitor(true);
+        final List<ExprNode> validatedInputParameters = new ArrayList<ExprNode>();
+        for (ExprNode exprNode : inputParameters) {
             ExprNode validated = ExprNodeUtility.getValidatedSubtree(exprNode, validationContext);
-            ExprEvaluator evaluator = validated.getExprEvaluator();
-            validatedExprNodes[count] = evaluator;
-            paramTypes[count] = evaluator.getType();
-            count++;
-
+            validatedInputParameters.add(validated);
             validated.accept(visitor);
         }
 
+        // determine required streams
+        requiredStreams = new TreeSet<Integer>();
         for (Pair<Integer, String> identifier : visitor.getExprProperties())
         {
             requiredStreams.add(identifier.getFirst());
         }
 
-        // Try to resolve the method, also checking parameter types
-		try
-		{
-			methodResolutionService.resolveMethod(methodStreamSpec.getClassName(), methodStreamSpec.getMethodName(), paramTypes);
-		}
-		catch(Exception e)
-		{
-            if (inputParameters.size() == 0)
-            {
-                throw new ExprValidationException("Method footprint does not match the number or type of expression parameters, expecting no parameters in method: " + e.getMessage());
+        ExprNodeUtilResolveExceptionHandler handler = new ExprNodeUtilResolveExceptionHandler() {
+            public ExprValidationException handle(Exception e) {
+                if (inputParameters.size() == 0)
+                {
+                    return new ExprValidationException("Method footprint does not match the number or type of expression parameters, expecting no parameters in method: " + e.getMessage());
+                }
+                Class[] resultTypes = ExprNodeUtility.getExprResultTypes(validatedInputParameters);
+                return new ExprValidationException("Method footprint does not match the number or type of expression parameters, expecting a method where parameters are typed '" +
+                        JavaClassHelper.getParameterAsString(resultTypes) + "': " + e.getMessage());
             }
-            throw new ExprValidationException("Method footprint does not match the number or type of expression parameters, expecting a method where parameters are typed '" +
-                    JavaClassHelper.getParameterAsString(paramTypes) + "': " + e.getMessage());
-		}
+        };
+
+        ExprNodeUtilMethodDesc desc = ExprNodeUtility.resolveMethodAllowWildcardAndStream(methodStreamSpec.getClassName(), null,
+                methodStreamSpec.getMethodName(), validatedInputParameters, methodResolutionService, eventAdapterService, statementId,
+                false, null, handler, methodStreamSpec.getMethodName());
+        validatedExprNodes = desc.getChildEvals();
     }
 
     public EventTable[] poll(EventBean[][] lookupEventsPerStream, PollResultIndexingStrategy indexingStrategy, ExprEvaluatorContext exprEvaluatorContext)
@@ -238,9 +236,9 @@ public class MethodPollingViewable implements HistoricalEventViewable
         return view;
     }
 
-    public List<View> getViews()
+    public View[] getViews()
     {
-        return Collections.emptyList();
+        return ViewSupport.EMPTY_VIEW_ARRAY;
     }
 
     public boolean removeView(View view)

@@ -11,26 +11,26 @@
 
 package com.espertech.esper.epl.agg.service;
 
-import com.espertech.esper.epl.agg.access.AggregationAccess;
+import com.espertech.esper.epl.agg.access.AggregationState;
 import com.espertech.esper.epl.agg.aggregator.AggregationMethod;
 
 /**
- * Pair of aggregation methods and accesses (first/last/window) data window representations.
+ * Pair of aggregation methods and states (first/last/window) data window representations.
  */
 public class AggregationRowPair
 {
     private final AggregationMethod[] methods;
-    private final AggregationAccess[] accesses;
+    private final AggregationState[] states;
 
     /**
      * Ctor.
      * @param methods aggregation methods/state
-     * @param accesses access is data window representations
+     * @param states access is data window representations
      */
-    public AggregationRowPair(AggregationMethod[] methods, AggregationAccess[] accesses)
+    public AggregationRowPair(AggregationMethod[] methods, AggregationState[] states)
     {
         this.methods = methods;
-        this.accesses = accesses;
+        this.states = states;
     }
 
     /**
@@ -43,11 +43,11 @@ public class AggregationRowPair
     }
 
     /**
-     * Returns accesses to data window state.
-     * @return accesses
+     * Returns states to data window state.
+     * @return states
      */
-    public AggregationAccess[] getAccesses()
+    public AggregationState[] getStates()
     {
-        return accesses;
+        return states;
     }
 }

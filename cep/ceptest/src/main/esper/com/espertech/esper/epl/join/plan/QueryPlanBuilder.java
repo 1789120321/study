@@ -45,7 +45,7 @@ public class QueryPlanBuilder
      * @throws ExprValidationException if the query plan fails
      */
     public static QueryPlan getPlan(EventType[] typesPerStream,
-                                    List<OuterJoinDesc> outerJoinDescList,
+                                    OuterJoinDesc[] outerJoinDescList,
                                     QueryGraph queryGraph,
                                     String[] streamNames,
                                     HistoricalViewableDesc historicalViewableDesc,
@@ -64,7 +64,7 @@ public class QueryPlanBuilder
         {
             throw new IllegalArgumentException("Number of join stream types is less then 2");
         }
-        if (outerJoinDescList.size() >= numStreams)
+        if (outerJoinDescList.length >= numStreams)
         {
             throw new IllegalArgumentException("Too many outer join descriptors found");
         }
@@ -72,9 +72,9 @@ public class QueryPlanBuilder
         if (numStreams == 2)
         {
             OuterJoinType outerJoinType = null;
-            if (!outerJoinDescList.isEmpty())
+            if (outerJoinDescList.length > 0)
             {
-                outerJoinType = outerJoinDescList.get(0).getOuterJoinType();
+                outerJoinType = outerJoinDescList[0].getOuterJoinType();
             }
 
             QueryPlan queryPlan = TwoStreamQueryPlanBuilder.build(typesPerStream, queryGraph, outerJoinType, streamJoinAnalysisResult.getUniqueKeys());
@@ -89,7 +89,7 @@ public class QueryPlanBuilder
 
         boolean hasPreferMergeJoin = HintEnum.PREFER_MERGE_JOIN.getHint(annotations) != null;
         boolean hasForceNestedIter = HintEnum.FORCE_NESTED_ITER.getHint(annotations) != null;
-        boolean isAllInnerJoins = outerJoinDescList.isEmpty() || OuterJoinDesc.consistsOfAllInnerJoins(outerJoinDescList);
+        boolean isAllInnerJoins = outerJoinDescList.length == 0 || OuterJoinDesc.consistsOfAllInnerJoins(outerJoinDescList);
         
         if (isAllInnerJoins && !hasPreferMergeJoin)
         {

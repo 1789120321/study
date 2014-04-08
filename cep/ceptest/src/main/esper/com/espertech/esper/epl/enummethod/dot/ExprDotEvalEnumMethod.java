@@ -11,8 +11,7 @@
 
 package com.espertech.esper.epl.enummethod.dot;
 
-import com.espertech.esper.client.EventType;
-import com.espertech.esper.epl.core.StreamTypeService;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.epl.expression.ExprDotEval;
 import com.espertech.esper.epl.expression.ExprNode;
 import com.espertech.esper.epl.expression.ExprValidationContext;
@@ -24,7 +23,7 @@ public interface ExprDotEvalEnumMethod extends ExprDotEval {
 
     public void init(EnumMethodEnum lambda,
                      String lambdaUsedName,
-                     ExprDotEvalTypeInfo currentInputType,
+                     ExpressionReturnType currentInputType,
                      List<ExprNode> parameters,
                      ExprValidationContext validationContext) throws ExprValidationException;
 }

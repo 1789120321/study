@@ -13,10 +13,10 @@ import com.espertech.esper.epl.expression.ExprNode;
 import com.espertech.esper.epl.expression.ExprValidationException;
 import com.espertech.esper.util.MetaDefItem;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.io.Serializable;
 
 /**
  * Specification object for historical data poll via database SQL statement.
@@ -38,7 +38,7 @@ public class MethodStreamSpec extends StreamSpecBase implements StreamSpecRaw, S
      * @param methodName the method name
      * @param expressions the parameter expressions
      */
-    public MethodStreamSpec(String optionalStreamName, List<ViewSpec> viewSpecs, String ident, String className, String methodName, List<ExprNode> expressions)
+    public MethodStreamSpec(String optionalStreamName, ViewSpec[] viewSpecs, String ident, String className, String methodName, List<ExprNode> expressions)
     {
         super(optionalStreamName, viewSpecs, new StreamSpecOptions());
         this.ident = ident;

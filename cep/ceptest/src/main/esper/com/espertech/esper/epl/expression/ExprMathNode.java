@@ -50,7 +50,7 @@ public class ExprMathNode extends ExprNodeBase implements ExprEvaluator
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() != 2)
+        if (this.getChildNodes().length != 2)
         {
             throw new ExprValidationException("Arithmatic node must have 2 child nodes");
         }
@@ -67,8 +67,8 @@ public class ExprMathNode extends ExprNodeBase implements ExprEvaluator
         }
 
         // Determine result type, set up compute function
-        evaluatorLeft = this.getChildNodes().get(0).getExprEvaluator();
-        evaluatorRight = this.getChildNodes().get(1).getExprEvaluator();
+        evaluatorLeft = this.getChildNodes()[0].getExprEvaluator();
+        evaluatorRight = this.getChildNodes()[1].getExprEvaluator();
 
         Class childTypeOne = evaluatorLeft.getType();
         Class childTypeTwo = evaluatorRight.getType();
@@ -138,9 +138,9 @@ public class ExprMathNode extends ExprNodeBase implements ExprEvaluator
         StringBuilder buffer = new StringBuilder();
         buffer.append('(');
 
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
         buffer.append(mathArithTypeEnum.getExpressionText());
-        buffer.append(this.getChildNodes().get(1).toExpressionString());
+        buffer.append(this.getChildNodes()[1].toExpressionString());
 
         buffer.append(')');
         return buffer.toString();

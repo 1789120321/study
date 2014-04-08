@@ -11,8 +11,6 @@ package com.espertech.esper.core.start;
 import com.espertech.esper.core.context.util.StatementAgentInstanceUtil;
 import com.espertech.esper.core.service.StatementContext;
 import com.espertech.esper.util.StopCallback;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.util.List;
 
@@ -21,14 +19,12 @@ import java.util.List;
  */
 public class EPStatementStopMethodImpl implements EPStatementStopMethod
 {
-    private static final Log log = LogFactory.getLog(EPStatementStopMethodImpl.class);
-
     private final StatementContext statementContext;
-    private final List<StopCallback> stopCallbacks;
+    private final StopCallback[] stopCallbacks;
 
     public EPStatementStopMethodImpl(StatementContext statementContext, List<StopCallback> stopCallbacks) {
         this.statementContext = statementContext;
-        this.stopCallbacks = stopCallbacks;
+        this.stopCallbacks = stopCallbacks.toArray(new StopCallback[stopCallbacks.size()]);
     }
 
     public void stop() {

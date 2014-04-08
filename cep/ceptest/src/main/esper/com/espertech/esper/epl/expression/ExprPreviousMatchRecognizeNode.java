@@ -35,22 +35,22 @@ public class ExprPreviousMatchRecognizeNode extends ExprNodeBase implements Expr
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() != 2)
+        if (this.getChildNodes().length != 2)
         {
             throw new ExprValidationException("Match-Recognize Previous expression must have 2 child nodes");
         }
 
-        if (!(this.getChildNodes().get(0) instanceof ExprIdentNode))
+        if (!(this.getChildNodes()[0] instanceof ExprIdentNode))
         {
             throw new ExprValidationException("Match-Recognize Previous expression requires an property identifier as the first parameter");
         }
 
-        if (!this.getChildNodes().get(1).isConstantResult() || (!JavaClassHelper.isNumericNonFP(this.getChildNodes().get(1).getExprEvaluator().getType())))
+        if (!this.getChildNodes()[1].isConstantResult() || (!JavaClassHelper.isNumericNonFP(this.getChildNodes()[1].getExprEvaluator().getType())))
         {
             throw new ExprValidationException("Match-Recognize Previous expression requires an integer index parameter or expression as the second parameter");
         }
 
-        ExprNode constantNode = this.getChildNodes().get(1);
+        ExprNode constantNode = this.getChildNodes()[1];
         Object value = constantNode.getExprEvaluator().evaluate(null, false, validationContext.getExprEvaluatorContext());
         if (!(value instanceof Number))
         {
@@ -59,9 +59,9 @@ public class ExprPreviousMatchRecognizeNode extends ExprNodeBase implements Expr
         constantIndexNumber = ((Number) value).intValue();
 
         // Determine stream number
-        ExprIdentNode identNode = (ExprIdentNode) this.getChildNodes().get(0);
+        ExprIdentNode identNode = (ExprIdentNode) this.getChildNodes()[0];
         streamNumber = identNode.getStreamId();
-        evaluator = this.getChildNodes().get(0).getExprEvaluator();
+        evaluator = this.getChildNodes()[0].getExprEvaluator();
         resultType = evaluator.getType();
     }
 
@@ -82,7 +82,7 @@ public class ExprPreviousMatchRecognizeNode extends ExprNodeBase implements Expr
     {
         if (constantIndexNumber == null)
         {
-            ExprNode constantNode = this.getChildNodes().get(1);
+            ExprNode constantNode = this.getChildNodes()[1];
             Object value = constantNode.getExprEvaluator().evaluate(null, false, null);
             constantIndexNumber = ((Number) value).intValue();
         }
@@ -122,9 +122,9 @@ public class ExprPreviousMatchRecognizeNode extends ExprNodeBase implements Expr
     {
         StringBuilder buffer = new StringBuilder();
         buffer.append("prev(");
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
         buffer.append(',');
-        buffer.append(this.getChildNodes().get(1).toExpressionString());
+        buffer.append(this.getChildNodes()[1].toExpressionString());
         buffer.append(')');
         return buffer.toString();
     }

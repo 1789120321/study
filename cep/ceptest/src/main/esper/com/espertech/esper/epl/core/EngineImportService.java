@@ -10,6 +10,7 @@ package com.espertech.esper.epl.core;
 
 import com.espertech.esper.client.ConfigurationMethodRef;
 import com.espertech.esper.client.ConfigurationPlugInAggregationFunction;
+import com.espertech.esper.client.ConfigurationPlugInAggregationMultiFunction;
 import com.espertech.esper.client.ConfigurationPlugInSingleRowFunction;
 import com.espertech.esper.client.hook.AggregationFunctionFactory;
 import com.espertech.esper.collection.Pair;
@@ -18,6 +19,7 @@ import com.espertech.esper.epl.expression.ExprNode;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.math.MathContext;
 
 /**
  * Service for engine-level resolution of static methods and aggregation methods.
@@ -78,14 +80,16 @@ public interface EngineImportService
      */
     public AggregationFunctionFactory resolveAggregationFactory(String functionName) throws EngineImportUndefinedException, EngineImportException;
 
-    /**
-     * Used at statement compile-time to try and resolve a given function name into an
-     * single-row function. Matches function name case-neutral.
-     * @param functionName is the function name
-     * @return class name and method name pair
-     * @throws EngineImportUndefinedException if the function is not a configured single-row function
-     * @throws EngineImportException if the function providing class could not be loaded or doesn't match
-     */
+    public ConfigurationPlugInAggregationMultiFunction resolveAggregationMultiFunction(String name);
+
+        /**
+        * Used at statement compile-time to try and resolve a given function name into an
+        * single-row function. Matches function name case-neutral.
+        * @param functionName is the function name
+        * @return class name and method name pair
+        * @throws EngineImportUndefinedException if the function is not a configured single-row function
+        * @throws EngineImportException if the function providing class could not be loaded or doesn't match
+        */
     public Pair<Class, EngineImportSingleRowDesc> resolveSingleRow(String functionName) throws EngineImportUndefinedException, EngineImportException;
 
     /**
@@ -96,7 +100,7 @@ public interface EngineImportService
      * @return method this resolves to
      * @throws EngineImportException if the method cannot be resolved to a visible static method
      */
-    public Method resolveMethod(String className, String methodName, Class[] paramTypes) throws EngineImportException;
+    public Method resolveMethod(String className, String methodName, Class[] paramTypes, boolean[] allowEventBeanType, boolean[] allowEventBeanCollType) throws EngineImportException;
 
     /**
      * Resolves a constructor matching list of parameter types.
@@ -139,10 +143,11 @@ public interface EngineImportService
      * @param clazz is the class to look for a fitting method
      * @param methodName is the method name
      * @param paramTypes is parameter types match expression sub-nodes
+     * @param allowEventBeanType whether EventBean footprint is allowed
      * @return method this resolves to
      * @throws EngineImportException if the method cannot be resolved to a visible static or instance method
      */
-    public Method resolveMethod(Class clazz, String methodName, Class[] paramTypes) throws EngineImportException;
+    public Method resolveMethod(Class clazz, String methodName, Class[] paramTypes, boolean[] allowEventBeanType, boolean[] allowEventBeanCollType) throws EngineImportException;
 
     /**
      * Resolve an extended (non-SQL std) builtin aggregation.
@@ -155,4 +160,10 @@ public interface EngineImportService
     public boolean isDuckType();
 
     public boolean isUdfCache();
+
+    public boolean isSortUsingCollator();
+
+    void addAggregationMultiFunction(ConfigurationPlugInAggregationMultiFunction desc) throws EngineImportException;
+
+    public MathContext getDefaultMathContext();
 }

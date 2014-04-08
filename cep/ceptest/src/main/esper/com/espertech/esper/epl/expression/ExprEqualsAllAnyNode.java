@@ -80,7 +80,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
         // Must have 2 child nodes
-        if (this.getChildNodes().size() < 1)
+        if (this.getChildNodes().length < 1)
         {
             throw new IllegalStateException("Equals group node does not have 1 or more child nodes");
         }
@@ -99,7 +99,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
         List<Class> comparedTypes = new ArrayList<Class>();
         comparedTypes.add(typeOne);
         hasCollectionOrArray = false;
-        for (int i = 0; i < this.getChildNodes().size() - 1; i++)
+        for (int i = 0; i < this.getChildNodes().length - 1; i++)
         {
             Class propType = evaluators[i + 1].getType();
             if (propType.isArray())
@@ -200,7 +200,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
     {
         if (isNot)
         {
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             if ((len > 0) && (leftResult == null))
             {
                 return null;
@@ -244,7 +244,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
         }
         else
         {
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             if ((len > 0) && (leftResult == null))
             {
                 return null;
@@ -292,7 +292,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
     {
         if (isNot)
         {
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             boolean hasNonNullRow = false;
             boolean hasNullRow = false;
             for (int i = 1; i <= len; i++)
@@ -402,7 +402,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
         }
         else
         {
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             boolean hasNonNullRow = false;
             boolean hasNullRow = false;
             for (int i = 1; i <= len; i++)
@@ -519,7 +519,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
         {
             boolean hasNonNullRow = false;
             boolean hasNullRow = false;
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             for (int i = 1; i <= len; i++)
             {
                 Object rightResult = evaluators[i].evaluate(eventsPerStream, isNewData, exprEvaluatorContext);
@@ -561,7 +561,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
         // Return true on the first equal.
         else
         {
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             if ((len > 0) && (leftResult == null))
             {
                 return null;
@@ -609,7 +609,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
         // Return true on the first not-equal.
         if (isNot)
         {
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             boolean hasNonNullRow = false;
             boolean hasNullRow = false;
             for (int i = 1; i <= len; i++)
@@ -722,7 +722,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
         // Return true on the first equal.
         else
         {
-            int len = this.getChildNodes().size() - 1;
+            int len = this.getChildNodes().length - 1;
             boolean hasNonNullRow = false;
             boolean hasNullRow = false;
             for (int i = 1; i <= len; i++)
@@ -836,7 +836,7 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
     {
         StringBuilder buffer = new StringBuilder();
 
-        buffer.append(this.getChildNodes().get(0).toExpressionString());
+        buffer.append(this.getChildNodes()[0].toExpressionString());
         if (isAll)
         {
             if (isNot)
@@ -862,10 +862,10 @@ public class ExprEqualsAllAnyNode extends ExprNodeBase implements ExprEvaluator
         buffer.append("(");
 
         String delimiter = "";
-        for (int i = 0; i < this.getChildNodes().size()-1; i++)
+        for (int i = 0; i < this.getChildNodes().length-1; i++)
         {
             buffer.append(delimiter);
-            buffer.append(this.getChildNodes().get(i + 1).toExpressionString());
+            buffer.append(this.getChildNodes()[i + 1].toExpressionString());
             delimiter = ",";
         }
         buffer.append(")");

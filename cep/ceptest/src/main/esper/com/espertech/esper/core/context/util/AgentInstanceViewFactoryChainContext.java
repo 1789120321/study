@@ -26,8 +26,8 @@ import com.espertech.esper.view.DataWindowViewWithPrevious;
 import com.espertech.esper.view.ViewFactory;
 import com.espertech.esper.view.internal.PriorEventViewFactory;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedMap;
 
 public class AgentInstanceViewFactoryChainContext implements ExprEvaluatorContext
@@ -96,8 +96,16 @@ public class AgentInstanceViewFactoryChainContext implements ExprEvaluatorContex
         return agentInstanceContext.getEpStatementAgentInstanceHandle();
     }
 
-    public Set<StopCallback> getTerminationCallbacks() {
-        return agentInstanceContext.getTerminationCallbacks();
+    public Collection<StopCallback> getTerminationCallbacksRO() {
+        return agentInstanceContext.getTerminationCallbackRO();
+    }
+
+    public void addTerminationCallback(StopCallback callback) {
+        agentInstanceContext.addTerminationCallback(callback);
+    }
+
+    public void removeTerminationCallback(StopCallback callback) {
+        agentInstanceContext.removeTerminationCallback(callback);
     }
 
     public static AgentInstanceViewFactoryChainContext create(List<ViewFactory> viewFactoryChain, AgentInstanceContext agentInstanceContext, ViewResourceDelegateVerifiedStream viewResourceDelegate) {

@@ -52,7 +52,6 @@ public class NamedWindowUpdateHelper
                                         String namedWindowAlias)
             throws ExprValidationException
     {
-        // validate expression, obtain wideners
         TypeWidener wideners[] = new TypeWidener[assignments.size()];
         List<String> properties = new ArrayList<String>();
         int len = assignments.size();

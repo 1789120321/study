@@ -20,8 +20,6 @@ import com.espertech.esper.view.ViewProcessingException;
 import com.espertech.esper.view.Viewable;
 import com.espertech.esper.view.ViewableDefaultImpl;
 
-import java.util.Collections;
-
 /**
  * Starts and provides the stop method for EPL statements.
  */
@@ -37,7 +35,7 @@ public class EPStatementStartMethodCreateSchema extends EPStatementStartMethodBa
         EventType eventType = handleCreateSchema(services, statementContext, spec);
 
         // enter a reference
-        services.getStatementEventTypeRefService().addReferences(statementContext.getStatementName(), Collections.singleton(spec.getSchemaName()));
+        services.getStatementEventTypeRefService().addReferences(statementContext.getStatementName(), new String[] {spec.getSchemaName()});
 
         final EventType allocatedEventType = eventType;
         EPStatementStopMethod stopMethod = new EPStatementStopMethod() {

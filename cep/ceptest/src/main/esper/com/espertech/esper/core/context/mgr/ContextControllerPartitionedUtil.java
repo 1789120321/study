@@ -23,12 +23,10 @@ import com.espertech.esper.epl.spec.StatementSpecCompiled;
 import com.espertech.esper.epl.spec.util.StatementSpecCompiledAnalyzerResult;
 import com.espertech.esper.event.EventTypeUtility;
 import com.espertech.esper.filter.*;
+import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.util.JavaClassHelper;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.IdentityHashMap;
-import java.util.List;
+import java.util.*;
 
 public class ContextControllerPartitionedUtil {
 
@@ -167,7 +165,7 @@ public class ContextControllerPartitionedUtil {
     }
 
     // Compare filters in statement with filters in segmented context, addendum filter compilation
-    public static void populateAddendumFilters(Object keyValue, List<FilterSpecCompiled> filtersSpecs, ContextDetailPartitioned segmentedSpec, StatementSpecCompiled optionalStatementSpecCompiled, IdentityHashMap<FilterSpecCompiled, List<FilterValueSetParam>> addendums) {
+    public static void populateAddendumFilters(Object keyValue, List<FilterSpecCompiled> filtersSpecs, ContextDetailPartitioned segmentedSpec, StatementSpecCompiled optionalStatementSpecCompiled, IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> addendums) {
 
         // determine whether create-named-window
         boolean isCreateWindow = optionalStatementSpecCompiled != null && optionalStatementSpecCompiled.getCreateWindowDesc() != null;
@@ -208,16 +206,10 @@ public class ContextControllerPartitionedUtil {
                 }
 
                 // add those predefined filter parameters, if any
-                addendumFilters.addAll(foundPartition.getParametersCompiled());
+                addendumFilters.addAll(Arrays.asList(foundPartition.getParametersCompiled()));
 
                 // add to existing if any are present
-                List<FilterValueSetParam> existing = addendums.get(filtersSpec);
-                if (existing != null) {
-                    existing.addAll(addendumFilters);
-                }
-                else {
-                    addendums.put(filtersSpec, addendumFilters);
-                }
+                addAddendums(addendums, addendumFilters, filtersSpec);
             }
         }
         // handle segmented context for create-window
@@ -259,16 +251,20 @@ public class ContextControllerPartitionedUtil {
                     }
 
                     // add to existing if any are present
-                    List<FilterValueSetParam> existing = addendums.get(filtersSpec);
-                    if (existing != null) {
-                        existing.addAll(addendumFilters);
-                    }
-                    else {
-                        addendums.put(filtersSpec, addendumFilters);
-                    }
+                    addAddendums(addendums, addendumFilters, filtersSpec);
                 }
             }
         }
+    }
+
+    private static void addAddendums(IdentityHashMap<FilterSpecCompiled, FilterValueSetParam[]> addendums, List<FilterValueSetParam> addendumFilters, FilterSpecCompiled filtersSpec) {
+        FilterValueSetParam[] existing = addendums.get(filtersSpec);
+        if (existing == null) {
+            addendums.put(filtersSpec, addendumFilters.toArray(new FilterValueSetParam[addendumFilters.size()]));
+            return;
+        }
+        existing = (FilterValueSetParam[]) CollectionUtil.arrayExpandAddElements(existing, addendumFilters);
+        addendums.put(filtersSpec, existing);
     }
 
     private static String getTypeValidationMessage(String contextName, String typeNameEx) {

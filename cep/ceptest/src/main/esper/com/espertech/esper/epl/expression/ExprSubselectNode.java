@@ -17,12 +17,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a subselect in an expression tree.
  */
 public abstract class ExprSubselectNode extends ExprNodeBase implements ExprEvaluator, ExprEvaluatorEnumeration
 {
+    public static final ExprSubselectNode[] EMPTY_SUBSELECT_ARRAY = new ExprSubselectNode[0];
     private static final long serialVersionUID = -2469169635913155764L;
     
     private static final Log log = LogFactory.getLog(ExprSubselectNode.class);
@@ -270,5 +272,12 @@ public abstract class ExprSubselectNode extends ExprNodeBase implements ExprEval
 
     public boolean isFilterStreamSubselect() {
         return filterStreamSubselect;
+    }
+
+    public static ExprSubselectNode[] toArray(List<ExprSubselectNode> subselectNodes) {
+        if (subselectNodes.isEmpty()) {
+            return EMPTY_SUBSELECT_ARRAY;
+        }
+        return subselectNodes.toArray(new ExprSubselectNode[subselectNodes.size()]);
     }
 }

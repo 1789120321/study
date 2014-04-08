@@ -54,7 +54,7 @@ public class ExprBitWiseNode extends ExprNodeBase implements ExprEvaluator {
 
     public void validate(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() != 2)
+        if (this.getChildNodes().length != 2)
         {
             throw new ExprValidationException("BitWise node must have 2 child nodes");
         }
@@ -143,9 +143,9 @@ public class ExprBitWiseNode extends ExprNodeBase implements ExprEvaluator {
         StringBuilder buffer = new StringBuilder();
         buffer.append('(');
 
-        buffer.append(getChildNodes().get(0).toExpressionString());
+        buffer.append(getChildNodes()[0].toExpressionString());
         buffer.append(_bitWiseOpEnum.getComputeDescription());
-        buffer.append(getChildNodes().get(1).toExpressionString());
+        buffer.append(getChildNodes()[1].toExpressionString());
 
         buffer.append(')');
         return buffer.toString();

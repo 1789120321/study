@@ -12,16 +12,12 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.client.EventBean;
-import com.espertech.esper.util.JavaClassHelper;
 import com.espertech.esper.type.*;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-
+import com.espertech.esper.util.JavaClassHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.util.*;
 
 /**
  * Expression for use within crontab to specify a list of values.
@@ -43,7 +39,7 @@ public class ExprNumberSetList extends ExprNodeBase implements ExprEvaluator
         String delimiter = "";
 
         buffer.append('[');
-        Iterator<ExprNode> it = this.getChildNodes().iterator();
+        Iterator<ExprNode> it = Arrays.asList(this.getChildNodes()).iterator();
         do
         {
             ExprNode expr = it.next();

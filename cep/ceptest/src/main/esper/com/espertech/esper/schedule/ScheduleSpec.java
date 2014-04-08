@@ -25,6 +25,7 @@ public final class ScheduleSpec implements MetaDefItem, Serializable
     // Per unit hold the set of valid integer values, or null if wildcarded.
     // The seconds unit is optional.
     private final EnumMap<ScheduleUnit, SortedSet<Integer>> unitValues;
+    private String optionalTimeZone;
     private static final long serialVersionUID = -7050807714879367353L;
 
     /**
@@ -32,7 +33,7 @@ public final class ScheduleSpec implements MetaDefItem, Serializable
      * @param unitValues are the values for each minute, hour, day, month etc.
      * @throws IllegalArgumentException - if validation of value set per unit fails
      */
-    public ScheduleSpec(EnumMap<ScheduleUnit, SortedSet<Integer>> unitValues) throws IllegalArgumentException
+    public ScheduleSpec(EnumMap<ScheduleUnit, SortedSet<Integer>> unitValues, String optionalTimeZone) throws IllegalArgumentException
     {
         validate(unitValues);
 
@@ -40,6 +41,7 @@ public final class ScheduleSpec implements MetaDefItem, Serializable
         compress(unitValues);
 
         this.unitValues = unitValues;
+        this.optionalTimeZone = optionalTimeZone;
     }
 
     /**
@@ -53,6 +55,11 @@ public final class ScheduleSpec implements MetaDefItem, Serializable
         unitValues.put(ScheduleUnit.DAYS_OF_MONTH, null);
         unitValues.put(ScheduleUnit.MONTHS, null);
         unitValues.put(ScheduleUnit.DAYS_OF_WEEK, null);
+        optionalTimeZone = null;
+    }
+
+    public void setOptionalTimeZone(String optionalTimeZone) {
+        this.optionalTimeZone = optionalTimeZone;
     }
 
     /**
@@ -62,6 +69,10 @@ public final class ScheduleSpec implements MetaDefItem, Serializable
     public final EnumMap<ScheduleUnit, SortedSet<Integer>> getUnitValues()
     {
         return unitValues;
+    }
+
+    public String getOptionalTimeZone() {
+        return optionalTimeZone;
     }
 
     /**

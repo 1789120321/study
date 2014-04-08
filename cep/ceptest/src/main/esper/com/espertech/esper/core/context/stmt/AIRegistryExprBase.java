@@ -21,11 +21,13 @@ import java.util.Map;
 public abstract class AIRegistryExprBase implements AIRegistryExpr {
 
     private final Map<ExprSubselectNode, AIRegistrySubselect> subselects;
+    private final Map<ExprSubselectNode, AIRegistryAggregation> subselectAggregations;
     private final Map<ExprPriorNode, AIRegistryPrior> priors;
     private final Map<ExprPreviousNode, AIRegistryPrevious> previous;
 
     public AIRegistryExprBase() {
         subselects = new HashMap<ExprSubselectNode, AIRegistrySubselect>();
+        subselectAggregations = new HashMap<ExprSubselectNode, AIRegistryAggregation>();
         priors = new HashMap<ExprPriorNode, AIRegistryPrior>();
         previous = new HashMap<ExprPreviousNode, AIRegistryPrevious>();
     }
@@ -33,9 +35,14 @@ public abstract class AIRegistryExprBase implements AIRegistryExpr {
     public abstract AIRegistrySubselect allocateAIRegistrySubselect();
     public abstract AIRegistryPrevious allocateAIRegistryPrevious();
     public abstract AIRegistryPrior allocateAIRegistryPrior();
+    public abstract AIRegistryAggregation allocateAIRegistrySubselectAggregation();
 
     public AIRegistrySubselect getSubselectService(ExprSubselectNode exprSubselectNode) {
         return subselects.get(exprSubselectNode);
+    }
+
+    public AIRegistryAggregation getSubselectAggregationService(ExprSubselectNode exprSubselectNode) {
+        return subselectAggregations.get(exprSubselectNode);
     }
 
     public AIRegistryPrior getPriorServices(ExprPriorNode key) {
@@ -50,6 +57,12 @@ public abstract class AIRegistryExprBase implements AIRegistryExpr {
         AIRegistrySubselect subselect = allocateAIRegistrySubselect();
         subselects.put(subselectNode, subselect);
         return subselect;
+    }
+
+    public AIRegistryAggregation allocateSubselectAggregation(ExprSubselectNode subselectNode) {
+        AIRegistryAggregation subselectAggregation = allocateAIRegistrySubselectAggregation();
+        subselectAggregations.put(subselectNode, subselectAggregation);
+        return subselectAggregation;
     }
 
     public AIRegistryPrior allocatePrior(ExprPriorNode key) {
@@ -90,6 +103,9 @@ public abstract class AIRegistryExprBase implements AIRegistryExpr {
 
     public void deassignService(int agentInstanceId) {
         for (Map.Entry<ExprSubselectNode, AIRegistrySubselect> entry : subselects.entrySet()) {
+            entry.getValue().deassignService(agentInstanceId);
+        }
+        for (Map.Entry<ExprSubselectNode, AIRegistryAggregation> entry : subselectAggregations.entrySet()) {
             entry.getValue().deassignService(agentInstanceId);
         }
         for (Map.Entry<ExprPriorNode, AIRegistryPrior> entry : priors.entrySet()) {

@@ -18,10 +18,12 @@ import com.espertech.esper.epl.expression.ExprSubselectNode;
 public interface AIRegistryExpr {
 
     public AIRegistrySubselect getSubselectService(ExprSubselectNode exprSubselectNode);
+    public AIRegistryAggregation getSubselectAggregationService(ExprSubselectNode exprSubselectNode);
     public AIRegistryPrior getPriorServices(ExprPriorNode key);
     public AIRegistryPrevious getPreviousServices(ExprPreviousNode key);
 
     public AIRegistrySubselect allocateSubselect(ExprSubselectNode subselectNode);
+    public AIRegistryAggregation allocateSubselectAggregation(ExprSubselectNode subselectNode);
     public AIRegistryPrior allocatePrior(ExprPriorNode key);
     public AIRegistryPrevious allocatePrevious(ExprPreviousNode previousNode);
 

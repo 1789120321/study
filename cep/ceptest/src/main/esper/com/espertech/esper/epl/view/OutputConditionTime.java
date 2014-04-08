@@ -128,7 +128,7 @@ public final class OutputConditionTime extends OutputConditionBase implements Ou
         };
         handle = new EPStatementHandleCallback(context.getEpStatementAgentInstanceHandle(), callback);
         context.getStatementContext().getSchedulingService().add(afterMSec, handle, scheduleSlot);
-        context.getTerminationCallbacks().add(this);
+        context.addTerminationCallback(this);
     }
 
     public void stop() {

@@ -51,7 +51,7 @@ public class SelectExprProcessorFactory
      * @throws ExprValidationException to indicate the select expression cannot be validated
      */
     public static SelectExprProcessor getProcessor(Collection<Integer> assignedTypeNumberStack,
-                                                   List<SelectClauseElementCompiled> selectionList,
+                                                   SelectClauseElementCompiled[] selectionList,
                                                    boolean isUsingWildcard,
                                                    InsertIntoDesc insertIntoDesc,
                                                    ForClauseSpec forClauseSpec,
@@ -132,7 +132,7 @@ public class SelectExprProcessorFactory
 
     private static SelectExprProcessor getProcessorInternal(
                                                    Collection<Integer> assignedTypeNumberStack,
-                                                   List<SelectClauseElementCompiled> selectionList,
+                                                   SelectClauseElementCompiled[] selectionList,
                                                    boolean isUsingWildcard,
                                                    InsertIntoDesc insertIntoDesc,
                                                    StreamTypeService typeService,
@@ -191,7 +191,7 @@ public class SelectExprProcessorFactory
      * @param selectionList is the list of select items to verify names
      * @throws com.espertech.esper.epl.expression.ExprValidationException thrown if a name occured more then once
      */
-    protected static void verifyNameUniqueness(List<SelectClauseElementCompiled> selectionList) throws ExprValidationException
+    protected static void verifyNameUniqueness(SelectClauseElementCompiled[] selectionList) throws ExprValidationException
     {
         Set<String> names = new HashSet<String>();
         for (SelectClauseElementCompiled element : selectionList)
@@ -221,7 +221,7 @@ public class SelectExprProcessorFactory
         }
     }
 
-    private static boolean isWildcardsOnly(List<SelectClauseElementCompiled> elements)
+    private static boolean isWildcardsOnly(SelectClauseElementCompiled[] elements)
     {
         for (SelectClauseElementCompiled element : elements)
         {
@@ -233,7 +233,7 @@ public class SelectExprProcessorFactory
         return true;
     }
 
-    private static SelectExprBuckets getSelectExpressionBuckets(List<SelectClauseElementCompiled> elements)
+    private static SelectExprBuckets getSelectExpressionBuckets(SelectClauseElementCompiled[] elements)
     {
         List<SelectClauseExprCompiledSpec> expressions = new ArrayList<SelectClauseExprCompiledSpec>();
         List<SelectExprStreamDesc> selectedStreams = new ArrayList<SelectExprStreamDesc>();

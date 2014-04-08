@@ -74,7 +74,7 @@ public abstract class ExpressionViewBase extends ViewSupport implements DataWind
                 final VariableService variableService = agentInstanceContext.getStatementContext().getVariableService();
                 final VariableReader reader = variableService.getReader(variable);
                 agentInstanceContext.getStatementContext().getVariableService().registerCallback(reader.getVariableNumber(), this);
-                agentInstanceContext.getTerminationCallbacks().add(new StopCallback() {
+                agentInstanceContext.addTerminationCallback(new StopCallback() {
                     public void stop() {
                         variableService.unregisterCallback(reader.getVariableNumber(), ExpressionViewBase.this);
                     }
@@ -89,7 +89,7 @@ public abstract class ExpressionViewBase extends ViewSupport implements DataWind
             };
             scheduleSlot = agentInstanceContext.getStatementContext().getScheduleBucket().allocateSlot();
             scheduleHandle = new EPStatementHandleCallback(agentInstanceContext.getEpStatementAgentInstanceHandle(), callback);
-            agentInstanceContext.getTerminationCallbacks().add(this);
+            agentInstanceContext.addTerminationCallback(this);
         }
         else {
             scheduleSlot = null;
@@ -119,7 +119,7 @@ public abstract class ExpressionViewBase extends ViewSupport implements DataWind
 
     public void stopView() {
         stopScheduleAndVar();
-        agentInstanceContext.getTerminationCallbacks().remove(this);
+        agentInstanceContext.removeTerminationCallback(this);
     }
 
     public void stop() {

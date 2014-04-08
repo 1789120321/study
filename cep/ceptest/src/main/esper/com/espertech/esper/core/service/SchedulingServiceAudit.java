@@ -18,7 +18,6 @@ import com.espertech.esper.util.JavaClassHelper;
 
 import java.io.StringWriter;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 public class SchedulingServiceAudit implements SchedulingServiceSPI {
@@ -49,8 +48,8 @@ public class SchedulingServiceAudit implements SchedulingServiceSPI {
         return spi.getNearestTimeHandle();
     }
 
-    public Map<String, Long> getStatementSchedules() {
-        return spi.getStatementSchedules();
+    public void visitSchedules(ScheduleVisitor visitor) {
+        spi.visitSchedules(visitor);
     }
 
     public void add(long afterMSec, ScheduleHandle handle, ScheduleSlot slot) throws ScheduleServiceException {

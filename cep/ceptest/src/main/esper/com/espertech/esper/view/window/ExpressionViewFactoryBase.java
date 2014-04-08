@@ -17,7 +17,6 @@ import com.espertech.esper.epl.agg.service.AggregationServiceFactoryServiceImpl;
 import com.espertech.esper.epl.core.StreamTypeService;
 import com.espertech.esper.epl.core.StreamTypeServiceImpl;
 import com.espertech.esper.epl.expression.*;
-import com.espertech.esper.event.map.MapEventBean;
 import com.espertech.esper.util.JavaClassHelper;
 import com.espertech.esper.view.*;
 
@@ -30,18 +29,9 @@ public abstract class ExpressionViewFactoryBase implements DataWindowViewFactory
 {
     private EventType eventType;
     protected ExprNode expiryExpression;
-    protected MapEventBean builtinMapBean;
     protected Set<String> variableNames;
     protected AggregationServiceFactoryDesc aggregationServiceFactoryDesc;
-
-    public void setViewParameters(ViewFactoryContext viewFactoryContext, List<ExprNode> expressionParameters) throws ViewParameterException
-    {
-        if (expressionParameters.size() != 1) {
-            String errorMessage = "Expression window view requires a single expression as a parameter";
-            throw new ViewParameterException(errorMessage);
-        }
-        expiryExpression = expressionParameters.get(0);
-    }
+    protected EventType builtinMapType;
 
     public void attach(EventType parentEventType, StatementContext statementContext, ViewFactory optionalParentFactory, List<ViewFactory> parentViewFactories) throws ViewParameterException
     {
@@ -54,8 +44,9 @@ public abstract class ExpressionViewFactoryBase implements DataWindowViewFactory
         builtinTypeDef.put(ExpressionViewUtil.NEWEST_TIMESTAMP, Long.class);
         builtinTypeDef.put(ExpressionViewUtil.EXPIRED_COUNT, Integer.class);
         builtinTypeDef.put(ExpressionViewUtil.VIEW_REFERENCE, Object.class);
-        EventType builtinMapType = statementContext.getEventAdapterService().createAnonymousMapType(statementContext.getStatementId() + "_exprview", builtinTypeDef);
-        builtinMapBean = new MapEventBean(new HashMap<String, Object>(), builtinMapType);
+        builtinTypeDef.put(ExpressionViewUtil.NEWEST_EVENT, eventType);
+        builtinTypeDef.put(ExpressionViewUtil.OLDEST_EVENT, eventType);
+        builtinMapType = statementContext.getEventAdapterService().createAnonymousMapType(statementContext.getStatementId() + "_exprview", builtinTypeDef);
         StreamTypeService streamTypeService = new StreamTypeServiceImpl(new EventType[] {eventType, builtinMapType}, new String[2], new boolean[2], statementContext.getEngineURI(), false);
 
         // validate expression
@@ -98,5 +89,9 @@ public abstract class ExpressionViewFactoryBase implements DataWindowViewFactory
     public boolean canReuse(View view)
     {
         return false;
+    }
+
+    public EventType getBuiltinMapType() {
+        return builtinMapType;
     }
 }

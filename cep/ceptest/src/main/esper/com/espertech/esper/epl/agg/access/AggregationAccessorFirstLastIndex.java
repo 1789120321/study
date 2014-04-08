@@ -47,9 +47,9 @@ public class AggregationAccessorFirstLastIndex implements AggregationAccessor
         this.isFirst = isFirst;
     }
 
-    public Object getValue(AggregationAccess access) {
+    public Object getValue(AggregationState state) {
 
-        EventBean bean = getBean(access);
+        EventBean bean = getBean(state);
         if (bean == null) {
             return null;
         }
@@ -57,19 +57,19 @@ public class AggregationAccessorFirstLastIndex implements AggregationAccessor
         return childNode.evaluate(eventsPerStream, true, null);
     }
 
-    public Collection<EventBean> getCollectionReadOnly(AggregationAccess access) {
-        EventBean bean = getBean(access);
+    public Collection<EventBean> getEnumerableEvents(AggregationState state) {
+        EventBean bean = getBean(state);
         if (bean == null) {
             return null;
         }
         return Collections.singletonList(bean);
     }
 
-    public EventBean getEventBean(AggregationAccess currentAcces) {
-        return getBean(currentAcces);
+    public EventBean getEnumerableEvent(AggregationState state) {
+        return getBean(state);
     }
 
-    private EventBean getBean(AggregationAccess access) {
+    private EventBean getBean(AggregationState state) {
         EventBean bean;
         int index = constant;
         if (index == -1) {
@@ -80,10 +80,10 @@ public class AggregationAccessorFirstLastIndex implements AggregationAccessor
             index = (Integer) result;
         }
         if (isFirst) {
-            bean = access.getFirstNthValue(index);
+            bean = ((AggregationStateLinear) state).getFirstNthValue(index);
         }
         else {
-            bean = access.getLastNthValue(index);
+            bean = ((AggregationStateLinear) state).getLastNthValue(index);
         }
         return bean;
     }

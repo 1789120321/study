@@ -16,7 +16,7 @@ import com.espertech.esper.core.context.util.AgentInstanceViewFactoryChainContex
 import com.espertech.esper.epl.expression.ExprEvaluator;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 import com.espertech.esper.epl.expression.ExprNode;
-import com.espertech.esper.util.*;
+import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.view.CloneableView;
 import com.espertech.esper.view.DataWindowView;
 import com.espertech.esper.view.View;
@@ -87,7 +87,7 @@ public class RankWindowView extends ViewSupport implements DataWindowView, Clone
         this.optionalRankedRandomAccess = optionalRankedRandomAccess;
         this.agentInstanceViewFactoryContext = agentInstanceViewFactoryContext;
 
-        comparator = getComparator(sortCriteriaEvaluators, isSortUsingCollator, isDescendingValues);
+        comparator = CollectionUtil.getComparator(sortCriteriaEvaluators, isSortUsingCollator, isDescendingValues);
         sortedEvents = new TreeMap<Object, Object>(comparator);
         uniqueKeySortKeys = new HashMap<Object, Object>();
     }
@@ -350,42 +350,6 @@ public class RankWindowView extends ViewSupport implements DataWindowView, Clone
             result[count++] = expr.evaluate(eventsPerStream, true, evalContext);
         }
         return new MultiKeyUntyped(result);
-    }
-
-    public static Comparator<Object> getComparator(ExprEvaluator[] sortCriteriaEvaluators, boolean isSortUsingCollator, boolean[] isDescendingValues) {
-        // determine string-type sorting
-        boolean hasStringTypes = false;
-        boolean stringTypes[] = new boolean[sortCriteriaEvaluators.length];
-
-        int count = 0;
-        for(ExprEvaluator node : sortCriteriaEvaluators)
-        {
-            if (node.getType() == String.class)
-            {
-                hasStringTypes = true;
-                stringTypes[count] = true;
-            }
-            count++;
-        }
-
-        if (sortCriteriaEvaluators.length > 1) {
-            if ((!hasStringTypes) || (!isSortUsingCollator)) {
-                MultiKeyComparator comparatorMK = new MultiKeyComparator(isDescendingValues);
-                return new MultiKeyCastingComparator(comparatorMK);
-            }
-            else {
-                MultiKeyCollatingComparator comparatorMk = new MultiKeyCollatingComparator(isDescendingValues, stringTypes);
-                return new MultiKeyCastingComparator(comparatorMk);
-            }
-        }
-        else {
-            if ((!hasStringTypes) || (!isSortUsingCollator)) {
-                return new ObjectComparator(isDescendingValues[0]);
-            }
-            else {
-                return new ObjectCollatingComparator(isDescendingValues[0]);
-            }
-        }
     }
 
     /**

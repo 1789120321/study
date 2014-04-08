@@ -8,14 +8,15 @@
  **************************************************************************************/
 package com.espertech.esper.schedule;
 
-import com.espertech.esper.type.ScheduleUnit;
 import com.espertech.esper.type.CronParameter;
 import com.espertech.esper.type.NumberSetParameter;
+import com.espertech.esper.type.ScheduleUnit;
+import com.espertech.esper.type.WildcardParameter;
 
-import java.util.SortedSet;
 import java.util.EnumMap;
-import java.util.TreeSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Utility for computing from a set of parameter objects a schedule specification carry a
@@ -93,7 +94,16 @@ public class ScheduleSpecUtil
         {
             unitMap.put(ScheduleUnit.SECONDS, computeValues(args[5], ScheduleUnit.SECONDS));
         }
-        return new ScheduleSpec(unitMap);
+        String timezone = null;
+        if (args.length > 6) {
+            if (!(args[6] instanceof WildcardParameter)) {
+                if (!(args[6] instanceof String)) {
+                    throw new ScheduleParameterException("Invalid timezone parameter '" + args[6] + "' for timer:at, expected a string-type value");
+                }
+                timezone = (String) args[6];
+            }
+        }
+        return new ScheduleSpec(unitMap, timezone);
     }
 
     private static SortedSet<Integer> computeValues(Object unitParameter, ScheduleUnit unit) throws ScheduleParameterException

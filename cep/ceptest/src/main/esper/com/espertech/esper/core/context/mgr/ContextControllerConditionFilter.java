@@ -24,7 +24,6 @@ import com.espertech.esper.pattern.MatchedEventMap;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 public class ContextControllerConditionFilter implements ContextControllerCondition {
@@ -61,7 +60,7 @@ public class ContextControllerConditionFilter implements ContextControllerCondit
         };
 
         // determine addendum, if any
-        List<FilterValueSetParam> addendum = null;
+        FilterValueSetParam[] addendum = null;
         if (filterAddendum != null) {
             addendum = filterAddendum.getFilterAddendum(endpointFilterSpec.getFilterSpecCompiled());
         }

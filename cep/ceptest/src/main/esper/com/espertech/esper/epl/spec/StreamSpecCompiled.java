@@ -13,4 +13,5 @@ package com.espertech.esper.epl.spec;
  */
 public interface StreamSpecCompiled extends StreamSpec
 {
+    public final static StreamSpecCompiled[] EMPTY_STREAM_ARRAY = new StreamSpecCompiled[0];
 }

@@ -12,8 +12,8 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.client.EventBean;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.epl.core.MethodResolutionService;
-import com.espertech.esper.epl.enummethod.dot.ExprDotEvalTypeInfo;
 import com.espertech.esper.util.JavaClassHelper;
 import net.sf.cglib.reflect.FastClass;
 import net.sf.cglib.reflect.FastMethod;
@@ -87,7 +87,7 @@ public class ExprDotMethodEvalDuck implements ExprDotEval
     {
         try
         {
-            Method method = methodResolutionService.resolveMethod(clazz, methodName, parameterTypes);
+            Method method = methodResolutionService.resolveMethod(clazz, methodName, parameterTypes, new boolean[parameterTypes.length], new boolean[parameterTypes.length]);
             FastClass declaringClass = FastClass.create(Thread.currentThread().getContextClassLoader(), method.getDeclaringClass());
             return declaringClass.getMethod(method);
         }
@@ -98,7 +98,7 @@ public class ExprDotMethodEvalDuck implements ExprDotEval
         return null;
     }
 
-    public ExprDotEvalTypeInfo getTypeInfo() {
-        return ExprDotEvalTypeInfo.scalarOrUnderlying(Object.class);
+    public ExpressionReturnType getTypeInfo() {
+        return ExpressionReturnType.singleValue(Object.class);
     }
 }

@@ -53,7 +53,7 @@ public class JoinSetComposerPrototypeFactory
      */
     public static JoinSetComposerPrototype makeComposerPrototype(String statementName,
                                                           String statementId,
-                                                          List<OuterJoinDesc> outerJoinDescList,
+                                                          OuterJoinDesc[] outerJoinDescList,
                                                           ExprNode optionalFilterNode,
                                                           EventType[] streamTypes,
                                                           String[] streamNames,
@@ -91,7 +91,7 @@ public class JoinSetComposerPrototypeFactory
         // Query graph for graph relationships between streams/historicals
         // For outer joins the query graph will just contain outer join relationships
         QueryGraph queryGraph = new QueryGraph(streamTypes.length);
-        if (!outerJoinDescList.isEmpty())
+        if (outerJoinDescList.length > 0)
         {
             OuterJoinAnalyzer.analyze(outerJoinDescList, queryGraph);
             if (log.isDebugEnabled())
@@ -175,7 +175,7 @@ public class JoinSetComposerPrototypeFactory
                                                 isOuterJoins);
     }
 
-    private static JoinSetComposerPrototype makeComposerHistorical2Stream(List<OuterJoinDesc> outerJoinDescList,
+    private static JoinSetComposerPrototype makeComposerHistorical2Stream(OuterJoinDesc[] outerJoinDescList,
                                                    ExprNode optionalFilterNode,
                                                    EventType[] streamTypes,
                                                    HistoricalViewableDesc historicalViewableDesc,
@@ -226,9 +226,9 @@ public class JoinSetComposerPrototypeFactory
         // Build an outer join expression node
         boolean isOuterJoin = false;
         ExprNode outerJoinEqualsNode = null;
-        if (!outerJoinDescList.isEmpty())
+        if (outerJoinDescList.length > 0)
         {
-            OuterJoinDesc outerJoinDesc = outerJoinDescList.get(0);
+            OuterJoinDesc outerJoinDesc = outerJoinDescList[0];
             if (outerJoinDesc.getOuterJoinType().equals(OuterJoinType.FULL))
             {
                 isOuterJoin = true;

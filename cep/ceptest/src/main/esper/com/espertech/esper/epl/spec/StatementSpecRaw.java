@@ -12,8 +12,8 @@ import com.espertech.esper.epl.expression.ExprNode;
 import com.espertech.esper.epl.expression.ExprSubstitutionNode;
 import com.espertech.esper.util.MetaDefItem;
 
-import java.util.*;
 import java.io.Serializable;
+import java.util.*;
 
 /**
  * Specification object representing a complete EPL statement including all EPL constructs.
@@ -51,6 +51,7 @@ public class StatementSpecRaw implements MetaDefItem, Serializable
     private List<ExpressionScriptProvided> scriptExpressions;
     private CreateDataFlowDesc createDataFlowDesc;
     private CreateExpressionDesc createExpressionDesc;
+    private FireAndForgetSpec fireAndForgetSpec;
 
     private static final long serialVersionUID = 5390766716794133693L;
 
@@ -159,15 +160,6 @@ public class StatementSpecRaw implements MetaDefItem, Serializable
     public void setOutputLimitSpec(OutputLimitSpec outputLimitSpec)
     {
         this.outputLimitSpec = outputLimitSpec;
-    }
-
-    /**
-     * Sets the where clause filter expression node.
-     * @param filterExprRootNode the where clause expression
-     */
-    public void setFilterRootNode(ExprNode filterExprRootNode)
-    {
-        this.filterExprRootNode = filterExprRootNode;
     }
 
     /**
@@ -502,5 +494,13 @@ public class StatementSpecRaw implements MetaDefItem, Serializable
 
     public void setCreateExpressionDesc(CreateExpressionDesc createExpressionDesc) {
         this.createExpressionDesc = createExpressionDesc;
+    }
+
+    public FireAndForgetSpec getFireAndForgetSpec() {
+        return fireAndForgetSpec;
+    }
+
+    public void setFireAndForgetSpec(FireAndForgetSpec fireAndForgetSpec) {
+        this.fireAndForgetSpec = fireAndForgetSpec;
     }
 }

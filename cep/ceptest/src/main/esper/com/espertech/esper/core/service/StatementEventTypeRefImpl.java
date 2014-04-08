@@ -11,6 +11,7 @@
 
 package com.espertech.esper.core.service;
 
+import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.util.ManagedReadWriteLock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,7 +30,7 @@ public class StatementEventTypeRefImpl implements StatementEventTypeRef
 
     private final ManagedReadWriteLock mapLock;
     private final HashMap<String, Set<String>> typeToStmt;
-    private final HashMap<String, Set<String>> stmtToType;
+    private final HashMap<String, String[]> stmtToType;
 
     /**
      * Ctor.
@@ -37,13 +38,13 @@ public class StatementEventTypeRefImpl implements StatementEventTypeRef
     public StatementEventTypeRefImpl()
     {
         typeToStmt = new HashMap<String, Set<String>>();
-        stmtToType = new HashMap<String, Set<String>>();
+        stmtToType = new HashMap<String, String[]>();
         mapLock = new ManagedReadWriteLock("StatementEventTypeRefImpl", false);
     }
 
-    public void addReferences(String statementName, Set<String> eventTypesReferenced)
+    public void addReferences(String statementName, String[] eventTypesReferenced)
     {
-        if (eventTypesReferenced.isEmpty())
+        if (eventTypesReferenced.length == 0)
         {
             return;    
         }
@@ -67,7 +68,7 @@ public class StatementEventTypeRefImpl implements StatementEventTypeRef
         mapLock.acquireWriteLock();
         try
         {
-            Set<String> types = stmtToType.remove(statementName);
+            String[] types = stmtToType.remove(statementName);
             if (types != null)
             {
                 for (String type : types)
@@ -129,16 +130,16 @@ public class StatementEventTypeRefImpl implements StatementEventTypeRef
         }
     }
 
-    public Set<String> getTypesForStatementName(String statementName)
+    public String[] getTypesForStatementName(String statementName)
     {
         mapLock.acquireReadLock();
         try {
-            Set<String> types = stmtToType.get(statementName);
+            String[] types = stmtToType.get(statementName);
             if (types == null)
             {
-                return Collections.EMPTY_SET;
+                return new String[0];
             }
-            return Collections.unmodifiableSet(types);
+            return types;
         }
         finally {
             mapLock.releaseReadLock();
@@ -157,13 +158,18 @@ public class StatementEventTypeRefImpl implements StatementEventTypeRef
         statements.add(statementName);
 
         // add to statements
-        Set<String> types = stmtToType.get(statementName);
+        String[] types = stmtToType.get(statementName);
         if (types == null)
         {
-            types = new HashSet<String>();
-            stmtToType.put(statementName, types);
+            types = new String[] {eventTypeName};
         }
-        types.add(eventTypeName);
+        else {
+            int index = CollectionUtil.findItem(types, eventTypeName);
+            if (index == -1) {
+                types = (String[]) CollectionUtil.arrayExpandAddSingle(types, eventTypeName);
+            }
+        }
+        stmtToType.put(statementName, types);
     }
 
     private void removeReference(String statementName, String eventTypeName)
@@ -184,17 +190,21 @@ public class StatementEventTypeRefImpl implements StatementEventTypeRef
         }
 
         // remove from statements
-        Set<String> types = stmtToType.get(statementName);
+        String[] types = stmtToType.get(statementName);
         if (types != null)
         {
-            if (!types.remove(eventTypeName))
-            {
-                log.info("Failed to find event type '" + eventTypeName + "' in collection");
+            int index = CollectionUtil.findItem(types, eventTypeName);
+            if (index != -1) {
+                if (types.length == 1) {
+                    stmtToType.remove(statementName);
+                }
+                else {
+                    types = (String[]) CollectionUtil.arrayShrinkRemoveSingle(types, index);
+                    stmtToType.put(statementName, types);
+                }
             }
-
-            if (types.isEmpty())
-            {
-                stmtToType.remove(statementName);
+            else {
+                log.info("Failed to find type name '" + eventTypeName + "' in collection");
             }
         }
     }
@@ -212,7 +222,7 @@ public class StatementEventTypeRefImpl implements StatementEventTypeRef
      * For testing, returns the mapping of statement names to event type names.
      * @return mapping
      */
-    protected HashMap<String, Set<String>> getStmtToType()
+    protected HashMap<String, String[]> getStmtToType()
     {
         return stmtToType;
     }

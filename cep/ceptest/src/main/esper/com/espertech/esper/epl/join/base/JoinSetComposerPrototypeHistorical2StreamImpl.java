@@ -25,8 +25,6 @@ import com.espertech.esper.view.Viewable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.List;
-
 public class JoinSetComposerPrototypeHistorical2StreamImpl implements JoinSetComposerPrototype {
 
     private static final Log log = LogFactory.getLog(JoinSetComposerPrototypeFactory.class);
@@ -40,9 +38,9 @@ public class JoinSetComposerPrototypeHistorical2StreamImpl implements JoinSetCom
     private final ExprNode outerJoinEqualsNode;
     private final Pair<HistoricalIndexLookupStrategy, PollResultIndexingStrategy> indexStrategies;
     private final boolean isAllHistoricalNoSubordinate;
-    private final List<OuterJoinDesc> outerJoinDescList;
+    private final OuterJoinDesc[] outerJoinDescList;
 
-    public JoinSetComposerPrototypeHistorical2StreamImpl(ExprNode optionalFilterNode, EventType[] streamTypes, ExprEvaluatorContext exprEvaluatorContext, int polledViewNum, int streamViewNum, boolean outerJoin, ExprNode outerJoinEqualsNode, Pair<HistoricalIndexLookupStrategy, PollResultIndexingStrategy> indexStrategies, boolean allHistoricalNoSubordinate, List<OuterJoinDesc> outerJoinDescList) {
+    public JoinSetComposerPrototypeHistorical2StreamImpl(ExprNode optionalFilterNode, EventType[] streamTypes, ExprEvaluatorContext exprEvaluatorContext, int polledViewNum, int streamViewNum, boolean outerJoin, ExprNode outerJoinEqualsNode, Pair<HistoricalIndexLookupStrategy, PollResultIndexingStrategy> indexStrategies, boolean allHistoricalNoSubordinate, OuterJoinDesc[] outerJoinDescList) {
         this.optionalFilterNode = optionalFilterNode;
         this.streamTypes = streamTypes;
         this.exprEvaluatorContext = exprEvaluatorContext;
@@ -67,9 +65,9 @@ public class JoinSetComposerPrototypeHistorical2StreamImpl implements JoinSetCom
         if (isAllHistoricalNoSubordinate)
         {
             boolean isOuterJoin = false;
-            if (!outerJoinDescList.isEmpty())
+            if (outerJoinDescList.length > 0)
             {
-                OuterJoinDesc outerJoinDesc = outerJoinDescList.get(0);
+                OuterJoinDesc outerJoinDesc = outerJoinDescList[0];
                 if (outerJoinDesc.getOuterJoinType().equals(OuterJoinType.FULL))
                 {
                     isOuterJoin = true;

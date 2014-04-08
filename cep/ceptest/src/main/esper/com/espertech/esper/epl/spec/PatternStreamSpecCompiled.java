@@ -42,7 +42,7 @@ public class PatternStreamSpecCompiled extends StreamSpecBase implements StreamS
      * @param optionalStreamName - stream name, or null if none supplied
      * @param streamSpecOptions - additional stream options such as unidirectional stream in a join, applicable for joins
      */
-    public PatternStreamSpecCompiled(EvalFactoryNode evalFactoryNode, LinkedHashMap<String, Pair<EventType, String>> taggedEventTypes, LinkedHashMap<String, Pair<EventType, String>> arrayEventTypes, LinkedHashSet<String> allTags, List<ViewSpec> viewSpecs, String optionalStreamName, StreamSpecOptions streamSpecOptions)
+    public PatternStreamSpecCompiled(EvalFactoryNode evalFactoryNode, LinkedHashMap<String, Pair<EventType, String>> taggedEventTypes, LinkedHashMap<String, Pair<EventType, String>> arrayEventTypes, LinkedHashSet<String> allTags, ViewSpec[] viewSpecs, String optionalStreamName, StreamSpecOptions streamSpecOptions)
     {
         super(optionalStreamName, viewSpecs, streamSpecOptions);
         this.evalFactoryNode = evalFactoryNode;

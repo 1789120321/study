@@ -49,7 +49,7 @@ public class ExprNewNode extends ExprNodeBase implements ExprEvaluator {
         evaluators = ExprNodeUtility.getEvaluators(this.getChildNodes());
 
         for (int i = 0; i < columnNames.length; i++) {
-            isAllConstants = isAllConstants && this.getChildNodes().get(i).isConstantResult();
+            isAllConstants = isAllConstants && this.getChildNodes()[i].isConstantResult();
             if (eventType.containsKey(columnNames[i])) {
                 throw new ExprValidationException("Failed to validate new-keyword property names, property '" + columnNames[i] + "' has already been declared");
             }
@@ -107,10 +107,10 @@ public class ExprNewNode extends ExprNodeBase implements ExprEvaluator {
         StringWriter writer = new StringWriter();
         writer.write("new { ");
         String delimiter = "";
-        for (int i = 0; i < this.getChildNodes().size(); i++) {
+        for (int i = 0; i < this.getChildNodes().length; i++) {
             writer.append(delimiter);
             writer.append(columnNames[i]);
-            ExprNode expr = this.getChildNodes().get(i);
+            ExprNode expr = this.getChildNodes()[i];
 
             boolean outputexpr = true;
             if (expr instanceof ExprIdentNode) {

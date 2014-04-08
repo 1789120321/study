@@ -88,4 +88,16 @@ public interface EPRuntimeSPI extends EPRuntime
     public void initialize();
     public void processWrappedEvent(EventBean eventBean);
     public String getEngineURI();
+
+    /**
+     * Clear short-lived memory that may temporarily retain references to stopped or destroyed statements.
+     * <p>
+     *     Use this method after stopping and destroying statements for the purpose
+     *     of clearing thread-local or other short lived storage to statement handles of deleted statements.
+     * </p>
+     * <p>
+     *     NOT safe to use without first acquiring the engine lock.
+     * </p>
+     */
+    public void clearCaches();
 }

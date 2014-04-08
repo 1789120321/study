@@ -17,7 +17,7 @@ import com.espertech.esper.client.EventType;
 import com.espertech.esper.epl.datetime.calop.CalendarOp;
 import com.espertech.esper.epl.datetime.interval.IntervalOp;
 import com.espertech.esper.epl.datetime.reformatop.ReformatOp;
-import com.espertech.esper.epl.enummethod.dot.ExprDotEvalTypeInfo;
+import com.espertech.esper.client.util.ExpressionReturnType;
 import com.espertech.esper.epl.expression.ExprDotEval;
 import com.espertech.esper.epl.expression.ExprEvaluatorContext;
 import com.espertech.esper.util.JavaClassHelper;
@@ -28,29 +28,29 @@ import java.util.List;
 
 public class ExprDotEvalDT implements ExprDotEval
 {
-    private final ExprDotEvalTypeInfo returnType;
+    private final ExpressionReturnType returnType;
     private final DTLocalEvaluator evaluator;
 
     public ExprDotEvalDT(List<CalendarOp> calendarOps, ReformatOp reformatOp, IntervalOp intervalOp, Class inputType, EventType inputEventType) {
         this.evaluator = getEvaluator(calendarOps, inputType, inputEventType, reformatOp, intervalOp);
 
         if (intervalOp != null) {
-            returnType = ExprDotEvalTypeInfo.scalarOrUnderlying(Boolean.class);
+            returnType = ExpressionReturnType.singleValue(Boolean.class);
         }
         else if (reformatOp != null) {
-            returnType = ExprDotEvalTypeInfo.scalarOrUnderlying(reformatOp.getReturnType());
+            returnType = ExpressionReturnType.singleValue(reformatOp.getReturnType());
         }
         else {  // only calendar ops
             if (inputEventType != null) {
-                returnType = ExprDotEvalTypeInfo.scalarOrUnderlying(inputEventType.getPropertyType(inputEventType.getStartTimestampPropertyName()));
+                returnType = ExpressionReturnType.singleValue(inputEventType.getPropertyType(inputEventType.getStartTimestampPropertyName()));
             }
             else {
-                returnType = ExprDotEvalTypeInfo.scalarOrUnderlying(inputType);
+                returnType = ExpressionReturnType.singleValue(inputType);
             }
         }
     }
 
-    public ExprDotEvalTypeInfo getTypeInfo() {
+    public ExpressionReturnType getTypeInfo() {
         return returnType;
     }
 

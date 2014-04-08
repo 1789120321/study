@@ -33,7 +33,7 @@ public interface StreamSpec extends MetaDefItem, Serializable
      * Returns views definitions onto the stream
      * @return view defs
      */
-    public List<ViewSpec> getViewSpecs();
+    public ViewSpec[] getViewSpecs();
 
     /**
      * Returns the options for the stream such as unidirectional, retain-union etc.

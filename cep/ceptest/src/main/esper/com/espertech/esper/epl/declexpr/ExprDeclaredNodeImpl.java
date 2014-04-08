@@ -8,7 +8,10 @@
  **************************************************************************************/
 package com.espertech.esper.epl.declexpr;
 
+import com.espertech.esper.client.EventBean;
+import com.espertech.esper.client.EventPropertyGetter;
 import com.espertech.esper.client.EventType;
+import com.espertech.esper.client.PropertyAccessException;
 import com.espertech.esper.client.annotation.Audit;
 import com.espertech.esper.client.annotation.AuditEnum;
 import com.espertech.esper.epl.core.StreamTypeService;
@@ -16,6 +19,7 @@ import com.espertech.esper.epl.core.StreamTypeServiceImpl;
 import com.espertech.esper.epl.enummethod.dot.ExprDeclaredOrLambdaNode;
 import com.espertech.esper.epl.expression.*;
 import com.espertech.esper.epl.spec.ExpressionDeclItem;
+import com.espertech.esper.filter.FilterSpecLookupable;
 import com.espertech.esper.util.SerializableObjectCopier;
 
 import java.util.ArrayList;
@@ -24,7 +28,7 @@ import java.util.List;
 /**
  * Expression instance as declared elsewhere.
  */
-public class ExprDeclaredNodeImpl extends ExprNodeBase implements ExprDeclaredNode, ExprDeclaredOrLambdaNode
+public class ExprDeclaredNodeImpl extends ExprNodeBase implements ExprDeclaredNode, ExprDeclaredOrLambdaNode, ExprFilterOptimizableNode
 {
     private static final long serialVersionUID = 9140100131374697808L;
 
@@ -107,7 +111,7 @@ public class ExprDeclaredNodeImpl extends ExprNodeBase implements ExprDeclaredNo
             return; // already evaluated
         }
 
-        if (!this.getChildNodes().isEmpty()) {
+        if (this.getChildNodes().length > 0) {
             throw new IllegalStateException("Execution node has its own child nodes");
         }
 
@@ -130,16 +134,27 @@ public class ExprDeclaredNodeImpl extends ExprNodeBase implements ExprDeclaredNo
 
         for (int i = 0; i < prototype.getParametersNames().size(); i++) {
             ExprNode parameter = chainParameters.get(i);
-            if (!(parameter instanceof ExprStreamUnderlyingNode)) {
+            streamNames[i] = prototype.getParametersNames().get(i);
+
+            if (parameter instanceof ExprStreamUnderlyingNode) {
+                ExprStreamUnderlyingNode und = (ExprStreamUnderlyingNode) parameter;
+                eventTypes[i] = validationContext.getStreamTypeService().getEventTypes()[und.getStreamId()];
+                isIStreamOnly[i] = validationContext.getStreamTypeService().getIStreamOnly()[und.getStreamId()];
+                streamsIdsPerStream[i] = und.getStreamId();
+            }
+            else if (parameter instanceof ExprNumberSetWildcard) {
+                if (validationContext.getStreamTypeService().getEventTypes().length != 1) {
+                    throw new ExprValidationException("Expression '" + prototype.getName() + "' only allows a wildcard parameter if there is a single stream available, please use a stream or tag name instead");
+                }
+                eventTypes[i] = validationContext.getStreamTypeService().getEventTypes()[0];
+                isIStreamOnly[i] = validationContext.getStreamTypeService().getIStreamOnly()[0];
+                streamsIdsPerStream[i] = 0;
+            }
+            else {
                 throw new ExprValidationException("Expression '" + prototype.getName() + "' requires a stream name as a parameter");
             }
-            ExprStreamUnderlyingNode und = (ExprStreamUnderlyingNode) parameter;
-            eventTypes[i] = validationContext.getStreamTypeService().getEventTypes()[und.getStreamId()];
-            isIStreamOnly[i] = validationContext.getStreamTypeService().getIStreamOnly()[und.getStreamId()];
-            streamNames[i] = prototype.getParametersNames().get(i);
-            streamsIdsPerStream[i] = und.getStreamId();
 
-            if (und.getStreamId() != i) {
+            if (streamsIdsPerStream[i] != i) {
                 allStreamIdsMatch = false;
             }
         }
@@ -191,6 +206,15 @@ public class ExprDeclaredNodeImpl extends ExprNodeBase implements ExprDeclaredNo
         }
     }
 
+    public boolean getFilterLookupEligible() {
+        return true;
+    }
+
+    public FilterSpecLookupable getFilterLookupable() {
+
+        return new FilterSpecLookupable(toExpressionString(), new DeclaredNodeEventPropertyGetter(exprEvaluator), exprEvaluator.getType());
+    }
+
     public boolean isConstantResult()
     {
         return false;
@@ -209,21 +233,21 @@ public class ExprDeclaredNodeImpl extends ExprNodeBase implements ExprDeclaredNo
 
     public void accept(ExprNodeVisitor visitor) {
         super.accept(visitor);
-        if (this.getChildNodes().isEmpty()) {
+        if (this.getChildNodes().length == 0) {
             expressionBodyCopy.accept(visitor);
         }
     }
 
     public void accept(ExprNodeVisitorWithParent visitor) {
         super.accept(visitor);
-        if (this.getChildNodes().isEmpty()) {
+        if (this.getChildNodes().length == 0) {
             expressionBodyCopy.accept(visitor);
         }
     }
 
     public void acceptChildnodes(ExprNodeVisitorWithParent visitor, ExprNode parent) {
         super.acceptChildnodes(visitor, parent);
-        if (this.getChildNodes().isEmpty()) {
+        if (this.getChildNodes().length == 0) {
             expressionBodyCopy.accept(visitor);
         }
     }
@@ -263,5 +287,27 @@ public class ExprDeclaredNodeImpl extends ExprNodeBase implements ExprDeclaredNo
         }
         buf.append(")");
         return buf.toString();
+    }
+
+    private final static class DeclaredNodeEventPropertyGetter implements EventPropertyGetter {
+        private final ExprEvaluator exprEvaluator;
+
+        private DeclaredNodeEventPropertyGetter(ExprEvaluator exprEvaluator) {
+            this.exprEvaluator = ((ExprDeclaredEvalBase) exprEvaluator).getInnerEvaluator();
+        }
+
+        public Object get(EventBean eventBean) throws PropertyAccessException {
+            EventBean[] events = new EventBean[1];
+            events[0] = eventBean;
+            return exprEvaluator.evaluate(events, true, null);
+        }
+
+        public boolean isExistsProperty(EventBean eventBean) {
+            return false;
+        }
+
+        public Object getFragment(EventBean eventBean) throws PropertyAccessException {
+            return null;
+        }
     }
 }

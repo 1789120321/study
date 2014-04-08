@@ -11,11 +11,28 @@
 
 package com.espertech.esper.client.context;
 
+import java.util.Arrays;
+
 /**
  * Context partition identifier for segmented contexts.
  */
 public class ContextPartitionIdentifierPartitioned extends ContextPartitionIdentifier {
+    private static final long serialVersionUID = 426396467569470582L;
     private Object[] keys;
+
+    /**
+     * Ctor.
+     */
+    public ContextPartitionIdentifierPartitioned() {
+    }
+
+    /**
+     * Ctor.
+     * @param keys partitioning keys
+     */
+    public ContextPartitionIdentifierPartitioned(Object[] keys) {
+        this.keys = keys;
+    }
 
     /**
      * Returns the partition keys.
@@ -31,5 +48,18 @@ public class ContextPartitionIdentifierPartitioned extends ContextPartitionIdent
      */
     public void setKeys(Object[] keys) {
         this.keys = keys;
+    }
+
+    public boolean compareTo(ContextPartitionIdentifier other) {
+        if (!(other instanceof ContextPartitionIdentifierPartitioned)) {
+            return false;
+        }
+        return Arrays.equals(keys, ((ContextPartitionIdentifierPartitioned) other).keys);
+    }
+
+    public String toString() {
+        return "ContextPartitionIdentifierPartitioned{" +
+                "keys=" + (keys == null ? null : Arrays.asList(keys)) +
+                '}';
     }
 }

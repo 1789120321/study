@@ -38,16 +38,14 @@ import com.espertech.esper.dataflow.ops.epl.EPLSelectViewable;
 import com.espertech.esper.dataflow.util.GraphTypeDesc;
 import com.espertech.esper.epl.annotation.AnnotationUtil;
 import com.espertech.esper.epl.declexpr.ExprDeclaredNode;
-import com.espertech.esper.epl.expression.ExprNode;
-import com.espertech.esper.epl.expression.ExprNodeSubselectDeclaredDotVisitor;
-import com.espertech.esper.epl.expression.ExprSubselectNode;
-import com.espertech.esper.epl.expression.ExprValidationException;
+import com.espertech.esper.epl.expression.*;
 import com.espertech.esper.epl.spec.*;
 import com.espertech.esper.epl.spec.util.StatementSpecRawAnalyzer;
 import com.espertech.esper.epl.view.OutputProcessViewCallback;
 import com.espertech.esper.event.EventBeanAdapterFactory;
 import com.espertech.esper.filter.FilterSpecCompiled;
 import com.espertech.esper.filter.FilterSpecParam;
+import com.espertech.esper.util.CollectionUtil;
 import com.espertech.esper.util.StopCallback;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -154,11 +152,14 @@ public class Select implements OutputProcessViewCallback, DataFlowOpLifecycle {
         }
 
         Annotation[] mergedAnnotations = AnnotationUtil.mergeAnnotations(statementContext.getAnnotations(), context.getOperatorAnnotations());
-        List<ExprNode> groupByExpressions = select.getGroupByExpressions();
+        ExprNode[] groupByExpressions = ExprNodeUtility.toArray(select.getGroupByExpressions());
+        OrderByItem[] orderByArray = OrderByItem.toArray(select.getOrderByList());
+        OuterJoinDesc[] outerJoinArray = OuterJoinDesc.toArray(select.getOuterJoinDescList());
+        StreamSpecCompiled[] streamSpecArray = streamSpecCompileds.toArray(new StreamSpecCompiled[streamSpecCompileds.size()]);
         StatementSpecCompiled compiled = new StatementSpecCompiled(null, null, null, null, null, null, SelectClauseStreamSelectorEnum.ISTREAM_ONLY,
-                selectClauseCompiled, streamSpecCompileds, select.getOuterJoinDescList(), select.getFilterExprRootNode(), groupByExpressions, select.getHavingExprRootNode(), outputLimitSpec,
-                select.getOrderByList(), Collections.<ExprSubselectNode>emptyList(), Collections.<ExprDeclaredNode>emptyList(), select.getReferencedVariables(),
-                select.getRowLimitSpec(), new HashSet<String>(), mergedAnnotations, null, null, null, null, null, null, null, null);
+                selectClauseCompiled, streamSpecArray, outerJoinArray, select.getFilterExprRootNode(), groupByExpressions, select.getHavingExprRootNode(), outputLimitSpec,
+                orderByArray, ExprSubselectNode.EMPTY_SUBSELECT_ARRAY, ExprNodeUtility.EMPTY_DECLARED_ARR, select.getReferencedVariables(),
+                select.getRowLimitSpec(), CollectionUtil.EMPTY_STRING_ARRAY, mergedAnnotations, null, null, null, null, null, null, null, null, null);
 
         // create viewable per port
         final EPLSelectViewable[] viewables = new EPLSelectViewable[context.getInputPorts().size()];

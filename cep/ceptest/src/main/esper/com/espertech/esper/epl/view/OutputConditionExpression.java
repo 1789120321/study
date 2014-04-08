@@ -69,7 +69,7 @@ public class OutputConditionExpression extends OutputConditionBase implements Ou
             {
                 final VariableReader reader = agentInstanceContext.getStatementContext().getVariableService().getReader(variableName);
                 agentInstanceContext.getStatementContext().getVariableService().registerCallback(reader.getVariableNumber(), this);
-                agentInstanceContext.getTerminationCallbacks().add(new StopCallback() {
+                agentInstanceContext.addTerminationCallback(new StopCallback() {
                     public void stop() {
                         agentInstanceContext.getStatementContext().getVariableService().unregisterCallback(reader.getVariableNumber(), OutputConditionExpression.this);
                     }
@@ -183,7 +183,7 @@ public class OutputConditionExpression extends OutputConditionBase implements Ou
         };
         scheduleHandle = new EPStatementHandleCallback(agentInstanceContext.getEpStatementAgentInstanceHandle(), callback);
         agentInstanceContext.getStatementContext().getSchedulingService().add(0, scheduleHandle, scheduleSlot);
-        agentInstanceContext.getTerminationCallbacks().add(this);
+        agentInstanceContext.addTerminationCallback(this);
 
         // execute assignments
         executeThenAssignments();

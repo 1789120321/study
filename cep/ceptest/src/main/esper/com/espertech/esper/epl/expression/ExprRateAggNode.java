@@ -9,8 +9,6 @@
 package com.espertech.esper.epl.expression;
 
 import com.espertech.esper.epl.agg.service.AggregationMethodFactory;
-import com.espertech.esper.epl.core.MethodResolutionService;
-import com.espertech.esper.epl.core.StreamTypeService;
 import com.espertech.esper.util.JavaClassHelper;
 
 /**
@@ -29,25 +27,25 @@ public class ExprRateAggNode extends ExprAggregateNodeBase
         super(distinct);
     }
 
-    public AggregationMethodFactory validateAggregationChild(StreamTypeService streamTypeService, MethodResolutionService methodResolutionService, ExprEvaluatorContext exprEvaluatorContext) throws ExprValidationException
+    public AggregationMethodFactory validateAggregationChild(ExprValidationContext validationContext) throws ExprValidationException
     {
-        if (this.getChildNodes().size() == 0) {
+        if (this.getChildNodes().length == 0) {
             throw new ExprValidationException("The rate aggregation function minimally requires a numeric constant or expression as a parameter.");
         }
 
-        ExprNode first = this.getChildNodes().get(0);
+        ExprNode first = this.getChildNodes()[0];
         if (first.isConstantResult()) {
             String message = "The rate aggregation function requires a numeric constant or time period as the first parameter in the constant-value notation";
             long intervalMSec;
             if (first instanceof ExprTimePeriod) {
-                double secInterval = (Double) ((ExprTimePeriod) first).evaluate(null, true, exprEvaluatorContext);
+                double secInterval = (Double) ((ExprTimePeriod) first).evaluate(null, true, validationContext.getExprEvaluatorContext());
                 intervalMSec = Math.round(secInterval * 1000d);
             }
             else if (ExprNodeUtility.isConstantValueExpr(first)) {
                 if (!JavaClassHelper.isNumeric(first.getExprEvaluator().getType())) {
                     throw new ExprValidationException(message);
                 }
-                Number num = (Number) first.getExprEvaluator().evaluate(null, true, exprEvaluatorContext);
+                Number num = (Number) first.getExprEvaluator().evaluate(null, true, validationContext.getExprEvaluatorContext());
                 intervalMSec = Math.round(num.doubleValue() * 1000d);
             }
             else {
@@ -68,12 +66,12 @@ public class ExprRateAggNode extends ExprAggregateNodeBase
             if (first instanceof ExprTimestampNode) {
                 throw new ExprValidationException("The rate aggregation function does not allow the current engine timestamp as a parameter");
             }
-            if (this.getChildNodes().size() > 1) {
-                if (!JavaClassHelper.isNumeric(this.getChildNodes().get(1).getExprEvaluator().getType())) {
+            if (this.getChildNodes().length > 1) {
+                if (!JavaClassHelper.isNumeric(this.getChildNodes()[1].getExprEvaluator().getType())) {
                     throw new ExprValidationException("The rate aggregation function accepts an expression returning a numeric value to accumulate as an optional second parameter");
                 }
             }
-            boolean hasDataWindows = ExprNodeUtility.hasRemoveStream(first, streamTypeService);
+            boolean hasDataWindows = ExprNodeUtility.hasRemoveStream(first, validationContext.getStreamTypeService());
             if (!hasDataWindows) {
                 throw new ExprValidationException("The rate aggregation function in the timestamp-property notation requires data windows");
             }
