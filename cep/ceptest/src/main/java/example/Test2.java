@@ -1,4 +1,4 @@
-package test;
+package example;
 
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPAdministrator;
@@ -10,43 +10,11 @@ import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 
+import java.io.Serializable;
+
 /**
  * @author luonanqin
  */
-class TestEvent {
-
-	private double price;
-	private String type;
-
-	public double getPrice() {
-		return price;
-	}
-
-	public void setPrice(double price) {
-		this.price = price;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-}
-
-class testListener implements UpdateListener {
-
-	public void update(EventBean[] newEvents, EventBean[] oldEvents) {
-		if (newEvents != null) {
-			for (int i = 0; i < newEvents.length; i++) {
-				EventBean newEvent = newEvents[i];
-				System.out.println(newEvent.getUnderlying());
-			}
-		}
-	}
-}
-
 class MergeListener implements UpdateListener {
 
 	public void update(EventBean[] newEvents, EventBean[] oldEvents) {
@@ -65,19 +33,7 @@ class TestListener2 implements UpdateListener {
 		if (newEvents != null) {
 			for (int i = 0; i < newEvents.length; i++) {
 				EventBean newEvent = newEvents[i];
-				System.out.println(newEvent);
-			}
-		}
-	}
-}
-
-class TestListener3 implements UpdateListener {
-
-	public void update(EventBean[] newEvents, EventBean[] oldEvents) {
-		if (newEvents != null) {
-			for (int i = 0; i < newEvents.length; i++) {
-				EventBean newEvent = newEvents[i];
-				System.out.println(newEvent);
+				System.out.println(newEvent.getUnderlying());
 			}
 		}
 	}
@@ -92,9 +48,12 @@ class BCDListener implements UpdateListener {
 	}
 
 	public void update(EventBean[] newEvents, EventBean[] oldEvents) {
-		A a = new A();
-		a.setId(11);
-		runtime.sendEvent(a);
+		if (newEvents != null) {
+			A a = new A();
+			a.setId(11);
+			a.setFlag("A");
+			runtime.sendEvent(a);
+		}
 	}
 }
 
@@ -107,10 +66,12 @@ class EFGListener implements UpdateListener {
 	}
 
 	public void update(EventBean[] newEvents, EventBean[] oldEvents) {
-		B b = new B();
-		b.setId(21);
-		b.setFlag("BCD");
-		runtime.sendEvent(b);
+		if (newEvents != null) {
+			B b = new B();
+			b.setId(21);
+			b.setFlag("BCD");
+			runtime.sendEvent(b);
+		}
 	}
 }
 
@@ -123,10 +84,12 @@ class HIListener implements UpdateListener {
 	}
 
 	public void update(EventBean[] newEvents, EventBean[] oldEvents) {
-		C c = new C();
-		c.setId(22);
-		c.setFlag("BCD");
-		runtime.sendEvent(c);
+		if (newEvents != null) {
+			C c = new C();
+			c.setId(22);
+			c.setFlag("BCD");
+			runtime.sendEvent(c);
+		}
 	}
 }
 
@@ -139,17 +102,46 @@ class DListener implements UpdateListener {
 	}
 
 	public void update(EventBean[] newEvents, EventBean[] oldEvents) {
-		D d = new D();
-		d.setId(23);
-		d.setFlag("BCD");
-		runtime.sendEvent(d);
+		if (newEvents != null) {
+			D d = new D();
+			d.setId(23);
+			d.setFlag("BCD");
+			runtime.sendEvent(d);
+		}
 	}
 }
 
-interface ID {
+class OutputResult implements UpdateListener {
+
+	private EPRuntime runtime;
+
+	public OutputResult(EPRuntime runtime) {
+		this.runtime = runtime;
+	}
+
+	public void update(EventBean[] newEvents, EventBean[] oldEvents) {
+		if (newEvents != null) {
+			System.out.println();
+			for (int i = 0; i < newEvents.length; i++) {
+				EventBean newEvent = newEvents[i];
+				System.out.println(newEvent.getUnderlying());
+			}
+		}
+		runtime.sendEvent(new Restore());
+	}
+}
+
+class Restore {
+}
+
+interface ID extends Serializable {
 	int getId();
 
 	String getFlag();
+
+	boolean isRead();
+
+	void setRead(boolean read);
 }
 
 class A implements ID {
@@ -158,6 +150,15 @@ class A implements ID {
 	private C c;
 	private D d;
 	private String flag;
+	private boolean read;
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
 
 	public String getFlag() {
 		return flag;
@@ -206,6 +207,15 @@ class B implements ID {
 	private F f;
 	private G g;
 	private String flag;
+	private boolean read;
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
 
 	public String getFlag() {
 		return flag;
@@ -253,6 +263,15 @@ class C implements ID {
 	private H h;
 	private I i;
 	private String flag;
+	private boolean read;
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
 
 	public String getFlag() {
 		return flag;
@@ -291,6 +310,15 @@ class D implements ID {
 	private int id;
 	private I i;
 	private String flag;
+	private boolean read;
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
 
 	public String getFlag() {
 		return flag;
@@ -320,6 +348,15 @@ class D implements ID {
 class E implements ID {
 	private int id;
 	private String flag;
+	private boolean read;
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
 
 	public String getFlag() {
 		return flag;
@@ -341,6 +378,15 @@ class E implements ID {
 class F implements ID {
 	private int id;
 	private String flag;
+	private boolean read;
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
 
 	public String getFlag() {
 		return flag;
@@ -362,6 +408,15 @@ class F implements ID {
 class G implements ID {
 	private int id;
 	private String flag;
+	private boolean read;
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
 
 	public String getFlag() {
 		return flag;
@@ -383,6 +438,15 @@ class G implements ID {
 class H implements ID {
 	private int id;
 	private String flag;
+	private boolean read;
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
 
 	public String getFlag() {
 		return flag;
@@ -404,6 +468,15 @@ class H implements ID {
 class I implements ID {
 	private int id;
 	private String flag;
+	private boolean read;
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
 
 	public String getFlag() {
 		return flag;
@@ -422,7 +495,7 @@ class I implements ID {
 	}
 }
 
-public class Test {
+public class Test2 {
 
 	public static void main(String[] args) throws InterruptedException {
 		Configuration config = new Configuration();
@@ -433,72 +506,82 @@ public class Test {
 		EPAdministrator admin = epService.getEPAdministrator();
 
 		String id = ID.class.getName();
+		String restore = Restore.class.getName();
 
-		String epl1 = "select * from pattern[every (B and C and D)]";
-		String epl2 = "select * from pattern[every (E and F and G)]";
-		String epl3 = "select * from pattern[every (H and I)]";
-		String epl5 = "select * from pattern[every I]";
-
-		String epl4 = "select * from pattern[(every i=" + B.class.getName() + ") where timer:within(1 sec)]";
-		// String epl4 = "every " + id;
-		// String epl4 = "select * from pattern[every " + id + "(id>0)]";
-		// System.out.println(epl4);
-
-		// EPStatement state1 = admin.createEPL(epl1);
-		// state1.addListener(new testListener());
-
-		// EPStatement state2 = admin.createEPL(epl4);
-		// state2.addListener(new TestListener2());
-		// EPStatement state2 = admin.createPattern(epl4);
-		// state2.addListener(new TestListener2());
-
-		// String epl6 = "select * from pattern[every H and (I where timer:within(3 sec))]";
-		// admin.createEPL(epl6);
-
-		String epl15 = "@Priority(50) on " + id + "(id=11) set BCDFlag = '!BCD'";
-		String epl16 = "@Priority(49) on " + id + "(id=21 or id=11) set EFGFlag = '!EFG'";
-		String epl17 = "@Priority(48) on " + id + "(id=22 or id=11) set HIFlag = '!HI'";
+		String epl15 = "@Priority(60) on " + id + "(id=11) set BCDFlag = '!BCD'";
+		String epl16 = "@Priority(59) on " + id + "(id=21 or id=11) set EFGFlag = '!EFG'";
+		String epl17 = "@Priority(58) on " + id + "(id=22 or id=11) set HIFlag = '!HI'";
 		admin.createEPL(epl15);
 		admin.createEPL(epl16);
 		admin.createEPL(epl17);
 
-		String epl7 = "@Priority(41) select * from " + id + "(id in [21,22,23] and flag = BCDFlag).std:unique(id).win:length_batch(3)";
+		String epl18 = "create schema MergeID as " + id;
+		admin.createEPL(epl18);
+
+		String epl20 = "@Priority(47) create context BCDExpireContext initiated by pattern [MergeID(id in [21, 22, 23] and flag=BCDFlag)] terminated after 10 sec";
+		admin.createEPL(epl20);
+		String epl21 = "@Priority(48) create context EFGExpireContext initiated by pattern [MergeID(id in [31, 32, 33] and flag=EFGFlag)] terminated after 10 sec";
+		admin.createEPL(epl21);
+		String epl22 = "@Priority(49) create context HIExpireContext initiated by pattern [MergeID(id in [34, 35] and flag=HIFlag)] terminated after 10 sec";
+		admin.createEPL(epl22);
+
+		String epl1 = "select * from pattern[every (B and C and D)]";
+		String epl2 = "@Priority(42) select * from pattern[MergeID(id=31) and (MergeID(id=32) where timer:within(10 sec)) and (MergeID(id=33) where timer:within(10 sec))]";
+		// EPStatement state4 = admin.createEPL(epl2);
+		// state4.addListener(new EFGListener(runtime));
+		String epl3 = "select * from pattern[every (H and I)]";
+		String epl4 = "select * from pattern[(every i=" + B.class.getName() + ") where timer:within(1 sec)]";
+		String epl5 = "select * from pattern[every I]";
+
+		// String epl6 = "select * from pattern[every H and (I where timer:within(3 sec))]";
+		// admin.createEPL(epl6);
+
+		String epl12 = "create window TestWindow.std:unique(id).win:keepall() as " + id;
+		admin.createEPL(epl12);
+
+		String epl7 = "@Priority(41) context BCDExpireContext select * from MergeID(id in [21,22,23] and flag = BCDFlag and read = true).std:unique(id).win:length_batch(3)"
+				+ " output every 3 events and when terminated then set BCDFlag='!BCD'";
 		EPStatement state3 = admin.createEPL(epl7);
 		state3.addListener(new BCDListener(runtime));
 
-		String epl8 = "@Priority(42) select * from " + id + "(id in [31,32,33] and flag = EFGFlag).std:unique(id).win:length_batch(3)";
+		String epl8 = "@Priority(42) context EFGExpireContext select * from MergeID(id in [31,32,33] and flag = EFGFlag and read = true).std:unique(id).win:length_batch(3)"
+				+ " output every 3 events and when terminated then set EFGFlag='!EFG'";
 		EPStatement state4 = admin.createEPL(epl8);
 		state4.addListener(new EFGListener(runtime));
 
-		String epl9 = "@Priority(43) select * from " + id + "(id in [34,35] and flag = HIFlag).std:unique(id).win:length_batch(2)";
+		String epl9 = "@Priority(43) context HIExpireContext select * from MergeID(id in [34,35] and flag = HIFlag and read = true).std:unique(id).win:length_batch(2)"
+				+ " output every 2 events and when terminated then set HIFlag='!HI'";
 		EPStatement state5 = admin.createEPL(epl9);
 		state5.addListener(new HIListener(runtime));
 
-		String epl10 = "@Priority(44) select * from " + id + "(id in [35]).std:unique(id).win:length_batch(1)";
+		String epl10 = "@Priority(44) select * from MergeID(id = 35 and read = true).std:unique(id).win:length_batch(1)";
 		EPStatement state6 = admin.createEPL(epl10);
 		state6.addListener(new DListener(runtime));
 
-		// String epl11 = "￼@Priority(10) select * from " + id;
-		// EPStatement state7 = admin.createEPL(epl11);
-		// state7.addListener(new TestListener2());
+		String epl11 = "update istream TestWindow set read = true where read = false";
+		admin.createEPL(epl11);
 
-		String epl12 = "create window TestWindow.std:unique(id).win:keepall() as " + id + "";
-		admin.createEPL(epl12);
-
-		String epl13 = "@Priority(45) insert into TestWindow select * from " + id + " where id != 35 and (flag=BCDFlag or flag=EFGFlag or flag=HIFlag)";
+		String epl13 = "@Priority(46) insert into TestWindow select * from " + id
+				+ " where (flag=BCDFlag or flag=EFGFlag or flag=HIFlag or flag=AFlag) and read = false";
 		EPStatement state8 = admin.createEPL(epl13);
 		state8.addListener(new TestListener2());
 
-		// String epl14 = "@Priority(39) on " + id + "(id>0) inputID merge TestWindow tw"
-		// + " when matched and inputID.id=21 then delete where tw.id=31 then delete where tw.id=32 then delete where tw.id=33";
-		// + " when matched and inputID.id=21 then delete where tw.id=33 ";
-		// + " when matched and inputID.id=21 then insert select *";
-		String epl14 = "@Priority(39) on " + id + "(id>0) inputID merge TestWindow tw"
-		  + " when matched and inputID.id=11 then delete where tw.id=21 then delete where tw.id=22 then delete where tw.id=23"
-		  + " when matched and inputID.id=21 then delete where tw.id=31 then delete where tw.id=32 then delete where tw.id=33"
-		  + " when matched and (inputID.id=22 or inputID.id=11) then delete where tw.id=34 then delete where tw.id=35";
+		String epl14 = "@Priority(39) on " + id + " inputID merge TestWindow tw"
+				+ " when matched and inputID.id=11 then delete where tw.id in [21, 22, 23, 31, 32, 33, 34, 35]"
+				+ " when matched and inputID.id=21 then delete where tw.id in [31, 32, 33]"
+				+ " when matched and inputID.id=22 then delete where tw.id in [34, 35]" + " when matched and inputID.id=23 then delete where tw.id=35";
 		EPStatement state9 = admin.createEPL(epl14);
 		state9.addListener(new MergeListener());
+
+		String epl19 = "@Priority(45) insert into MergeID select * from TestWindow where read = true";
+		admin.createEPL(epl19);
+
+		String alert = "@Priority(38) on pattern[MergeID(id in [21, 22, 23, 31, 32, 33, 34, 35]) -> timer:interval(15 sec)] select tw.* from TestWindow as tw";
+		EPStatement state10 = admin.createEPL(alert);
+		state10.addListener(new OutputResult(runtime));
+
+		String restoreEpl = "on " + restore + " set BCDFlag='BCD', EFGFlag='EFG', HIFlag='HI'";
+		admin.createEPL(restoreEpl);
 
 		A a = new A();
 		a.setId(11);
@@ -528,40 +611,48 @@ public class Test {
 		i.setId(35);
 		i.setFlag("HI");
 
+		//runtime.sendEvent(a);
+		//runtime.sendEvent(b);
+		//runtime.sendEvent(c);
+		//runtime.sendEvent(d);
+		runtime.sendEvent(e);
+		runtime.sendEvent(f);
+		runtime.sendEvent(g);
+		//runtime.sendEvent(h);
+		runtime.sendEvent(i);
+
 		String select = "select * from TestWindow";
 		EPOnDemandQueryResult result;
 		EventBean[] events;
+		System.out.println();
+		//result = epService.getEPRuntime().executeQuery(select);
+		//events = result.getArray();
+		//for (int j = 0; j < events.length; j++) {
+		//	EventBean event = events[j];
+		//	System.out.println(event.getUnderlying());
+		//}
 
-		B b1 = new B();
-		b1.setId(21);
-		b1.setFlag("BCD");
-		// runtime.sendEvent(b1);
-
+		Thread.sleep(16000);
+		System.out.println();
+		runtime.sendEvent(new Restore());
+		e.setRead(false);
+		d.setRead(false);
+		g.setRead(false);
+		i.setRead(false);
 		runtime.sendEvent(e);
 		runtime.sendEvent(f);
-
-		result = epService.getEPRuntime().executeQuery(select);
-		events = result.getArray();
-
 		runtime.sendEvent(g);
-
-		result = epService.getEPRuntime().executeQuery(select);
-		events = result.getArray();
-
-		// runtime.sendEvent(b);
-		// runtime.sendEvent(h);
-		// runtime.sendEvent(a);
-		// runtime.sendEvent(d);
 		runtime.sendEvent(i);
-		// runtime.sendEvent(c);
-		// runtime.sendEvent(d);
 
-		result = epService.getEPRuntime().executeQuery(select);
-		events = result.getArray();
-		for (int j = 0; j < events.length; j++) {
-			EventBean event = events[j];
-			System.out.println(event.getUnderlying());
-		}
+		Thread.sleep(16000);
+		System.out.println();
+		//result = epService.getEPRuntime().executeQuery(select);
+		//events = result.getArray();
+		//System.out.println();
+		//for (int j = 0; j < events.length; j++) {
+		//	EventBean event = events[j];
+		//	System.out.println(event.getUnderlying());
+		//}
 
 	}
 }

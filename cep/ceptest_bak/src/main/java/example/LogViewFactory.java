@@ -31,4 +31,8 @@ public class LogViewFactory extends ViewFactorySupport {
 		return null;
 	}
 
+	@Override
+	public String getViewName() {
+		return null;
+	}
 }

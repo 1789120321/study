@@ -7,7 +7,6 @@ import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.UpdateListener;
-
 import example.model.Timer;
 
 /**
@@ -27,7 +26,7 @@ public class IteratorUpdateListenerTest {
 		String epl1 = "select * from " + timer;
 
 		EPStatement state = admin.createEPL(epl1);
-		state.addListener(new IteratorUpdateListener());
+		state.addListener(new example.IteratorUpdateListener());
 
 		Iterator<UpdateListener> listeners = state.getUpdateListeners();
 		while (listeners.hasNext()) {

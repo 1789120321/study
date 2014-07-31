@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/GJ-Demo/GJ-Demo.iml" filepath="$PROJECT_DIR$/GJ-Demo/GJ-Demo.iml" group="cep" />
+      <module fileurl="file://$PROJECT_DIR$/PangYang/PangYang.iml" filepath="$PROJECT_DIR$/PangYang/PangYang.iml" />
       <module fileurl="file://$PROJECT_DIR$/cep/ceptest/ceptest.iml" filepath="$PROJECT_DIR$/cep/ceptest/ceptest.iml" group="cep" />
       <module fileurl="file://$PROJECT_DIR$/cep/ceptest_bak/ceptest_bak.iml" filepath="$PROJECT_DIR$/cep/ceptest_bak/ceptest_bak.iml" group="cep" />
       <module fileurl="file://$PROJECT_DIR$/cep/com.primeton.cep.engine/com.primeton.cep.engine.iml" filepath="$PROJECT_DIR$/cep/com.primeton.cep.engine/com.primeton.cep.engine.iml" group="cep" />
@@ -13,6 +15,7 @@
       <module fileurl="file://$PROJECT_DIR$/redis/redis/redis.iml" filepath="$PROJECT_DIR$/redis/redis/redis.iml" group="nosql" />
       <module fileurl="file://$PROJECT_DIR$/storm-starter/storm-starter.iml" filepath="$PROJECT_DIR$/storm-starter/storm-starter.iml" />
       <module fileurl="file://$PROJECT_DIR$/storm/storm-test/storm-test.iml" filepath="$PROJECT_DIR$/storm/storm-test/storm-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/web-socket/web-socket-test.iml" filepath="$PROJECT_DIR$/web-socket/web-socket-test.iml" />
     </modules>
   </component>
 </project>
