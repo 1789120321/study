@@ -24,7 +24,6 @@
         <option value="$PROJECT_DIR$/storm/storm-test/pom.xml" />
         <option value="$PROJECT_DIR$/../../spark/spark-0.9.0/pom.xml" />
         <option value="$PROJECT_DIR$/../csdn-esper/csdn-esper/pom.xml" />
-        <option value="$PROJECT_DIR$/PangYang/pom.xml" />
         <option value="$PROJECT_DIR$/web-socket/pom.xml" />
       </list>
     </option>
