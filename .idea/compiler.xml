@@ -33,22 +33,6 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="spark-assembly_2.10" target="1.6" />
-      <module name="spark-bagel_2.10" target="1.6" />
-      <module name="spark-core_2.10" target="1.6" />
-      <module name="spark-examples_2.10" target="1.6" />
-      <module name="spark-graphx_2.10" target="1.6" />
-      <module name="spark-mllib_2.10" target="1.6" />
-      <module name="spark-repl_2.10" target="1.6" />
-      <module name="spark-streaming-flume_2.10" target="1.6" />
-      <module name="spark-streaming-kafka_2.10" target="1.6" />
-      <module name="spark-streaming-mqtt_2.10" target="1.6" />
-      <module name="spark-streaming-twitter_2.10" target="1.6" />
-      <module name="spark-streaming-zeromq_2.10" target="1.6" />
-      <module name="spark-streaming_2.10" target="1.6" />
-      <module name="spark-tools_2.10" target="1.6" />
-      <module name="spark-yarn-alpha_2.10" target="1.6" />
-      <module name="spark-yarn_2.10" target="1.6" />
       <module name="storm-starter" target="1.6" />
     </bytecodeTargetLevel>
   </component>
