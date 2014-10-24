@@ -457,7 +457,7 @@ public class Test {
 	}
 
 	public static void main(String[] args) {
-		// Test.run("dd2<>=>=>>");
+		Test.run("dd2<>=>=>>");
 		String a = null;
 		System.out.println(a == null);
 	}
