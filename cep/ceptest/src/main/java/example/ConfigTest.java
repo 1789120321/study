@@ -1,14 +1,11 @@
 package example;
 
-import java.io.File;
-
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.ConfigurationOperations;
 import com.espertech.esper.client.EPAdministrator;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EventType;
-
 import example.model.ESB;
 import example.model.Product;
 
@@ -25,7 +22,7 @@ public class ConfigTest {
 	 */
 	public static void main(String[] args) {
 		Configuration config = new Configuration();
-		config.configure(new File("etc/esper.examples.cfg.xml"));
+		config.configure("esper.examples.cfg.xml");
 		EPServiceProvider epService = EPServiceProviderManager.getProvider("default", config);
 
 		EPAdministrator admin = epService.getEPAdministrator();
