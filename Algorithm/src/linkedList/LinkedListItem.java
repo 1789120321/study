@@ -6,6 +6,7 @@ package linkedList;
 public class LinkedListItem {
 
 	private int data;
+	private char flag;
 	private LinkedListItem next;
 
 	public LinkedListItem() {
@@ -20,12 +21,31 @@ public class LinkedListItem {
 		this.next = next;
 	}
 
+	public LinkedListItem(int data, char flag, LinkedListItem next) {
+		this.data = data;
+		this.flag = flag;
+		this.next = next;
+	}
+
+	public LinkedListItem(int data, char flag) {
+		this.data = data;
+		this.flag = flag;
+	}
+
 	public void setData(int data) {
 		this.data = data;
 	}
 
 	public int getData() {
 		return data;
+	}
+
+	public char getFlag() {
+		return flag;
+	}
+
+	public void setFlag(char flag) {
+		this.flag = flag;
 	}
 
 	public boolean isLast() {
@@ -42,6 +62,6 @@ public class LinkedListItem {
 
 	@Override
 	public String toString() {
-		return "Item{" + "data=" + data + "}";
+		return "Item{" + "data=" + data + ", flag=" + flag + "}";
 	}
 }

@@ -7,6 +7,9 @@ import java.util.Random;
  */
 public class LinkedListUtil {
 
+	public static final char[] RANDOM_LETTER = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+			'w', 'x', 'y', 'z' };
+
 	public static LinkedListItem generate(int size) {
 		LinkedListItem[] items = generateArray(size);
 
@@ -54,7 +57,7 @@ public class LinkedListUtil {
 		Random random = new Random(feed);
 		LinkedListItem[] items = new LinkedListItem[size];
 		for (int i = 0; i < size; i++) {
-			LinkedListItem item = new LinkedListItem(random.nextInt(feed));
+			LinkedListItem item = new LinkedListItem(random.nextInt(feed), RANDOM_LETTER[random.nextInt(RANDOM_LETTER.length)]);
 			items[i] = item;
 		}
 		return items;
