@@ -10,4 +10,12 @@ public class StormTestUtil {
 		}
 		System.out.println("Emit: " + str.substring(0, str.length() - 3));
 	}
+
+	public static void printReceive(Object... objs) {
+		String str = "";
+		for (Object obj : objs) {
+			str = obj.toString() + " | ";
+		}
+		System.out.println("Receive: " + str.substring(0, str.length() - 3));
+	}
 }
