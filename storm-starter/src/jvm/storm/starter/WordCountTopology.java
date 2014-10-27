@@ -1,14 +1,9 @@
 package storm.starter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
-import backtype.storm.task.ShellBolt;
 import backtype.storm.topology.BasicOutputCollector;
-import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.topology.base.BaseBasicBolt;
@@ -16,6 +11,9 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import storm.starter.spout.RandomSentenceSpout;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This topology demonstrates Storm's stream groupings and multilang capabilities.
@@ -29,9 +27,11 @@ public class WordCountTopology {
 
 		builder.setBolt("split", new SplitSentence(), 8).shuffleGrouping("spout");
 		builder.setBolt("count", new WordCount(), 12).fieldsGrouping("split", new Fields("word"));
+		// builder.setBolt("count", new WordCount(), 12).shuffleGrouping("split");
 
 		Config conf = new Config();
-		conf.setDebug(true);
+		conf.setDebug(false);
+		conf.setMessageTimeoutSecs(5000);
 
 		if (args != null && args.length > 0) {
 			conf.setNumWorkers(3);
@@ -49,20 +49,18 @@ public class WordCountTopology {
 		}
 	}
 
-	public static class SplitSentence extends ShellBolt implements IRichBolt {
+	public static class SplitSentence extends BaseBasicBolt {
 
-		public SplitSentence() {
-			super("python", "splitsentence.py");
+		public void execute(Tuple input, BasicOutputCollector collector) {
+			String sentence = input.getString(0);
+			String[] words = sentence.split(" ");
+			for (String s : words) {
+				collector.emit(new Values(s));
+			}
 		}
 
-		@Override
 		public void declareOutputFields(OutputFieldsDeclarer declarer) {
 			declarer.declare(new Fields("word"));
-		}
-
-		@Override
-		public Map<String, Object> getComponentConfiguration() {
-			return null;
 		}
 	}
 
