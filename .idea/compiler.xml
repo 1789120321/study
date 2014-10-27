@@ -25,10 +25,9 @@
         <module name="ceptest" />
         <module name="ceptest_bak" />
         <module name="csdn-esper" />
-        <module name="spark-examples_2.10" />
+        <module name="PangYang" />
         <module name="storm-starter" />
         <module name="storm-test" />
-        <module name="web-socket" />
         <module name="web-socket-test" />
       </profile>
     </annotationProcessing>

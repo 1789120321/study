@@ -1,18 +1,12 @@
 package tree;
 
-public final class Node {
+/**
+ * Created by Luonanqin on 10/27/14.
+ */
+public class Node extends NodeMeta {
 
-	private int data;
 	private Node leftNode;
 	private Node rightNode;
-
-	public int getData() {
-		return data;
-	}
-
-	public void setData(int data) {
-		this.data = data;
-	}
 
 	public Node getLeftNode() {
 		return leftNode;
@@ -29,5 +23,4 @@ public final class Node {
 	public void setRightNode(Node rightNode) {
 		this.rightNode = rightNode;
 	}
-
 }
