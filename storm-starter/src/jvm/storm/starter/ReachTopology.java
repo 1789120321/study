@@ -57,6 +57,7 @@ public class ReachTopology {
 		@Override
 		public void execute(Tuple tuple, BasicOutputCollector collector) {
 			Object id = tuple.getValue(0);
+			System.out.println("GetTweeters ID: " + id);
 			String url = tuple.getString(1);
 			List<String> tweeters = TWEETERS_DB.get(url);
 			if (tweeters != null) {
@@ -76,6 +77,7 @@ public class ReachTopology {
 		@Override
 		public void execute(Tuple tuple, BasicOutputCollector collector) {
 			Object id = tuple.getValue(0);
+			System.out.println("GetFollowers ID: " + id);
 			String tweeter = tuple.getString(1);
 			List<String> followers = FOLLOWERS_DB.get(tweeter);
 			if (followers != null) {
@@ -105,11 +107,14 @@ public class ReachTopology {
 		@Override
 		public void execute(Tuple tuple) {
 			_followers.add(tuple.getString(1));
+			String string1 = tuple.getString(1);
+			System.out.println("instance: " + this.hashCode() + "PartialUniquer ID: " + tuple.getLong(0) + " p: " + string1);
 		}
 
 		@Override
 		public void finishBatch() {
 			_collector.emit(new Values(_id, _followers.size()));
+			System.out.println("PartialUniquer finish");
 		}
 
 		@Override
@@ -132,11 +137,13 @@ public class ReachTopology {
 		@Override
 		public void execute(Tuple tuple) {
 			_count += tuple.getInteger(1);
+			System.out.println("CountAggregator ID: " + _id);
 		}
 
 		@Override
 		public void finishBatch() {
 			_collector.emit(new Values(_id, _count));
+			System.out.println("CountAggregator Finish");
 		}
 
 		@Override
