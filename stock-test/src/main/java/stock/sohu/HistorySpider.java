@@ -46,6 +46,7 @@ public class HistorySpider {
 	public static PoolingHttpClientConnectionManager connectionManager;
 	public static CloseableHttpClient httpClient;
 	public static Map<String, String> stockInMarkets = new HashMap<String, String>();
+	public static String HISTORY_FILE = "history_base.csv";
 
 	static {
 		CrawlConfig config = new CrawlConfig();
@@ -160,7 +161,7 @@ public class HistorySpider {
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}
-		File file = new File(path + "history_base.csv");
+		File file = new File(path + HISTORY_FILE);
 		if (!file.exists()) {
 			try {
 				file.createNewFile();

@@ -23,8 +23,8 @@ public class Recorder {
 
 	static {
 
-		// File stockName = new File(BASE_PATH + "stockname copy.txt");
-		File stockName = new File(BASE_PATH + "stockname.txt");
+		File stockName = new File(BASE_PATH + "stock.txt");
+		// File stockName = new File(BASE_PATH + "stockname.txt");
 		RandomAccessFile raf = null;
 		try {
 			raf = new RandomAccessFile(stockName, "r");
@@ -32,12 +32,15 @@ public class Recorder {
 			while ((str = raf.readLine()) != null) {
 				String[] split = str.split("=");
 				byte[] bytes = split[1].getBytes("ISO-8859-1");
-				String s = new String(bytes, "gbk");
+				// byte[] bytes = split[1].getBytes();
+				String s = new String(bytes, "utf8");
 
 				stockList.add(split[0] + "_" + s);
 			}
-//			 stockList.clear();
-//			 stockList.add("600000_浦发银行");
+			// stockList.clear();
+			// stockList.add("603899_晨光文具");
+			// stockList.add("600608_上海科技");
+			// stockList.add("600602_仪电电子");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
