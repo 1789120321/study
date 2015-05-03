@@ -39,7 +39,7 @@ public class Recorder {
 			}
 			// stockList.clear();
 			// stockList.add("603899_晨光文具");
-			// stockList.add("600608_上海科技");
+			// stockList.add("600066_宇通客车");
 			// stockList.add("600602_仪电电子");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
