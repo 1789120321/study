@@ -26,8 +26,8 @@ public class MTM {
 		for (String stockName : Recorder.stockList) {
 			System.out.println(stockName);
 			Deque<HistoryPrice> prices = MTM.getPriceInfo(stockName);
-			Deque<MTMData> rsiDatas = MTM.computeMTM(prices);
-			MTM.recorder(rsiDatas, stockName);
+			Deque<MTMData> mtmDatas = MTM.computeMTM(prices);
+			MTM.recorder(mtmDatas, stockName);
 		}
 	}
 
