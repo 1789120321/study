@@ -1,6 +1,5 @@
 package stock.sohu;
 
-import com.google.gson.Gson;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpEntity;
@@ -24,11 +23,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by Luonanqin on 4/18/15.
@@ -36,12 +33,10 @@ import java.util.Random;
 public class HistorySpider {
 
 	private static String IN_MARKET_PATH = "/Users/Luonanqin/stock/stockInMarket/";
-	private static String field = "日期,开盘价,收盘价,涨跌额,涨跌幅,最低价,最高价,成交量（手）,成交额（万）,换手率";
-	private static Gson gson = new Gson();
-	private static String uri_prefix = "http://q.stock.sohu.com/hisHq?code=cn_";
+	private static String field = "日期,开盘价,收盘价,涨跌额,涨跌幅,最低价,最高价,成交量（股）,成交额（万）,换手率";
+	private static String uri_prefix = "http://quotes.money.163.com/service/chddata.html?code=0";
 	private static String uri_bridge = "&start=";
-	private static String uri_suffix = "&end=20150417&stat=1&order=D&period=d&callback=historySearchHandler&rt=jsonp&r=0.";
-	// private static String uri_suffix = "&start=19901219&end=20150417&stat=1&order=D&period=d&callback=historySearchHandler&rt=jsonp";
+	private static String uri_suffix = "&end=20150417&fields=TCLOSE;HIGH;LOW;TOPEN;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER";
 
 	public static PoolingHttpClientConnectionManager connectionManager;
 	public static CloseableHttpClient httpClient;
@@ -71,14 +66,12 @@ public class HistorySpider {
 		RandomAccessFile raf = null;
 		try {
 			raf = new RandomAccessFile(stockName, "r");
-			String str = null;
+			String str;
 			while ((str = raf.readLine()) != null) {
 				String[] split = str.split("_");
 
 				stockInMarkets.put(split[0], split[1].replaceAll("\\-", ""));
 			}
-			// stockList.clear();
-			// stockList.add("600000_浦发银行");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -95,7 +88,6 @@ public class HistorySpider {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(new Date());
 		for (String stockCodeName : Recorder.stockList) {
 			System.out.println(stockCodeName);
 			String stockCode = stockCodeName.substring(0, 6);
@@ -105,7 +97,6 @@ public class HistorySpider {
 			}
 			recordData(stockData, stockCodeName);
 		}
-		System.out.println(new Date());
 	}
 
 	private static List<HistoryStockData> getStockData(String url) {
@@ -120,27 +111,52 @@ public class HistorySpider {
 				byte[] response = EntityUtils.toByteArray(entity);
 
 				String result = new String(response, "utf-8");
-				StringBuffer json = new StringBuffer(result);
+				StringBuffer sb = new StringBuffer();
+				boolean firstLine = true;
+				for (int i = 0; i < result.length(); i++) {
+					if (result.charAt(i) == '\r' && result.charAt(i + 1) == '\n') {
+						i++;
+						if (firstLine) {
+							sb.delete(0, sb.length());
+							firstLine = false;
+							continue;
+						}
+						String data = sb.toString();
+						sb.delete(0, sb.length());
+						String[] dataSplit = data.split(",");
 
-				json.delete(0, 22);
-				json.delete(json.length() - 3, json.length());
+						String date = dataSplit[0].trim();
+						String close = dataSplit[3].trim();
+						String max = dataSplit[4].trim();
+						String min = dataSplit[5].trim();
+						String open = dataSplit[6].trim();
+						String zde = dataSplit[7].trim();
+						String zdf = dataSplit[8].trim();
+						String hs = dataSplit[9].trim();
+						String vols = dataSplit[10].trim();
+						String vole = dataSplit[11].trim();
 
-				HistoryData hsd = gson.fromJson(json.toString(), HistoryData.class);
+						if ("0".equals(vols) && "0.0".equals(vole)) {
+							continue;
+						}
 
-				for (String[] days : hsd.getHq()) {
-					HistoryStockData historyStockData = new HistoryStockData();
-					historyStockData.setDate(days[0]);
-					historyStockData.setKp(days[1]);
-					historyStockData.setSp(days[2]);
-					historyStockData.setZde(days[3]);
-					historyStockData.setZdf(days[4]);
-					historyStockData.setMin(days[5]);
-					historyStockData.setMax(days[6]);
-					historyStockData.setVols(days[7]);
-					historyStockData.setVole(days[8]);
-					historyStockData.setHs(days[9]);
+						HistoryStockData hData = new HistoryStockData();
+						hData.setDate(date);
+						hData.setKp(open);
+						hData.setSp(close);
+						hData.setMax(max);
+						hData.setMin(min);
+						hData.setZdf(zdf);
+						hData.setZde(zde);
+						hData.setVols(vols);
+						double temp = Double.valueOf(vole);
+						hData.setVole("" + (long) temp);
+						hData.setHs(hs);
 
-					stockDatas.add(historyStockData);
+						stockDatas.add(hData);
+					} else {
+						sb.append(result.charAt(i));
+					}
 				}
 			}
 		} catch (ClientProtocolException e) {
@@ -197,19 +213,5 @@ public class HistorySpider {
 				}
 			}
 		}
-	}
-
-	public static String getRandomNum() {
-		Random rm = new Random();
-
-		int strLength = 17;
-		// 获得随机数
-		double pross = (1 + rm.nextDouble()) * Math.pow(10, strLength);
-
-		// 将获得的获得随机数转化为字符串
-		String fixLenthString = String.valueOf(pross);
-
-		// 返回固定的长度的随机数
-		return fixLenthString.substring(1, strLength + 1);
 	}
 }

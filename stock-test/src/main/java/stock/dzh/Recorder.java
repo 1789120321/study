@@ -23,8 +23,8 @@ public class Recorder {
 
 	static {
 
-//		File stockName = new File(BASE_PATH + "stock.txt");
-		 File stockName = new File(BASE_PATH + "stockname.txt");
+		File stockName = new File(BASE_PATH + "stock.txt");
+		// File stockName = new File(BASE_PATH + "stockname.txt");
 		RandomAccessFile raf = null;
 		try {
 			raf = new RandomAccessFile(stockName, "r");
