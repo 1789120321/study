@@ -26,8 +26,8 @@ public class DMI {
 		for (String stockName : Recorder.stockList) {
 			System.out.println(stockName);
 			Deque<HistoryPrice> prices = dmi.getPriceInfo(stockName);
-			Deque<DmiData> rsiDatas = dmi.computeDMI(prices);
-			dmi.recorder(rsiDatas, stockName);
+			Deque<DmiData> dmiDatas = dmi.computeDMI(prices);
+			dmi.recorder(dmiDatas, stockName);
 		}
 	}
 

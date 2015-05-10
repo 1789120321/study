@@ -23,8 +23,8 @@ public class Recorder {
 
 	static {
 
-		File stockName = new File(BASE_PATH + "stock.txt");
-		// File stockName = new File(BASE_PATH + "stockname.txt");
+//		File stockName = new File(BASE_PATH + "stock.txt");
+		 File stockName = new File(BASE_PATH + "stockname.txt");
 		RandomAccessFile raf = null;
 		try {
 			raf = new RandomAccessFile(stockName, "r");
@@ -39,7 +39,7 @@ public class Recorder {
 			}
 			// stockList.clear();
 			// stockList.add("603899_晨光文具");
-			// stockList.add("600066_宇通客车");
+			// stockList.add("600721_百花村");
 			// stockList.add("600602_仪电电子");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
